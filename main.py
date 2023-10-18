@@ -1,13 +1,11 @@
-from flask import Flask
+from flask import Flask, render_template
 
-# Create an instance of the Flask class
 app = Flask(__name__)
 
-# Define a route and a function to handle requests to that route
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def index():
+    return render_template('index.html', name='John Doe')
 
-# Run the application
 if __name__ == '__main__':
     app.run(debug=True)
+
