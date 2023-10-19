@@ -1,18 +1,20 @@
 from flask import Flask, render_template
-import pyodbc
+import pymssql
 
-conn = pyodbc.connect('DRIVER={SQL Server};'
-                      'SERVER=coogmusicserver.windows.database.net;'
-                      'DATABASE=coogmusic;'
-                      'UID=CloudSA5fb1e56b;'
-                      'PWD=Coogs4lyfe!;')
+conn = pymssql.connect(
+    server='coogmusicserver.database.windows.net',
+    user='CloudSA5fb1e56b',
+    password='Coogs4lyfe!',
+    database='coogmusic',
+    as_dict=True
+)  
 cursor = conn.cursor()
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    cursor.execute('SELECT * FROM song')
+    cursor.execute('SELECT * FROM artist')
     data = cursor.fetchall()
     return render_template('index.html', name=data)
 
