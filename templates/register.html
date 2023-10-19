@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Register</title>
+</head>
+<body>
+    <section class="form_style">
+        <div class="container">
+            <header>
+                <h1>Register</h1>
+            </header>
+            
+            <form action="/register" method="POST" class="form">
+                <div class="input_box">
+                    <label for="password">Email</label>
+                    <input type="password" name="password" id="password" placeholder="Enter Your Email">
+                </div>
+
+                <div class="input_box">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" placeholder="Create a Username">
+                </div>
+    
+                <div class="input_box">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" placeholder="Create a Password">
+                </div>
+    
+                <button type="submit" class="submit_btn">Register</button>
+            </form></br>
+            <a href="{{url_for('login')}}" class="center_text">Already have an account? Log In</a>
+        </div>
+    </section>
+</body>
+</html>
