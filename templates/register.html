@@ -15,18 +15,38 @@
             
             <form method='POST' action="/register" class="form">
                 <div class="input_box">
+                    <label for="first">First Name</label>
+                    <input type="text" name="first" id="first" placeholder="Enter Your First Name">
+                </div>
+
+                <div class="input_box">
+                    <label for="last">Last Name</label>
+                    <input type="text" name="last" id="last" placeholder="Enter Your Last Name">
+                </div>
+
+                <div class="input_box">
+                    <label for="DOB">Date of Birth</label>
+                    <input type="date" name="DOB" id="DOB">
+                </div>
+
+                <div class="input_box">
+                    <label for="pnum">Phone Number</label>
+                    <input type="tel" name="pnum" id="pnum" pattern="[0-9]{3}[0-9]{3}[0-9]{4}" placeholder="Format: 1234567890">
+                </div>
+
+                <div class="input_box">
                     <label for="email">Email</label>
-                    <input type="text" name="email" id="email" placeholder="Enter Your Email">
+                    <input type="text" name="email" id="email" placeholder="Enter Your Email" required>
                 </div>
 
                 <div class="input_box">
                     <label for="username">Username</label>
-                    <input type="text" name="username" id="username" placeholder="Create a Username">
+                    <input type="text" name="username" id="username" placeholder="Create a Username" required>
                 </div>
     
                 <div class="input_box">
                     <label for="password">Password</label>
-                    <input type="password" name="password" id="password" placeholder="Create a Password">
+                    <input type="password" name="password" id="password" placeholder="Create a Password" required>
                 </div>
     
                 <button type="submit" class="submit_btn">Register</button>
