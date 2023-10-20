@@ -39,6 +39,7 @@ def post_register():
     vals = ('first', 'last', request.form['email'], date.today(), request.form['username'], request.form['password'], '0000000000', None, None, datetime.now())
 
     cursor.execute(query, vals)
+    conn.commit()
 
     return redirect(url_for('index'))
 
