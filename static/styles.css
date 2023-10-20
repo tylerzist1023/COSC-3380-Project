@@ -1,4 +1,95 @@
 h1 
 {
-    color: #FF0000;
+    color: #859ad3;
+}
+
+body {
+    background-color: #111727;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+/*Form Styling*/
+.form_style {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    position: relative;
+    max-width: 700px;
+    width: 100%;
+    background: #1e2844;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.container header {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 500;
+    text-align: center;
+}
+
+.container .form {
+    margin-top: 30px;
+}
+
+.form .input_box {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.input_box label {
+    color: #859ad3;
+}
+
+.form .input_box input {
+    position: relative;
+    height: 50px;
+    width: 100%;
+    outline: none;
+    font-size: 1rem;
+    color: #707070;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 15px;
+}
+
+.center_text {
+    text-align: center;
+}
+
+a.center_text {
+    color: white;
+    display: block;
+}
+
+.submit_btn {
+    height: 55px;
+    width: 100%;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+
+}
+
+button.submit_btn:hover {
+    background-color: rgb(43, 45, 161);
 }
