@@ -1,24 +1,28 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, session
 from jinja2.utils import urlize 
 import pymysql
 from datetime import datetime,date
 
-conn = pymysql.connect(
-    host='35.226.14.71',
-    user='coogmusic',
-    password='coogs4life!',
-    database='coogmusic'
-)  
-cursor = conn.cursor()
+def get_conn():
+    return pymysql.connect(
+        host='35.226.14.71',
+        user='coogmusic',
+        password='coogs4life!',
+        database='coogmusic'
+    )  
 
 app = Flask(__name__, static_url_path='', static_folder='static/')
+app.secret_key = 'the_secret_key'
 
 @app.route('/')
 def index():
-    cursor.execute('SELECT * FROM Listener')
-    data = cursor.fetchall()
-    print(data)
-    return render_template('index.html', name=data)
+    name = "sign in!"
+    if 'logged_in' in session and session['logged_in']:
+        name = session['username']
+
+    conn = get_conn()
+    cursor = conn.cursor()
+    return render_template('index.html', name=name)
 
 @app.route('/login', methods=['GET'])
 def get_login():
@@ -26,8 +30,18 @@ def get_login():
 
 @app.route('/login', methods=['POST'])
 def post_login():
-    pass
-    # username
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute('select * from Listener where Username=%s and Password=%s', (request.form['username'], request.form['password']))
+    user = cursor.fetchone()
+
+    if user is None:
+        return redirect(url_for('get_login'))
+    else:
+        session['logged_in'] = True
+        session['username'] = request.form['username']
+        return redirect(url_for('index'))
+
 
 @app.route('/register', methods=['GET'])
 def get_register():
@@ -35,6 +49,8 @@ def get_register():
 
 @app.route('/register', methods=['POST'])
 def post_register():
+    conn = get_conn()
+    cursor = conn.cursor()
     query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio, CreationStamp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     vals = ('first', 'last', request.form['email'], date.today(), request.form['username'], request.form['password'], '0000000000', None, None, datetime.now())
 
