@@ -20,8 +20,6 @@ def index():
     if 'logged_in' in session and session['logged_in']:
         name = session['username']
 
-    conn = get_conn()
-    cursor = conn.cursor()
     return render_template('index.html', name=name)
 
 @app.route('/login', methods=['GET'])
@@ -34,6 +32,8 @@ def post_login():
     cursor = conn.cursor()
     cursor.execute('select * from Listener where Username=%s and Password=%s', (request.form['username'], request.form['password']))
     user = cursor.fetchone()
+
+    conn.close()
 
     if user is None:
         return redirect(url_for('get_login'))
@@ -56,6 +56,8 @@ def post_register():
 
     cursor.execute(query, vals)
     conn.commit()
+
+    conn.close()
 
     return redirect(url_for('index'))
 
