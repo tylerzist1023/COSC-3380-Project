@@ -38,10 +38,15 @@ def post_login():
     if user is None:
         return redirect(url_for('get_login'))
     else:
+        session.clear()
         session['logged_in'] = True
         session['username'] = request.form['username']
         return redirect(url_for('index'))
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 @app.route('/register', methods=['GET'])
 def get_register():
@@ -58,6 +63,10 @@ def post_register():
     conn.commit()
 
     conn.close()
+
+    session.clear()
+    session['username'] = request.form['username']
+    session['logged_in'] = True
 
     return redirect(url_for('index'))
 
