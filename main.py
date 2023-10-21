@@ -16,18 +16,43 @@ app.secret_key = 'the_secret_key'
 
 @app.route('/')
 def index():
-    name = "sign in!"
+    name = "sign in"
+    role = None
     if 'logged_in' in session and session['logged_in']:
         name = session['username']
+        role = session['role']
 
-    return render_template('index.html', name=name)
+    return render_template('index.html', name=name, role=role)
 
-@app.route('/login', methods=['GET'])
-def get_login():
-    return render_template('login.html')
+@app.route('/listener/register', methods=['GET'])
+def get_listener_register():
+    return render_template('register.html', role='listener')
 
-@app.route('/login', methods=['POST'])
-def post_login():
+@app.route('/listener/register', methods=['POST'])
+def post_listener_register():
+    conn = get_conn()
+    cursor = conn.cursor()
+    query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    vals = (request.form['first'], request.form['last'], request.form['email'], request.form['DOB'], request.form['username'], request.form['password'], request.form['pnum'], None, None)
+
+    cursor.execute(query, vals)
+    conn.commit()
+
+    conn.close()
+
+    session.clear()
+    session['role'] = 'listener'
+    session['username'] = request.form['username']
+    session['logged_in'] = True
+
+    return redirect(url_for('index'))
+
+@app.route('/listener/login', methods=['GET'])
+def get_listener_login():
+    return render_template('login.html', role='listener')
+
+@app.route('/listener/login', methods=['POST'])
+def post_listener_login():
     conn = get_conn()
     cursor = conn.cursor()
     cursor.execute('select * from Listener where Username=%s and Password=%s', (request.form['username'], request.form['password']))
@@ -36,28 +61,29 @@ def post_login():
     conn.close()
 
     if user is None:
-        return redirect(url_for('get_login'))
+        return redirect(url_for('get_listener_login'))
     else:
         session.clear()
+        session['role'] = 'listener'
         session['logged_in'] = True
         session['username'] = request.form['username']
         return redirect(url_for('index'))
 
-@app.route('/logout')
-def logout():
+@app.route('/listener/logout')
+def listener_logout():
     session.clear()
     return redirect(url_for('index'))
 
-@app.route('/register', methods=['GET'])
-def get_register():
-    return render_template('register.html')
+@app.route('/artist/register', methods=['GET'])
+def get_artist_register():
+    return render_template('register.html', role='artist')
 
-@app.route('/register', methods=['POST'])
-def post_register():
+@app.route('/artist/register', methods=['POST'])
+def post_artist_register():
     conn = get_conn()
     cursor = conn.cursor()
-    query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio, CreationStamp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    vals = (request.form['first'], request.form['last'], request.form['email'], request.form['DOB'], request.form['username'], request.form['password'], request.form['pnum'], None, None, datetime.now())
+    query = 'INSERT INTO Artist (ArtistName, Email, DOB, UserName, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'
+    vals = (request.form['name'], request.form['email'], request.form['DOB'], request.form['username'], request.form['password'], request.form['pnum'], None, None)
 
     cursor.execute(query, vals)
     conn.commit()
@@ -65,9 +91,37 @@ def post_register():
     conn.close()
 
     session.clear()
+    session['role'] = 'artist'
     session['username'] = request.form['username']
     session['logged_in'] = True
 
+    return redirect(url_for('index'))
+
+@app.route('/artist/login', methods=['GET'])
+def get_artist_login():
+    return render_template('login.html', role='artist')
+
+@app.route('/artist/login', methods=['POST'])
+def post_artist_login():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute('select * from Artist where UserName=%s and Password=%s', (request.form['username'], request.form['password']))
+    user = cursor.fetchone()
+
+    conn.close()
+
+    if user is None:
+        return redirect(url_for('get_artist_login'))
+    else:
+        session.clear()
+        session['role'] = 'artist'
+        session['logged_in'] = True
+        session['username'] = request.form['username']
+        return redirect(url_for('index'))
+
+@app.route('/artist/logout')
+def artist_logout():
+    session.clear()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':

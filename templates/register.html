@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <title>Register</title>
 </head>
 <body>
@@ -13,7 +13,8 @@
                 <h1>Register</h1>
             </header>
             
-            <form method='POST' action="/register" class="form">
+            <form method='POST' action="/{{ role }}/register" class="form">
+                {% if role == 'listener' %}
                 <div class="input_box">
                     <label for="first">First Name</label>
                     <input type="text" name="first" id="first" placeholder="Enter Your First Name">
@@ -23,6 +24,14 @@
                     <label for="last">Last Name</label>
                     <input type="text" name="last" id="last" placeholder="Enter Your Last Name">
                 </div>
+                {% endif %}
+
+                {% if role == 'artist' %}
+                <div class="input_box">
+                    <label for="name">Display Name</label>
+                    <input type="text" name="name" id="name" placeholder="Enter Your Display Name">
+                </div>
+                {% endif %}
 
                 <div class="input_box">
                     <label for="DOB">Date of Birth</label>
@@ -51,7 +60,7 @@
     
                 <button type="submit" class="submit_btn">Register</button>
             </form></br>
-            <a href="{{url_for('get_login')}}" class="center_text">Already have an account? Log In</a>
+            <a href="/{{ role }}/register" class="center_text">Already have an account? Log In</a>
         </div>
     </section>
 </body>
