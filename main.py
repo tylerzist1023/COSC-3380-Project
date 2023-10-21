@@ -52,7 +52,7 @@ def post_register():
     conn = get_conn()
     cursor = conn.cursor()
     query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio, CreationStamp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    vals = ('first', 'last', request.form['email'], date.today(), request.form['username'], request.form['password'], '0000000000', None, None, datetime.now())
+    vals = (request.form['first'], request.form['last'], request.form['email'], request.form['DOB'], request.form['username'], request.form['password'], request.form['pnum'], None, None, datetime.now())
 
     cursor.execute(query, vals)
     conn.commit()
@@ -62,4 +62,4 @@ def post_register():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=80)
