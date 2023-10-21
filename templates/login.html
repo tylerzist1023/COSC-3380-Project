@@ -13,7 +13,7 @@
                 <h1>Login Page</h1>
             </header>
             
-            <form method='POST' action="/{{ role }}/login" class="form">
+            <form method='POST' action="/login?role={{ role }}" class="form">
                 <div class="input_box">
                     <label for="username">Username</label>
                     <input type="text" name="username" id="username" placeholder="Enter your username">
@@ -26,7 +26,7 @@
                 
                 <button type="submit" class="submit_btn">Login</button>
             </form></br>
-            <a href="/{{ role }}/register" class="center_text">Don't have an account? Sign Up</a></br>
+            <a href="/register?role={{ role }}" class="center_text">Don't have an account? Sign Up</a></br>
             <a href="/" class="center_text">Lost Your Password?</a>
         </div>
     </section>
