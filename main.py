@@ -24,9 +24,30 @@ def index():
 
     return render_template('index.html', name=name, role=role)
 
-@app.route('/listener/register', methods=['GET'])
-def get_listener_register():
-    return render_template('register.html', role='listener')
+@app.route('/login', methods=['GET'])
+def get_login():
+    role = request.args.get('role')
+
+    if role is None or role == 'listener':
+        return render_template('login.html', role='listener')
+    elif role == 'artist':
+        return render_template('login.html', role='artist')
+    return "Not found"
+
+@app.route('/register', methods=['GET'])
+def get_register():
+    role = request.args.get('role')
+
+    if role is None or role == 'listener':
+        return render_template('register.html', role='listener')
+    elif role == 'artist':
+        return render_template('register.html', role='artist')
+    return "Not found"
+
+@app.route('/logout')
+def listener_logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 @app.route('/listener/register', methods=['POST'])
 def post_listener_register():
@@ -47,10 +68,6 @@ def post_listener_register():
 
     return redirect(url_for('index'))
 
-@app.route('/listener/login', methods=['GET'])
-def get_listener_login():
-    return render_template('login.html', role='listener')
-
 @app.route('/listener/login', methods=['POST'])
 def post_listener_login():
     conn = get_conn()
@@ -68,15 +85,6 @@ def post_listener_login():
         session['logged_in'] = True
         session['username'] = request.form['username']
         return redirect(url_for('index'))
-
-@app.route('/listener/logout')
-def listener_logout():
-    session.clear()
-    return redirect(url_for('index'))
-
-@app.route('/artist/register', methods=['GET'])
-def get_artist_register():
-    return render_template('register.html', role='artist')
 
 @app.route('/artist/register', methods=['POST'])
 def post_artist_register():
@@ -97,10 +105,6 @@ def post_artist_register():
 
     return redirect(url_for('index'))
 
-@app.route('/artist/login', methods=['GET'])
-def get_artist_login():
-    return render_template('login.html', role='artist')
-
 @app.route('/artist/login', methods=['POST'])
 def post_artist_login():
     conn = get_conn()
@@ -118,11 +122,6 @@ def post_artist_login():
         session['logged_in'] = True
         session['username'] = request.form['username']
         return redirect(url_for('index'))
-
-@app.route('/artist/logout')
-def artist_logout():
-    session.clear()
-    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)
