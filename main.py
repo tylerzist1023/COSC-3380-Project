@@ -3,13 +3,13 @@ from jinja2.utils import urlize
 import pymysql
 from datetime import datetime,date
 
-def get_conn():
-    return pymysql.connect(
+conn = pymysql.connect(
         host='35.226.14.71',
         user='coogmusic',
         password='coogs4life!',
         database='coogmusic'
-    )  
+    )
+cursor = conn.cursor()
 
 app = Flask(__name__, static_url_path='', static_folder='static/')
 app.secret_key = 'the_secret_key'
@@ -64,11 +64,8 @@ def post_login():
     else:
         return redirect(url_for('get_login', role=[role]))
 
-    conn = get_conn()
-    cursor = conn.cursor()
     cursor.execute(query, vals)
     user = cursor.fetchone()
-    conn.close()
 
     if user is None:
         return redirect(url_for('get_login', role=[role]))
@@ -94,11 +91,8 @@ def post_register():
     else:
         return redirect(url_for('get_register', role=[role]))
 
-    conn = get_conn()
-    cursor = conn.cursor() 
     cursor.execute(query, vals)
     conn.commit()
-    conn.close()
 
     session.clear()
     session['role'] = 'listener'
@@ -108,6 +102,10 @@ def post_register():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.jinja_env.trim_blocks = True
-    app.jinja_env.lstrip_blocks = True
-    app.run(debug=True, host='0.0.0.0', port=80)
+    try:
+        app.jinja_env.trim_blocks = True
+        app.jinja_env.lstrip_blocks = True
+        app.run(debug=True, host='0.0.0.0', port=80)
+        conn.close()
+    except:
+        conn.close()
