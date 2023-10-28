@@ -59,7 +59,7 @@ def post_login():
         query = 'select * from Listener where Username=%s and Password=%s'
         vals = (request.form['username'], request.form['password'])
     elif role == 'artist':
-        query = 'select * from Listener where Username=%s and Password=%s'
+        query = 'select * from Artist where Username=%s and Password=%s'
         vals = (request.form['username'], request.form['password'])
     else:
         return redirect(url_for('get_login', role=[role]))
@@ -95,7 +95,7 @@ def post_register():
     conn.commit()
 
     session.clear()
-    session['role'] = 'listener'
+    session['role'] = role
     session['username'] = request.form['username']
     session['logged_in'] = True
 
