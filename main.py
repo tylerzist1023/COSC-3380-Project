@@ -18,9 +18,9 @@ def index():
     data = cursor.fetchall()
     return render_template('index.html', name=data)
 
-@app.route('/home')
+@app.route('/listener')
 def home():
-    return render_template('home.html')
+    return render_template('listener.html')
 
 @app.route('/login')
 def login():
