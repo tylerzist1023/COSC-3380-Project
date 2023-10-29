@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, url_for, redirect, session
+from flask import Flask, render_template, request, url_for, redirect, session, send_file
 from jinja2.utils import urlize 
 import pymysql
 from datetime import datetime,date
+from io import BytesIO
+import magic
 
 f = None
 try:
@@ -22,6 +24,8 @@ cursor = conn.cursor()
 
 app = Flask(__name__, static_url_path='', static_folder='static/')
 app.secret_key = '}dMpN?XNRqzV?y!)&[%E!;cRDPtSFW'
+
+mime_detector = magic.Magic()
 
 @app.route('/')
 def index():
@@ -126,8 +130,18 @@ def post_register():
 
 @app.route('/artist/<artist_id>', methods=['GET'])
 def get_artist(artist_id):
-    query = 'select * from Artist where ArtistID=%s'
+    query = 'select ArtistID from Artist where ArtistID=%s'
     vals = (artist_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    return str(result)
+
+@app.route('/album/<album_id>', methods=['GET'])
+def get_album(album_id):
+    query = 'select AlbumID from Album where AlbumID=%s'
+    vals = (album_id)
     cursor.execute(query, vals)
     result = cursor.fetchone()
     conn.commit()
@@ -136,7 +150,7 @@ def get_artist(artist_id):
 
 @app.route('/song/<song_id>', methods=['GET'])
 def get_song(song_id):
-    query = 'select * from Song where SongID=%s'
+    query = 'select SongID from Song where SongID=%s'
     vals = (song_id)
     cursor.execute(query, vals)
     result = cursor.fetchone()
@@ -146,6 +160,58 @@ def get_song(song_id):
         return render_template('song_test.html', song_id=song_id)
     else:
         return "Song not found", 404
+
+def get_file(buffer):
+    file = BytesIO(buffer)
+    file.seek(0)
+    mimetype = mime_detector.from_buffer(buffer)
+
+    return (file,mimetype)
+
+@app.route('/song/<song_id>/audio', methods=['GET'])
+def get_song_file(song_id):
+    query = 'select SongFile from Song where SongID=%s'
+    vals = (song_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    if not result or result[0] is None:
+        return "Song file not found", 404
+
+    (file, mimetype) = get_file(result[0])
+
+    return send_file(file, mimetype=mimetype)
+
+@app.route('/artist/<artist_id>/pic', methods=['GET'])
+def get_artist_pic(artist_id):
+    query = 'select ProfilePic from Artist where ArtistID=%s'
+    vals = (artist_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    if not result or result[0] is None:
+        return "Artist pic not found", 404
+
+    (file, mimetype) = get_file(result[0])
+
+    return send_file(file, mimetype=mimetype)
+
+@app.route('/album/<album_id>/pic', methods=['GET'])
+def get_album_pic(album_id):
+    query = 'select AlbumPic from Album where AlbumID=%s'
+    vals = (album_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    if not result or result[0] is None:
+        return "Album pic not found", 404
+
+    (file, mimetype) = get_file(result[0])
+
+    return send_file(file, mimetype=mimetype)
 
 @app.route('/playlist/<playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
