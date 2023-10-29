@@ -3,26 +3,37 @@ from jinja2.utils import urlize
 import pymysql
 from datetime import datetime,date
 
+f = None
+try:
+    f = open('coogmusic.env', 'r')
+except:
+    print("coogmusic.env not found. Create a new file called coogmusic.env, and put the host, username, password, database in this new file, each separated by line")
+    exit(1)
+
+env_lines = f.read().splitlines()
+
 conn = pymysql.connect(
-        host='35.226.14.71',
-        user='coogmusic',
-        password='coogs4life!',
-        database='coogmusic'
+        host=env_lines[0].strip(),
+        user=env_lines[1].strip(),
+        password=env_lines[2].strip(),
+        database=env_lines[3].strip()
     )
 cursor = conn.cursor()
 
 app = Flask(__name__, static_url_path='', static_folder='static/')
-app.secret_key = 'the_secret_key'
+app.secret_key = '}dMpN?XNRqzV?y!)&[%E!;cRDPtSFW'
 
 @app.route('/')
 def index():
     name = "sign in"
     role = None
+    id_ = None
     if 'logged_in' in session and session['logged_in']:
         name = session['username']
         role = session['role']
+        id_ = session['id']
 
-    return render_template('index.html', name=name, role=role)
+    return render_template('index.html', name=name, role=role, id_=id_)
 
 @app.route('/login', methods=['GET'])
 def get_login():
@@ -71,6 +82,10 @@ def post_login():
         return redirect(url_for('get_login', role=[role]))
     else:
         session.clear()
+        if role is None or role == 'listener':
+            session['id'] = user[0]
+        elif role == 'artist':
+            session['id'] = user[0]
         session['role'] = role
         session['logged_in'] = True
         session['username'] = request.form['username']
@@ -85,27 +100,94 @@ def post_register():
     if role is None or role == 'listener':
         query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         vals = (request.form['first'], request.form['last'], request.form['email'], request.form['DOB'], request.form['username'], request.form['password'], request.form['pnum'], None, None)
+        result_query = "SELECT * FROM Listener WHERE UserID = LAST_INSERT_ID()"
     elif role == 'artist':
         query = 'INSERT INTO Artist (ArtistName, Email, DOB, UserName, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'
         vals = (request.form['name'], request.form['email'], request.form['DOB'], request.form['username'], request.form['password'], request.form['pnum'], None, None)
+        result_query = "SELECT * FROM Artist WHERE ArtistID = LAST_INSERT_ID()"
     else:
         return redirect(url_for('get_register', role=[role]))
 
     cursor.execute(query, vals)
+    cursor.execute(result_query)
+    result = cursor.fetchone()
     conn.commit()
 
     session.clear()
+    if role is None or role == 'listener':
+        session['id'] = result[0]
+    elif role == 'artist':
+        session['id'] = result[0]
     session['role'] = role
     session['username'] = request.form['username']
     session['logged_in'] = True
 
     return redirect(url_for('index'))
 
+@app.route('/artist/<artist_id>', methods=['GET'])
+def get_artist(artist_id):
+    query = 'select * from Artist where ArtistID=%s'
+    vals = (artist_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    return str(result)
+
+@app.route('/song/<song_id>', methods=['GET'])
+def get_song(song_id):
+    query = 'select * from Song where SongID=%s'
+    vals = (song_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    if result:
+        return render_template('song_test.html', song_id=song_id)
+    else:
+        return "Song not found", 404
+
+@app.route('/playlist/<playlist_id>', methods=['GET'])
+def get_playlist(playlist_id):
+    query = 'select * from Playlist where PlaylistID=%s'
+    vals = (playlist_id)
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    conn.commit()
+
+    return str(result)
+
+@app.route('/song/<song_id>/rate', methods=['POST'])
+def rate_song(song_id):
+    if not ('logged_in' in session and session['logged_in'] and session['role'] == 'listener'):
+        return "You are not authorized to do that", 401
+    if not ('rating' in request.form):
+        return "Specify the rating in the form please", 400
+
+    query = 'SELECT * FROM Rating WHERE SongID=%s AND UserID=%s'
+    vals = (song_id, session['id'])
+    cursor.execute(query, vals)
+    result = cursor.fetchone()
+    print(result)
+
+    if result is not None:
+        query = 'UPDATE Rating SET Value=%s WHERE SongID=%s AND UserID=%s'
+        vals = (request.form['rating'], song_id, session['id'])
+        cursor.execute(query, vals)
+    else:
+        query = 'INSERT INTO Rating (UserID, SongID, Value) VALUES (%s,%s,%s)'
+        vals = (session['id'], song_id, request.form['rating'])
+        cursor.execute(query, vals)
+
+    conn.commit()
+
+    return "", 200
+
 if __name__ == '__main__':
     try:
         app.jinja_env.trim_blocks = True
         app.jinja_env.lstrip_blocks = True
-        app.run(debug=True, host='0.0.0.0', port=80)
+        app.run(debug=True, host='127.0.0.1', port=5000)
         conn.close()
     except:
         conn.close()

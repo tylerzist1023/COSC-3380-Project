@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Register</title>
+</head>
+<body>
+    <section class="form_style">
+        <div class="container">
+            <form method='POST' action="/song/{{song_id}}/rate" class="form">
+
+                <div class="input_box">
+                    <label for="rating">Rate the song</label>
+                    <input type="number" name="rating" id="rating" placeholder="5">
+                </div>
+                <button type="submit" class="submit_btn">Rate</button>
+            </form></br>
+        </div>
+    </section>
+</body>
+</html>
