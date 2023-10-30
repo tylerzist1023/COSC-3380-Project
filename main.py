@@ -30,6 +30,18 @@ def login():
 def register():
     return render_template('register.html')
 
+@app.route('/artist')
+def artist():
+    return render_template('artist.html')
+
+@app.route('/artist/insights')
+def artist_insights():
+    return render_template('artist_insights.html')
+
+@app.route('/artist/publish-album')
+def artist_publish_album():
+    return render_template('artist_publish_album.html')
+
 @app.route('/listener/profile')
 def profile_listener():
     return render_template('profile_listener.html')
