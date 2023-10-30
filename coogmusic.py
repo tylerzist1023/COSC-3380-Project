@@ -95,6 +95,10 @@ def post_login():
         session['username'] = request.form['username']
         return redirect(url_for('index'))
 
+@app.route('/listener', methods=['GET'])
+def get_register():
+    return render_template('listener.html')
+
 @app.route('/register', methods=['POST'])
 def post_register():
     query = None
