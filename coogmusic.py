@@ -96,7 +96,7 @@ def post_login():
         return redirect(url_for('index'))
 
 @app.route('/listener', methods=['GET'])
-def get_register():
+def get_listener():
     return render_template('listener.html')
 
 @app.route('/register', methods=['POST'])
