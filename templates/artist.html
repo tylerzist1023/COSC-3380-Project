@@ -197,24 +197,24 @@
                 <li>
                     <a href="">
                         <span class="link_icon"></span>
-                        <span>My Playlists</span>
+                        <span>My Music</span>
                     </a>
-                    <a href="" class="add_playlist">+</a>
+                    <a href="" class="add_album">+</a>
                     <ul class="list_container">
                         <li>
                             <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>A Playlist</span>
+                            <span>An Album</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>Another Playlist</span>
+                            <span>Another Album</span>
                         </li>
                     </ul>
                 </li>
                 <!-- <li>
                     <a href="">
                         <span class="link_icon"></span>
-                        <span>Create Playlist</span>
+                        <span>Publish Album</span>
                     </a>
                 </li> -->
             </ul>
@@ -225,32 +225,32 @@
                 <li>
                     <a href="">
                         <span class="link_icon"></span>
-                        <span>Followed Artists</span>
+                        <span>Followers</span>
                     </a>
                     <ul class="list_container">
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
+                            <span>A User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
+                            <span>Another User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
+                            <span>A User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
+                            <span>Another User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
+                            <span>A User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
+                            <span>Another User</span>
                         </li>
                     </ul>
                 </li>
@@ -261,80 +261,47 @@
     <!-- Right Sidebar -->
     <div class="right_sidebar">
         <h1>Top Hits</h1>
-        <select id="timeFrameSelector">
-            <option value="monthly">Monthly</option>
-            <option value="weekly">Weekly</option>
-            <option value="daily">Daily</option>
-        </select>
-
-        <div id="filteredContent">
-
-            <div id="monthlyContent" class="content"></div>
-            <div class="navigation">
-                <ul>
-                    <li>
-                        <p>
-                            <span class="link_icon"></span>
-                            <span>Monthly:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A Song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                            </p>
-                    </li>
-                </ul>
-            </div>
-
-
-            <div id="weeklyContent" class="content">
-                <div class="navigation">
-                    <ul>
+        <div class="navigation">
+            <ul>
+                <li>
+                    <p>
+                        <span class="link_icon"></span>
+                        <span>Weekly:</span>
+                    <ul class="list_container">
                         <li>
-                            <p>
-                                <span class="link_icon"></span>
-                                <span>Weekly:</span>
-                            <ul class="list_container">
-                                <li>
-                                    <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                    <span>A song</span>
-                                </li>
-                                <li>
-                                    <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                    <span>Another Song</span>
-                                </li>
-                                </p>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>A Song</span>
                         </li>
-                    </ul>
-                </div>
-            </div>
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                        </p>
+                </li>
+            </ul>
+        </div>
 
-            <div id="dailyContent" class="content"></div>
-            <div class="navigation">
-                <ul>
-                    <li>
-                        <p>
-                            <span class="link_icon"></span>
-                            <span>Daily:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A Song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                            </p>
-                    </li>
-                </ul>
-            </div>
+        <div class="navigation">
+            <ul>
+                <li>
+                    <p>
+                        <span class="link_icon"></span>
+                        <span>Daily:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>A song</span>
+                        </li>
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                        </p>
+                </li>
+            </ul>
         </div>
     </div>
+
 
     <!-- Music Player -->
     <div class="song_player">
@@ -348,9 +315,7 @@
             <source src="" type="">
         </audio>
     </div>
-    </div>
-    <!-- Other HTML content above -->
-    <script src="filterContent.js"></script>
+
 </body>
 
 </html>

@@ -42,9 +42,21 @@ def artist_insights():
 def artist_publish_album():
     return render_template('artist_publish_album.html')
 
+@app.route('/artist/profile')
+def profile_artist():
+    return render_template('profile_artist.html')
+
+@app.route('/artist/profile/edit')
+def edit_profile_artist():
+    return render_template('artist_edit.html')
+
 @app.route('/listener/profile')
 def profile_listener():
     return render_template('profile_listener.html')
+
+@app.route('/listener/profile/edit')
+def edit_profile_listener():
+    return render_template('listener_edit.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
