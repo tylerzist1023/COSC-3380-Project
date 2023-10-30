@@ -1,0 +1,144 @@
+.listener_profile { 
+    position: relative;
+    display: flex;
+    overflow: hidden; 
+    width: auto; 
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px; 
+    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
+} 
+
+.listener_profile img { 
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%;
+    margin: 20px 20px;
+}
+
+.listener_profile .profile_information h1 {
+    color: white;
+}
+
+.listener_profile .profile_information h3 {
+    color: white;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.listener_profile .profile_information h4 {
+    color: white;
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.listener_profile a {
+    color: white;
+    font-size: 14px;
+    margin-left: 20px;
+}
+
+.song_list .list .artist_item {
+    min-width: 140px;
+    width: 160px;
+    padding: 15px;
+    background-color: #181818;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all ease 0.4s;
+}
+
+.song_list .list .artist_item:hover {
+    background-color: #252525;
+}
+
+.song_list .list .artist_item img {
+    width: 100%;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.song_list .list .artist_item h4 {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song_list .list .artist_item p {
+    color: #989898;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.edit_profile { 
+    position: relative;
+    overflow: hidden; 
+    float: left;
+    width: auto;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px; 
+    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
+} 
+
+.edit_profile img { 
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%;
+    margin: 20px 20px;
+}
+
+.edit_profile h1 { 
+    text-align: center;
+}
+
+.edit_profile_form {
+    min-height: 100vh;
+    display: flex;
+    padding: 20px;
+}
+
+.edit_profile_form .form .input_box .edit_box {
+    height: 50px;
+    width: 700px;
+    position: relative;
+    align-items: center;
+    color: #707070;
+    outline: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 15px;
+}
+
+.edit_profile_form .form .input_box label {
+    height: 50px;
+    width: 350px;
+    line-height: 44px;
+    position: relative;
+    float: left;
+}
+
+.save_btn {
+    height: 55px;
+    width: 700px;
+    float: right;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+button.save_btn:hover {
+    background-color: rgb(43, 45, 161);
+}

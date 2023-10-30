@@ -30,8 +30,25 @@ body {
     width: 196px;
     background-color: #1e2844;
     padding: 20px;
-    overflow: hidden;
+    overflow: auto;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #333 #666; /* Track and thumb colors */
 }
+
+/* Style the scrollbar thumb */
+.left_sidebar::-webkit-scrollbar {
+    width: 12px; /* Adjust the width as needed */
+}
+
+.left_sidebar::-webkit-scrollbar-thumb {
+    background-color: #666; /* Thumb color */
+    border-radius: 6px; /* Rounded corners */
+}
+
+.left_sidebar::-webkit-scrollbar-track {
+    background-color: #333; /* Track color */
+}
+
 
 /* Logo sizing */
 .left_sidebar .logo img {
@@ -112,6 +129,11 @@ body {
 }
 
 a.add_playlist {
+    float: right;
+    padding-top: 4px;
+}
+
+a.add_album {
     float: right;
     padding-top: 4px;
 }
@@ -311,10 +333,6 @@ a.add_playlist {
 
 /* Display when the window screen is smaller */
 @media screen and (max-width:960px) {
-    .right_sidebar {
-        display: none;
-    }
-
     .left_sidebar {
         display: none;
     }
@@ -430,7 +448,6 @@ a.center_text {
     font-weight: 400;
     transition: all 0.2s ease;
     background-color: #2b4ba1;
-
 }
 
 button.submit_btn:hover {
