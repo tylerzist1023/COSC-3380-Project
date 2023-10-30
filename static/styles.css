@@ -4,7 +4,6 @@ h1
 }
 
 body {
-
     font-family: 'Montserrat', sans-serif;
     background-color: #111727;
 }
@@ -387,7 +386,7 @@ a.add_playlist {
     color: #859ad3;
 }
 
-.form .input_box input {
+/* .form .input_box input {
     position: relative;
     height: 50px;
     width: 100%;
@@ -398,7 +397,7 @@ a.add_playlist {
     border: 1px solid #ddd;
     border-radius: 6px;
     padding: 0 15px;
-}
+} */
 
 .center_text {
     text-align: center;

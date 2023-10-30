@@ -18,10 +18,6 @@ def index():
     data = cursor.fetchall()
     return render_template('index.html', name=data)
 
-@app.route('/listener')
-def home():
-    return render_template('listener.html')
-
 @app.route('/login')
 def login():
     return render_template('login.html')
@@ -30,9 +26,17 @@ def login():
 def register():
     return render_template('register.html')
 
+@app.route('/listener')
+def listener_home():
+    return render_template('listener.html')
+
 @app.route('/listener/profile')
 def profile_listener():
     return render_template('profile_listener.html')
+
+@app.route('/listener/profile/edit')
+def edit_profile_listener():
+    return render_template('listener_edit.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
