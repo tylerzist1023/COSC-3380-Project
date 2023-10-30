@@ -30,9 +30,9 @@ def login():
 def register():
     return render_template('register.html')
 
-@app.route('/test')
-def test():
-    return render_template('test.html')
+@app.route('/listener/profile')
+def profile_listener():
+    return render_template('profile_listener.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
