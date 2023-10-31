@@ -352,7 +352,7 @@ a.add_playlist {
     }
 }
 
-/*Form Styling*/
+/* Login and Register Form Styling*/
 .form_style {
     min-height: 100vh;
     display: flex;
@@ -576,4 +576,125 @@ button.submit_btn:hover {
 
 button.save_btn:hover {
     background-color: rgb(43, 45, 161);
+}
+
+.back_link {
+    margin: 20px;
+}
+
+/* Getting Started Page Style */
+.login_btn {
+    height: 55px;
+    width: 500px;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+.login_btn a {
+    text-decoration: none;
+}
+
+button.login_btn:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+.split {
+    height: 100%;
+    width: 50%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+.left {
+    left: 0;
+    background-color: #0b1320;
+}
+
+.right {
+    right: 0;
+    background-color: #111727;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+/* Homepage Navigation Bar Styling*/
+.navbar {
+    background-color: #1e2844;
+    font-size: 1.2rem;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.navbar_container {
+    display: flex;
+    justify-content: space-between;
+    height: 80px;
+    z-index: 1;
+    width: 100%;
+    max-width: 1900px;
+    margin: 0 auto;
+    padding: 0 50px;
+    background-color: #1e2844;
+}
+
+.navbar_logo {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.navbar_menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    text-align: center;
+    background-color: #1e2844;
+}
+
+.navbar_item {
+    cursor: pointer;
+    height: 80px;
+
+}
+
+.navbar_links {
+    color: #71a7f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 0 1rem;
+    height: 100%;
+    
+}
+
+.navbar_btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1rem;
+    width: 100%;
 }
