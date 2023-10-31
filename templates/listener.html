@@ -1,0 +1,54 @@
+{% extends 'base_listener.html' %}
+{% block page %}
+<!-- Main Container To Display The Songs -->
+<div class="main_container">
+    <div class="song_list">
+        <h2>New Releases</h2>
+        <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
+            Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
+
+        <div class="list">
+        {% for album in data.new_releases %}
+            <div class="item">
+                <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
+                <h4>{{ album[1] }}</h4>
+                <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+            </div>
+        {% endfor %}
+        </div>
+        <hr>
+    </div>
+
+    <div class="song_list">
+        <h2>Albums For You</h2>
+        <div class="list">
+            {% for album in data.for_you %}
+                <div class="item">
+                    <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
+                    <h4>{{ album[1] }}</h4>
+                    <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+                </div>
+            {% endfor %}
+        </div>
+        <hr>
+    </div>
+
+    <div class="song_list">
+        <h2>Playlists For You</h2>
+        <div class="list">
+            <div class="item">
+                <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
+                <h4>Song Name</h4>
+                <p>Arist Name</p>
+            </div>
+            
+            <div class="item">
+                <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
+                <h4>Song Name</h4>
+                <p>Arist Name</p>
+            </div>
+        </div>
+        <hr>
+    </div>
+</div>
+{% endblock %}
