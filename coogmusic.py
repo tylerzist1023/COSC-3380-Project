@@ -357,6 +357,10 @@ def rate_song(song_id):
 
         return "", 200
 
+@app.route('/getstarted', methods=['GET'])
+def login_options():
+    return render_template('login_options.html')
+
 if __name__ == '__main__':
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
