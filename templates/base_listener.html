@@ -6,12 +6,12 @@
     <div class="topbar">
         <ul class="topbar_navigation">
             <li>
-                <a href="">
+                <a href="/listener">
                     <span>Hello {{ data.username }}!</span>
                 </a>
             </li>
             <li>
-                <a href="">
+                <a href="/listener/profile">
                     <span>Profile</span>
                 </a>
             </li>
@@ -32,6 +32,13 @@
                 <button type="submit" class="search_btn">Search</button>
             </form>
         </div>
+        <ul class="topbar_navigation">
+            <li>
+                <a href="/logout">
+                    <span>Log Out</span>
+                </a>
+            </li>
+        </ul>
 </header>
 
 {% block page %}{% endblock %}
