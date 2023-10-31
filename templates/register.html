@@ -15,18 +15,38 @@
             
             <form action="/register" class="form">
                 <div class="input_box">
-                    <label for="password">Email</label>
-                    <input type="password" name="password" id="password" placeholder="Enter Your Email">
+                    <label for="first_name">First Name</label>
+                    <input type="text" name="first_name" id="first_name" placeholder="Enter Your First Name" required>
+                </div>
+
+                <div class="input_box">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" placeholder="Enter Your Last Name" required>
+                </div>
+
+                <div class="input_box">
+                    <label for="phone_number">Phone Number</label>
+                    <input type="tel" name="phone_number" id="phone_number" placeholder="Format: 123-345-6789" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                </div>
+
+                <div class="input_box">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" name="dob" id="dob" required>
+                </div>
+
+                <div class="input_box">
+                    <label for="email">Email</label>
+                    <input type="text" name="email" id="email" placeholder="Enter Your Email" required>
                 </div>
 
                 <div class="input_box">
                     <label for="username">Username</label>
-                    <input type="text" name="username" id="username" placeholder="Create a Username">
+                    <input type="text" name="username" id="username" placeholder="Create a Username" required>
                 </div>
     
                 <div class="input_box">
                     <label for="password">Password</label>
-                    <input type="password" name="password" id="password" placeholder="Create a Password">
+                    <input type="password" name="password" id="password" placeholder="Create a Password" required>
                 </div>
     
                 <button type="submit" class="submit_btn">Register</button>

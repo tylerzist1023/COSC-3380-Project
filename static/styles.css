@@ -386,8 +386,9 @@ a.add_playlist {
     color: #859ad3;
 }
 
-/* .form .input_box input {
+.form .input_box input {
     position: relative;
+    display: flex;
     height: 50px;
     width: 100%;
     outline: none;
@@ -397,7 +398,7 @@ a.add_playlist {
     border: 1px solid #ddd;
     border-radius: 6px;
     padding: 0 15px;
-} */
+}
 
 .center_text {
     text-align: center;
