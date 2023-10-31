@@ -3,6 +3,11 @@ h1
     color: #859ad3;
 }
 
+a {
+    color: white;
+    text-decoration-line: underline;
+}
+
 body {
     font-family: 'Montserrat', sans-serif;
     background-color: #111727;

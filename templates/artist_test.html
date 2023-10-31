@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Song{% endblock %}
+{% block body %}
+<body>
+    <section class="form_style">
+        <div class="container">
+            <form id='follow' method='POST' action="/artist/{{ artist_id }}/follow" class="form">
+                <button type="submit" class="submit_btn">Follow</button>
+            </form></br>
+            <form id='unfollow' method='POST' action="/artist/{{ artist_id }}/unfollow" class="form">
+                <button type="submit" class="submit_btn">Unfollow</button>
+            </form></br>
+        </div>
+    </section>
+</body>
+{% endblock %}
