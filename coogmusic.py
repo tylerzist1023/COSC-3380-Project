@@ -4,6 +4,7 @@ import pymysql
 from datetime import datetime,date
 from io import BytesIO
 import magic
+from pydub import AudioSegment
 
 f = None
 try:
@@ -454,6 +455,32 @@ def rate_song(song_id):
         conn.commit()
 
         return redirect(url_for('get_song', song_id=song_id))
+
+# do not run this on localhost!!! very slow!
+@app.route('/song/fix_durations')
+def song_fix_durations():
+    query = 'SELECT SongFile,SongID FROM Song'
+    with get_conn() as conn, conn.cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        for result in results:
+            if result[0] is not None:
+                f = get_file(result[0])
+
+                audio = AudioSegment.from_file(f[0])
+                duration_in_seconds = len(audio)/1000
+
+                query = 'UPDATE Song SET Duration=%s WHERE SongID=%s'
+                vals = (duration_in_seconds, result[1])
+                cursor.execute(query, vals)
+            else:
+                query = 'UPDATE Song SET Duration=NULL WHERE SongID=%s'
+                vals = (result[1])
+                cursor.execute(query, vals)
+            
+
+        conn.commit()
+    return "Durations have been updated", 200
 
 if __name__ == '__main__':
     app.jinja_env.trim_blocks = True
