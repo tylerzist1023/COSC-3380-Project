@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <title>Coog Music Home</title>
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="../../../profile_style.css">
+    <title>Edit Profile</title>
 </head>
 <body>
-    <!-- Top Navigation Bar -->
+
     <header>
         <div class="topbar">
             <ul class="topbar_navigation">
                 <li>
-                    <a href="{{url_for('static', filename='placeholder.png')}}">
+                    <a href="">
                         <span>Hello Listener User!</span>
                     </a>
                 </li>
@@ -48,77 +48,52 @@
             </ul>
     </header>
 
-    <!-- Main Container To Display The Songs -->
-    <div class="main_container">
-        <div class="song_list">
-            <h2>New Releases</h2>
-            <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
-                Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
-            <div class="list">
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-            </div>
-            <hr>
+     <!-- Main Container To Display Profile -->
+     
+     <div class="main_container">
+        <div class="edit_profile">
+            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="profile picture">
+            <h1>User Name</h1>
         </div>
+        <section class="edit_profile_form">
+            <div>
+                <header>
+                    <h1>Edit Profile</h1>
+                </header>
+                <!-- May need to query database to retrieve the current username and email for the user -->
+                <form action=" " class="form">
+                    <div class="input_box">
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" class="edit_box" placeholder="Enter your new username">
+                    </div>
 
-        <div class="song_list">
-            <h2>Songs For You</h2>
-            <div class="list">
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-            </div>
-            <hr>
-        </div>
+                    <div class="input_box">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" class="edit_box" placeholder="Enter your new email">
+                    </div>
+        
+                    <div class="input_box">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" class="edit_box" placeholder="Enter your password">
+                    </div>
 
-        <div class="song_list">
-            <h2>Playlists For You</h2>
-            <div class="list">
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
+                    <div class="input_box">
+                        <label for="newpassword">New Password</label>
+                        <input type="password" name="newpassword" id="newpassword" class="edit_box" placeholder="Enter your new password">
+                    </div>
+
+                    <div class="input_box">
+                        <label for="confirmpassword">Confirm New Password</label>
+                        <input type="password" name="confirmpassword" id="confirmpassword"  class="edit_box" placeholder="Re-enter your new password">
+                    </div>
+                    
+                    <button type="submit" class="save_btn">Save Profile</button>
+                </form>
             </div>
-            <hr>
-        </div>
+        </section>
     </div>
-    
-    <!-- Left Side Bar -->
+
+        <!-- Left Side Bar -->
     <div class="left_sidebar">
         <div class="logo">
             <a href="">
@@ -203,50 +178,6 @@
                             <span>Another Artist</span>
                         </li>
                     </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Right Sidebar -->
-    <div class="right_sidebar">
-        <h1>Top Hits</h1>
-        <div class="navigation">
-            <ul>
-                <li>
-                    <p>
-                        <span class="link_icon"></span>
-                        <span>Weekly:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A Song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                    </p>
-                </li>
-            </ul>
-        </div>
-
-        <div class="navigation">
-            <ul>
-                <li>
-                    <p>
-                        <span class="link_icon"></span>
-                        <span>Daily:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                    </p>
                 </li>
             </ul>
         </div>

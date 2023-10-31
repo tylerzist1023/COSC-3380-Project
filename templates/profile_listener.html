@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <title>Coog Music Home</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../profile_style.css">
+    <title>Profile</title>
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <header>
+     <!-- Top Navigation Bar -->
+     <header>
         <div class="topbar">
             <ul class="topbar_navigation">
                 <li>
-                    <a href="{{url_for('static', filename='placeholder.png')}}">
+                    <a href="">
                         <span>Hello Listener User!</span>
                     </a>
                 </li>
@@ -46,78 +46,73 @@
                     </a>
                 </li>
             </ul>
+        </div>
     </header>
 
-    <!-- Main Container To Display The Songs -->
+    <!-- Main Container To Display Profile -->
     <div class="main_container">
+
+        <div class="listener_profile">
+            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="profile picture">
+            <div class="profile_information">
+                <h4>Profile</h4>
+                <h1>User Name</h1>
+                <h3>12 Following</h3>
+            </div>
+            <a href="{{url_for('edit_profile_listener')}}"><h4>Edit Profile</h4></a>
+        </div>
+
         <div class="song_list">
-            <h2>New Releases</h2>
+            <h2>Top artist this month</h2>
             <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
                 Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
             <div class="list">
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
+                <div class="artist_item">
                     <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
+                    <h4>Artist Name</h4>
+                    <p>Arist</p>
                 </div>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
-            <h2>Songs For You</h2>
+            <h2>Top tracks this month</h2>
             <div class="list">
                 <div class="item">
                     <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
+                    <h4>Artist Name</h4>
+                    <p>Arist</p>
                 </div>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
-            <h2>Playlists For You</h2>
+            <h2>Playlists</h2>
             <div class="list">
                 <div class="item">
                     <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
+                    <h4>Playlist Name</h4>
+                    <p>By User Name</p>
                 </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
+            </div>
+            <hr>
+        </div>
+
+        <div class="song_list">
+            <h2>Following</h2>
+            <div class="list">
+                <div class="artist_item">
+                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"class="artist_img"></a>
+                    <h4>Artist Name</h4>
+                    <p>Profile</p>
                 </div>
             </div>
             <hr>
         </div>
     </div>
-    
+
     <!-- Left Side Bar -->
     <div class="left_sidebar">
         <div class="logo">
@@ -208,52 +203,8 @@
         </div>
     </div>
 
-    <!-- Right Sidebar -->
-    <div class="right_sidebar">
-        <h1>Top Hits</h1>
-        <div class="navigation">
-            <ul>
-                <li>
-                    <p>
-                        <span class="link_icon"></span>
-                        <span>Weekly:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A Song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                    </p>
-                </li>
-            </ul>
-        </div>
-
-        <div class="navigation">
-            <ul>
-                <li>
-                    <p>
-                        <span class="link_icon"></span>
-                        <span>Daily:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                    </p>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Music Player -->
-    <div class="song_player">
+     <!-- Music Player -->
+     <div class="song_player">
         <!-- Replace image, song name, artist name with actual database information -->
         <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
         <h5>Song Name</br>
