@@ -9,6 +9,7 @@ a {
 }
 
 body {
+
     font-family: 'Montserrat', sans-serif;
     background-color: #111727;
 }
@@ -310,6 +311,10 @@ a.add_playlist {
 
 /* Display when the window screen is smaller */
 @media screen and (max-width:960px) {
+    .right_sidebar {
+        display: none;
+    }
+
     .left_sidebar {
         display: none;
     }
@@ -393,7 +398,6 @@ a.add_playlist {
 
 .form .input_box input {
     position: relative;
-    display: flex;
     height: 50px;
     width: 100%;
     outline: none;
@@ -426,6 +430,7 @@ a.center_text {
     font-weight: 400;
     transition: all 0.2s ease;
     background-color: #2b4ba1;
+
 }
 
 button.submit_btn:hover {
