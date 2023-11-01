@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Artist{% endblock %}
+{% block body %}
+<!-- Top Navigation Bar -->
+    <header>
+        <div class="topbar">
+            <ul class="topbar_navigation">
+                <li>
+                    <a href="/">
+                        <span>Hello {{ data.username }}!</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/profile">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="">
+                        <span>My Music</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="">
+                        <span>Artist Insights</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/album/create">
+                        <span>Publish Album</span>
+                    </a>
+                </li>
+
+            </ul>
+            <div class="search">
+                <form>
+                    <input type="text" class="search_bar" placeholder="Search Music...">
+                    <button type="submit" class="search_btn">Search</button>
+                </form>
+            </div>
+            <ul class="topbar_navigation">
+            <li>
+                <a href="/logout">
+                    <span>Log Out</span>
+                </a>
+            </li>
+        </ul>
+    </header>
+
+    {% block page %}{% endblock %}
+
+    <!-- Left Side Bar -->
+    <div class="left_sidebar">
+        <div class="logo">
+            <a href="">
+                <img src="{{url_for('static', filename='logo.png')}}" alt="Logo">
+            </a>
+        </div>
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="">
+                        <span class="link_icon"></span>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="">
+                        <span class="link_icon"></span>
+                        <span>Search</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="">
+                        <span class="link_icon"></span>
+                        <span>My Music</span>
+                    </a>
+                    <a href="/album/create" class="add_album">+</a>
+                    <ul class="list_container">
+                        {% for album in data.albums %}
+                        <li>
+                            <img src="/album/{{ album[0] }}/pic" alt="{{ album[1] }}">
+                            <span><a href='/album/{{ album[0] }}'>{{ album[1] }}</a></span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <!-- <li>
+                    <a href="">
+                        <span class="link_icon"></span>
+                        <span>Publish Album</span>
+                    </a>
+                </li> -->
+            </ul>
+        </div>
+
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="">
+                        <span class="link_icon"></span>
+                        <span>Followers</span>
+                    </a>
+                    <ul class="list_container">
+                        {% for follow in data.followers %}
+                        <li>
+                            <!-- <img src="/artist/{{ follow[1] }}/pic"> -->
+                            <span>{{ follow[1] }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="right_sidebar">
+        <h1>Top Hits</h1>
+        <div class="navigation">
+            <ul>
+                <li>
+                    <p>
+                        <span class="link_icon"></span>
+                        <span>Weekly:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>A Song</span>
+                        </li>
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                        </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="navigation">
+            <ul>
+                <li>
+                    <p>
+                        <span class="link_icon"></span>
+                        <span>Daily:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>A song</span>
+                        </li>
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                    </ul>
+                        </p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    <!-- Music Player -->
+    <div class="song_player">
+        <!-- Replace image, song name, artist name with actual database information -->
+        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+        <h5>Song Name</br>
+            <div class="artist_name">Artist Name</div>
+        </h5>
+        <audio controls>
+            <!-- Provide the actual source path for the song -->
+            <source src="" type="">
+        </audio>
+    </div>
+{% endblock %}

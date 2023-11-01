@@ -52,6 +52,57 @@ def get_listener_base_data(user_id, cursor):
 
     return data
 
+def get_artist_base_data(artist_id, cursor):
+    data = {}
+
+    query = 'SELECT AlbumID,AlbumName FROM Album WHERE ArtistID=%s'
+    vals = (artist_id)
+    cursor.execute(query,vals)
+    data['albums'] = cursor.fetchall()
+
+    query = 'SELECT Follow.UserID,Username FROM Follow,Listener WHERE Follow.ArtistID=%s AND Follow.UserID=Listener.UserID'
+    vals=(artist_id)
+    cursor.execute(query,vals)
+    data['followers'] = cursor.fetchall()
+
+    return data
+
+def get_artist():
+    if get_role(session) != 'artist':
+        return "You are not authorized to do that", 401
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        data = get_artist_base_data(session['id'], cursor)
+
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=%s ORDER BY ReleaseDate'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['my_music'] = cursor.fetchall()
+
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=%s ORDER BY Album.AverageRating DESC LIMIT 5'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['highest_rated_albums'] = cursor.fetchall()
+
+        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    Song.AverageRating, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID WHERE     Album.ArtistID = %s ORDER BY     Song.AverageRating DESC LIMIT 5'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['highest_rated_songs'] = cursor.fetchall()
+
+        query = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = %s GROUP BY      Album.AlbumID, AlbumName, ArtistName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 5'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['most_played_albums'] = cursor.fetchall()
+
+        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    COUNT(ListenedToHistory.UserID) AS PlayCount, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN     ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE Artist.ArtistID=%s GROUP BY     Song.SongID, SongName, Album.AlbumName, Artist.ArtistName, Album.ArtistID, Song.SongID ORDER BY     PlayCount DESC LIMIT 5'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['most_played_songs'] = cursor.fetchall()
+
+        data['username'] = session['username']
+
+        return render_template('artist.html', data=data)
+
 # @app.route('/listener', methods=['GET'])
 def get_listener():
     if get_role(session) != 'listener':
@@ -151,6 +202,8 @@ def post_listener_edit():
 def index():
     if get_role(session) == 'listener':
         return get_listener()
+    if get_role(session) == 'artist':
+        return get_artist()    
     return render_template('index.html')
 
 @app.route('/profile', methods=['GET'])
@@ -274,7 +327,7 @@ def post_register():
     return redirect(url_for('index'))
 
 @app.route('/artist/<artist_id>', methods=['GET'])
-def get_artist(artist_id):
+def get_artist_public(artist_id):
     query = 'select ArtistID from Artist where ArtistID=%s'
     vals = (artist_id)
     with get_conn() as conn, conn.cursor() as cursor:
