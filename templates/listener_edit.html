@@ -1,193 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../../styles.css">
-    <link rel="stylesheet" href="../../../profile_style.css">
-    <title>Edit Profile</title>
-</head>
-<body>
+{% extends 'base_listener.html' %}
+{% block page %}
+<!-- Main Container To Display Profile -->
+<div class="main_container">
+    <div class="edit_profile">
+        <img src="/pic" alt="profile picture">
+        <h1>{{ data.user[1] }} {{ data.user[2] }}</h1>
+    </div>
+    <section class="edit_profile_form">
+        <div>
+            <header>
+                <h1>Edit Profile</h1>
+            </header>
+            <!-- May need to query database to retrieve the current username and email for the user -->
+            <form action="/edit" method='POST' class="form">
+                <div class="input_box">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" class="edit_box" value='{{ data.username }}' placeholder="Enter your new username">
+                </div>
 
-    <header>
-        <div class="topbar">
-            <ul class="topbar_navigation">
-                <li>
-                    <a href="">
-                        <span>Hello Listener User!</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{url_for('profile_listener')}}">
-                        <span>Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span>Recommendations</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span>Listen History</span>
-                    </a>
-                </li>
-            </ul>
-            <div class="search">
-                <form>
-                    <input type="text" class="search_bar" placeholder="Search Music...">
-                    <button type="submit" class="search_btn">Search</button>
-                </form>
-            </div>
-    </header>
+                <div class="input_box">
+                    <label for="email">Email</label>
+                    <input type="text" value='{{ data.email }}' name="email" id="email" class="edit_box" placeholder="Enter your new email">
+                </div>
+    
+                <div class="input_box">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" class="edit_box" placeholder="Enter your password">
+                </div>
 
-     <!-- Main Container To Display Profile -->
-     
-     <div class="main_container">
-        <div class="edit_profile">
-            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="profile picture">
-            <h1>User Name</h1>
-        </div>
-        <section class="edit_profile_form">
-            <div>
-                <header>
-                    <h1>Edit Profile</h1>
-                </header>
+                <div class="input_box">
+                    <label for="newpassword">New Password</label>
+                    <input type="password" name="newpassword" id="newpassword" class="edit_box" placeholder="Enter your new password">
+                </div>
+
+                <div class="input_box">
+                    <label for="confirmpassword">Confirm New Password</label>
+                    <input type="password" name="confirmpassword" id="confirmpassword"  class="edit_box" placeholder="Re-enter your new password">
+                </div>
                 
-                <form action=" " class="form">
-                    <div class="input_box">
-                        <label for="username">Username</label>
-                        <input type="text" name="username" id="username" class="edit_box" placeholder="Enter your new username">
-                    </div>
-
-                    <div class="input_box">
-                        <label for="email">Email</label>
-                        <input type="text" name="email" id="email" class="edit_box" placeholder="Enter your new email">
-                    </div>
-        
-                    <div class="input_box">
-                        <label for="password">Password</label>
-                        <input type="password" name="password" id="password" class="edit_box" placeholder="Enter your password">
-                    </div>
-
-                    <div class="input_box">
-                        <label for="newpassword">New Password</label>
-                        <input type="password" name="newpassword" id="newpassword" class="edit_box" placeholder="Enter your new password">
-                    </div>
-
-                    <div class="input_box">
-                        <label for="confirmpassword">Confirm New Password</label>
-                        <input type="password" name="confirmpassword" id="confirmpassword"  class="edit_box" placeholder="Re-enter your new password">
-                    </div>
-                    
-                    <button type="submit" class="save_btn">Save Profile</button>
-                </form>
-            </div>
-        </section>
-    </div>
-
-        <!-- Left Side Bar -->
-    <div class="left_sidebar">
-        <div class="logo">
-            <a href="">
-                <img src="{{url_for('static', filename='logo.png')}}" alt="Logo">
-            </a>
+                <button type="submit" class="save_btn">Save Profile</button>
+            </form>
         </div>
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="{{url_for('listener_home')}}">
-                        <span class="link_icon"></span>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Search</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>My Playlists</span>
-                    </a>
-                    <a href="" class="add_playlist">+</a>
-                    <ul class="list_container">
-                        <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>A Playlist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>Another Playlist</span>
-                        </li>
-                    </ul>
-                </li>
-                <!-- <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Create Playlist</span>
-                    </a>
-                </li> -->
-            </ul>
-        </div>
-
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Followed Artists</span>
-                    </a>
-                    <ul class="list_container">
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Music Player -->
-    <div class="song_player">
-        <!-- Replace image, song name, artist name with actual database information -->
-        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
-        <h5>Song Name</br>
-            <div class="artist_name">Artist Name</div>
-        </h5>
-        <audio controls>
-            <!-- Provide the actual source path for the song -->
-            <source src="" type="">
-        </audio>
-        </div>
-    </div>
-</body>
-</html>
+    </section>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+</div>
+{% endblock %}

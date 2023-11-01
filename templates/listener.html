@@ -1,11 +1,11 @@
 {% extends 'base_listener.html' %}
 {% block page %}
-<!- Main Container To Display The Songs ->
+<!-- Main Container To Display The Songs -->
 <div class="main_container">
     <div class="song_list">
         <h2>New Releases</h2>
-        <!- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
-            Need to make a loop to create for however many we want to display. Instead of making each ourselves.->
+        <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
+            Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
 
         <div class="list">
         {% for album in data.new_releases %}
@@ -39,13 +39,13 @@
             <div class="item">
                 <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
                 <h4>Song Name</h4>
-                <p>Artist Name</p>
+                <p>Arist Name</p>
             </div>
             
             <div class="item">
                 <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
                 <h4>Song Name</h4>
-                <p>Artist Name</p>
+                <p>Arist Name</p>
             </div>
         </div>
         <hr>
