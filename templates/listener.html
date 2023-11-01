@@ -12,7 +12,7 @@
             <div class="item">
                 <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
                 <h4>{{ album[1] }}</h4>
-                <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+                <a href='/artist/{{ album[3] }}'><p>{{ album[2] }}</p></a>
             </div>
         {% endfor %}
         </div>
@@ -26,7 +26,7 @@
                 <div class="item">
                     <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
                     <h4>{{ album[1] }}</h4>
-                    <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+                    <a href='/artist/{{ album[3] }}'><p>{{ album[2] }}</p></a>
                 </div>
             {% endfor %}
         </div>

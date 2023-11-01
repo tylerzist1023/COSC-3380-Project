@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <title>Album</title>
+    <title>Playlist</title>
 </head>
 <body>
     <!-- Top Navigation Bar -->
@@ -53,17 +53,14 @@
         <div class="album">
             <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="album picture">
             <div class="album_information">
-                <h1>Album Name</h1>
+                <h1>Playlist Name</h1>
                 <div>
                     <ul class="album_data">
-                        <li class="album_artist">
-                            <h3>Artist Name</h3> 
+                        <li>
+                            <h4>Playlist Creator Username</h4>
                         </li>
                         <li>
-                            <h4>24 min 39 sec</h4>
-                        </li>
-                        <li>
-                            <h4>2013</h4>
+                            <h4>Duration or How many songs in playlist</h4>
                         </li>
                     </ul>
                 </div>
@@ -87,7 +84,7 @@
                             <h4>Duration</h4>
                         </li>
                         <li>
-                            <h4></h4> 
+                            <h4></h4>
                         </li>
                     </div>
                 </ul>
@@ -111,7 +108,7 @@
                                 <h4>4:01</h4>
                             </li>
                             <li>
-                                <a><h4>+</h4></a>
+                                <a><h4>-</h4></a>
                             </li>
                         </div>
                     </ul>
@@ -135,7 +132,7 @@
                                 <h4>4:01</h4>
                             </li>
                             <li>
-                                <a><h4>+</h4></a>
+                                <a><h4>-</h4></a>
                             </li>
                         </div>
                     </ul>
@@ -161,7 +158,7 @@
                                 <h4>4:01</h4>
                             </li>
                             <li>
-                                <a><h4>+</h4></a>
+                                <a><h4>-</h4></a>
                             </li>
                         </div>
                     </ul>
@@ -186,7 +183,7 @@
                                 <h4>4:01</h4>
                             </li>
                             <li>
-                                <a><h4>+</h4></a>
+                                <a><h4>-</h4></a>
                             </li>
                         </div>
                     </ul>
@@ -194,7 +191,7 @@
             </div>
 
             <div class="song_list">
-                <h2>More by Artist Name</h2>
+                <h2>Recommended</h2>
                 <div class="list">
                     <div class="item">
                         <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
