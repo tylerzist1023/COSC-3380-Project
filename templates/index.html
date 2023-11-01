@@ -1,19 +1,86 @@
-<!-- {% extends 'base.html' %}
+{% extends 'base.html' %}
 {% block title %}Listener{% endblock %}
 {% block body %}
-<h1>Hello, {{ name }}!</h1>
-{% if role %}
-<h2>Role: {{ role }}</h2>
-<h2>ID: {{ id_ }}</h2>
-<a href='/logout'>Logout</a>
-{% else %}
-<a href='/login?role=listener'>Login as Listener</a>
-<a href='/register?role=listener'>Register as Listener</a>
-<a href='/login?role=artist'>Login as Artist</a>
-<a href='/register?role=artist'>Register as Artist</a>
-{% endif %}
-{% endblock %} -->
-<!DOCTYPE html>
+<nav class="navbar">
+    <div class="navbar_container">
+        <a href="/" class="navbar_logo"><img src="{{url_for('static', filename='logo.png')}}" height="75px"></a>
+        <div class="navbar_toggle" id="mobile-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <ul class="navbar_menu">
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    About
+                </a>
+            </li>
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    Contact
+                </a>
+            </li>
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    Help
+                </a>
+            </li>
+            <li class="navbar_btn">
+                <a href='/getstarted' class="button">
+                    Login
+                </a>
+            </li>
+        </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="homepage">
+    <div class="homepage_container">
+        <div class="main_img_container">
+            <img src="{{url_for('static', filename='homepage.svg')}}" alt="song name" class="main_img">
+        </div>
+        <div class="main_content">
+            <h1>COOG MUSIC</h1>
+            <h2>MUSIC BY UH STUDENTS</h2>
+            <p>Discover new songs today.</p>
+            <button class="main_btn"><a href='/getstarted'>Get Started</a></button>
+        </div>
+    </div>
+</div> 
+
+<footer>
+    <div class="footer_container">
+        <div class="footer_links">
+            <div class="footer_link_wrapper">
+                <div class="footer_link_items">
+                    <h2>About</h2>
+                    <a href="/">Contact</a>
+                </div>
+            </div>
+            <div class="footer_link_wrapper">
+                <div class="footer_link_items">
+                    <h2>Location</h2>
+                    <p>University of Houston</p>
+                    <p>4800 Calhoun Road</p>
+                    <p>Houston, TX</p>
+                </div>
+            </div>
+            <div class="footer_link_wrapper">
+                <div class="footer_link_items">
+                    <h2>Team Members</h2>
+                    <p>Gonzalez, Angel E</p>
+                    <p>Matthews, Joshua T</p>
+                    <p>Nguyen, Jacqueline</p>
+                    <p>Oblock, Charlie J</p>
+                    <p>Zistler, Tyler J</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -102,4 +169,4 @@
         </div>
     </footer>
 </body>
-</html>
+</html> -->
