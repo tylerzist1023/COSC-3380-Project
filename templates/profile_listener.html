@@ -3,13 +3,13 @@
 <!-- Main Container To Display Profile -->
 <div class="main_container">
     <div class="listener_profile">
-        <img src="/listener/pic" alt="profile picture">
+        <img src="/pic" alt="profile picture">
         <div class="profile_information">
             <h4>Profile</h4>
             <h1>{{ data.user[1] }} {{ data.user[2] }}</h1>
             <h3>{{ data.user[3] }} Following</h3>
         </div>
-        <a href="{{url_for('get_listener_edit')}}"><h4>Edit Profile</h4></a>
+        <a href="/edit"><h4>Edit Profile</h4></a>
     </div>
 
     <div class="song_list">
@@ -43,7 +43,7 @@
         <div class="list">
             {% for playlist in data.playlists %}
             <div class="item">
-                <a><img src="/listener/pic"></a>
+                <a><img src="/pic"></a>
                 <h4>{{ playlist[0] }}</h4>
                 <p>by {{ playlist[1] }} {{ playlist[2] }}</p>
             </div>
