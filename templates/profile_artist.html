@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,31 +8,38 @@
     <link rel="stylesheet" href="../profile_style.css">
     <title>Profile</title>
 </head>
+
 <body>
-     <!-- Top Navigation Bar -->
-     <header>
+    <!-- Top Navigation Bar -->
+    <header>
         <div class="topbar">
             <ul class="topbar_navigation">
                 <li>
                     <a href="">
-                        <span>Hello Listener User!</span>
+                        <span>Hello Artist!</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{url_for('profile_listener')}}">
+                    <a href="{{url_for('profile_artist')}}">
                         <span>Profile</span>
                     </a>
                 </li>
                 <li>
                     <a href="">
-                        <span>Recommendations</span>
+                        <span>My Music</span>
                     </a>
                 </li>
                 <li>
                     <a href="">
-                        <span>Listen History</span>
+                        <span>Artist Insights</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{url_for('artist_publish_album')}}">
+                        <span>Publish Album</span>
+                    </a>
+                </li>
+
             </ul>
             <div class="search">
                 <form>
@@ -49,69 +57,43 @@
         </div>
     </header>
 
-    <!-- Main Container To Display Profile -->
     <div class="main_container">
 
-        <div class="listener_profile">
+        <div class="artist_profile">
             <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="profile picture">
             <div class="profile_information">
                 <h4>Profile</h4>
                 <h1>User Name</h1>
-                <h3>12 Following</h3>
+                <h3>12 Followers</h3>
             </div>
-            <a href="{{url_for('edit_profile_listener')}}"><h4>Edit Profile</h4></a>
+            <a href="{{url_for('artist_edit')}}"><h4>Edit Profile</h4></a>
         </div>
 
         <div class="song_list">
-            <h2>Top artist this month</h2>
+            <h2>Top song this month</h2>
             <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
                 Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
             <div class="list">
                 <div class="artist_item">
                     <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Artist Name</h4>
-                    <p>Arist</p>
+                    <h4>Song Name</h4>
+                    <p>Artist</p>
                 </div>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
-            <h2>Top tracks this month</h2>
-            <div class="list">
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Artist Name</h4>
-                    <p>Arist</p>
-                </div>
-            </div>
-            <hr>
-        </div>
-
-        <div class="song_list">
-            <h2>Playlists</h2>
-            <div class="list">
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Playlist Name</h4>
-                    <p>By User Name</p>
-                </div>
-            </div>
-            <hr>
-        </div>
-
-        <div class="song_list">
-            <h2>Following</h2>
+            <h2>Followers</h2>
             <div class="list">
                 <div class="artist_item">
                     <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"class="artist_img"></a>
-                    <h4>Artist Name</h4>
+                    <h4>User Name</h4>
                     <p>Profile</p>
                 </div>
             </div>
             <hr>
         </div>
-        <a href="/edit"><h4>Edit Profile</h4></a>
     </div>
 
     <!-- Left Side Bar -->
@@ -124,7 +106,7 @@
         <div class="navigation">
             <ul>
                 <li>
-                    <a href="{{url_for('listener_home')}}">
+                    <a href="">
                         <span class="link_icon"></span>
                         <span>Home</span>
                     </a>
@@ -143,24 +125,24 @@
                 <li>
                     <a href="">
                         <span class="link_icon"></span>
-                        <span>My Playlists</span>
+                        <span>My Music</span>
                     </a>
-                    <a href="" class="add_playlist">+</a>
+                    <a href="" class="add_album">+</a>
                     <ul class="list_container">
                         <li>
                             <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>A Playlist</span>
+                            <span>An Album</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>Another Playlist</span>
+                            <span>Another Album</span>
                         </li>
                     </ul>
                 </li>
                 <!-- <li>
                     <a href="">
                         <span class="link_icon"></span>
-                        <span>Create Playlist</span>
+                        <span>Publish Album</span>
                     </a>
                 </li> -->
             </ul>
@@ -171,42 +153,86 @@
                 <li>
                     <a href="">
                         <span class="link_icon"></span>
-                        <span>Followed Artists</span>
+                        <span>Followers</span>
                     </a>
                     <ul class="list_container">
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
+                            <span>A User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
+                            <span>Another User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
+                            <span>A User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
+                            <span>Another User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
+                            <span>A User</span>
                         </li>
                         <li>
                             <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
+                            <span>Another User</span>
                         </li>
                     </ul>
                 </li>
             </ul>
         </div>
-        <hr>
     </div>
 
-     <!-- Music Player -->
-     <div class="song_player">
+    <!-- Right Sidebar -->
+    <div class="right_sidebar">
+        <h1>Top Hits</h1>
+        <div class="navigation">
+            <ul>
+                <li>
+                    <p>
+                        <span class="link_icon"></span>
+                        <span>Weekly:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>A Song</span>
+                        </li>
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                        </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="navigation">
+            <ul>
+                <li>
+                    <p>
+                        <span class="link_icon"></span>
+                        <span>Daily:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>A song</span>
+                        </li>
+                        <li>
+                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                        </p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    <!-- Music Player -->
+    <div class="song_player">
         <!-- Replace image, song name, artist name with actual database information -->
         <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
         <h5>Song Name</br>
@@ -216,36 +242,8 @@
             <!-- Provide the actual source path for the song -->
             <source src="" type="">
         </audio>
-        </div>
-        <hr>
     </div>
 
-    <div class="song_list">
-        <h2>Playlists</h2>
-        <div class="list">
-            {% for playlist in data.playlists %}
-            <div class="item">
-                <a><img src="/pic"></a>
-                <h4>{{ playlist[0] }}</h4>
-                <p>by {{ playlist[1] }} {{ playlist[2] }}</p>
-            </div>
-            {% endfor %}
-        </div>
-        <hr>
-    </div>
+</body>
 
-    <div class="song_list">
-        <h2>Following</h2>
-        <div class="list">
-            {% for artist in data.following %}
-            <div class="artist_item">
-                <a><img src="/artist/{{ artist[4] }}/pic" class="artist_img"></a>
-                <h4>{{ artist[3] }}</h4>
-                <p>Profile</p>
-            </div>
-            {% endfor %}
-        </div>
-        <hr>
-    </div>
-</div>
-{% endblock %}
+</html>
