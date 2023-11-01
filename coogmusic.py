@@ -632,6 +632,10 @@ def allowed_file(filename):
 def album():
     return render_template('album.html')
 
+@app.route('/playlist', methods=['GET'])
+def playlist():
+    return render_template('playlist.html')
+
 if __name__ == '__main__':
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True

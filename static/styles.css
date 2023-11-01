@@ -291,6 +291,10 @@ a.add_album {
     font-weight: 600;
 }
 
+.song_list .list .item a {
+    text-decoration: none;
+}
+
 .song_list hr {
     margin: 70px 0px 0px;
     border-color: #636363;
@@ -553,9 +557,12 @@ button.submit_btn:hover {
 }
 
 .listener_profile a {
-    color: white;
     font-size: 14px;
     margin-left: 20px;
+}
+
+.listener_profile h4 {
+    color: white;
 }
 
 .song_list .list .artist_item {
@@ -1058,8 +1065,19 @@ button.login_btn:hover {
     margin-right: 25px;
 }
 
+.song_list_number {
+    justify-content: space-between;
+    width: 25px;
+    text-align: right;
+}
+
+
 .track_right_info {
     display: flex;
+}
+
+.track_right_info a {
+    text-decoration: none;
 }
 
 .track_right_info li h4 {
