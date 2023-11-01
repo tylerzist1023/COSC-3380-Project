@@ -486,6 +486,10 @@ def song_fix_durations():
 def login_options():
     return render_template('login_options.html')
 
+@app.route('/album', methods=['GET'])
+def album():
+    return render_template('album.html')
+
 if __name__ == '__main__':
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True

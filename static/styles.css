@@ -312,6 +312,10 @@ a.add_playlist {
     .left_sidebar {
         display: none;
     }
+    
+    .right_sidebar {
+        display: none;
+    }
 
     .topbar {
         display: inline-block;
@@ -341,7 +345,7 @@ a.add_playlist {
     }
 
     .song_player {
-        position: relative;
+        position: absolute;
         width: 100%;
         justify-content: space-between;
     }
@@ -486,6 +490,7 @@ button.submit_btn:hover {
     background-color: rgb(43, 45, 161);
 }
 
+/* Listener Profile Styling */
 .listener_profile { 
     position: relative;
     display: flex;
@@ -567,10 +572,11 @@ button.submit_btn:hover {
     position: relative;
     overflow: hidden; 
     float: left;
-    width: auto;
+    width: 300px;
     height: auto;
     align-items: center;
-    padding: 5px 0px 5px 20px; 
+    padding: 5px 0px 5px 20px;
+    text-overflow: ellipsis;
     /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
 } 
 
@@ -929,3 +935,119 @@ button.login_btn:hover {
     margin-bottom: 0.5rem;
 }
 
+/* Album Styling */
+.album { 
+    position: relative;
+    display: flex;
+    overflow: hidden; 
+    width: auto;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px;
+} 
+
+.album img {
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    margin: 20px 20px;
+}
+
+.album_information h1 {
+    color: white;
+}
+
+.album_information div h3 { 
+    color: white;
+}
+
+.album_information div h4 { 
+    color: #989898;
+    font-size: 12px;
+}
+
+.album_information .album_data {
+    color: white;
+    list-style: none;
+}
+
+.album_information .album_data .album_artist {
+    list-style: none;
+}
+
+.album_information .album_data li {
+    margin-right: 25px;
+}
+
+.album_songs .album_header ul {
+    display: flex;
+    padding: 5px 0px 5px 20px;
+    list-style: none;
+    justify-content: space-between;
+}
+
+.album_songs .album_header .album_left_info {
+    text-align: left;
+    display: flex;
+}
+
+.album_songs .album_header .album_left_info li {
+    margin-right: 25px;
+}
+
+.album_songs .album_header .album_right_info {
+    display: flex;
+}
+
+.album_songs .album_header .album_right_info li {
+    margin-right: 25px;
+}
+
+.album_songs hr {
+    margin: 0px 15px;
+    border-color: #636363;
+}
+
+.track_list .track_info ul {
+    display: flex;
+    padding: 5px 0px 5px 20px;
+    list-style: none;
+    justify-content: space-between;
+}
+
+.track_left_info {
+    text-align: left;
+    display: flex;
+}
+
+.track_left_info a {
+    text-decoration: none;
+}
+
+.track_left_info h4 {
+    color: white;
+}
+
+.track_left_info li {
+    margin-right: 25px;
+}
+
+.track_right_info {
+    display: flex;
+}
+
+.track_right_info li h4 {
+    color: white
+}
+
+.track_right_info li {
+    margin-right: 25px;
+}
+
+.track_list h5 {
+    color: #989898;
+}
+
+.track_list:hover {
+    background-color: #636363;
+}
