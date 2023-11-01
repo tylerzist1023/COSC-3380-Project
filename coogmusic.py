@@ -33,17 +33,139 @@ def get_role(fs):
         return fs['role']
     return None
 
+def get_listener_base_data(user_id, cursor):
+    data = {}
+
+    query = 'SELECT Follow.*,ArtistName,Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=%s'
+    vals = (user_id)
+    cursor.execute(query,vals)
+    data['following'] = cursor.fetchall()
+
+    query = 'SELECT * FROM Playlist WHERE UserID=%s'
+    vals = (user_id)
+    cursor.execute(query,vals)
+    data['playlists'] = cursor.fetchall()
+
+    return data
+
+# @app.route('/listener', methods=['GET'])
+def get_listener():
+    if get_role(session) != 'listener':
+        return "You are not authorized to do that", 401
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        data = get_listener_base_data(session['id'], cursor)
+
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID ORDER BY ReleaseDate LIMIT 5'
+        cursor.execute(query)
+        data['new_releases'] = cursor.fetchall()
+
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=%s ORDER BY ReleaseDate LIMIT 5'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['for_you'] = cursor.fetchall()
+
+        data['username'] = session['username']
+
+        return render_template('listener.html', data=data)
+
+# @app.route('/listener/profile', methods=['GET'])
+def get_listener_profile():
+    if get_role(session) != 'listener':
+        return "You are not authorized to do that", 401
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        data = get_listener_base_data(session['id'], cursor)
+
+        query = 'SELECT Listener.UserID,Fname,Lname,COUNT(DISTINCT Follow.ArtistID) FROM Listener,Follow WHERE Listener.UserID=%s'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['user'] = cursor.fetchone()
+
+        query = 'SELECT PlaylistName,Listener.Fname,Listener.Lname,PlaylistID FROM Playlist,Listener WHERE Listener.UserID=Playlist.UserID AND Playlist.UserID=%s'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['playlists'] = cursor.fetchall()
+
+        data['username'] = session['username']
+
+        return render_template('profile_listener.html', data=data)
+
+# @app.route('/listener/edit', methods=['GET'])
+def get_listener_edit():
+    if get_role(session) != 'listener':
+        return "You are not authorized to do that", 401
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        data = get_listener_base_data(session['id'], cursor)
+        data['username'] = session['username']
+
+        query = 'SELECT Username,Email FROM Listener WHERE UserID=%s'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        result = cursor.fetchone()
+
+        data['username'] = result[0]
+        data['email'] = result[1]
+
+        query = 'SELECT Listener.UserID,Fname,Lname,COUNT(DISTINCT Follow.ArtistID) FROM Listener,Follow WHERE Listener.UserID=%s'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['user'] = cursor.fetchone()
+
+        return render_template('listener_edit.html', data=data)
+
+# @app.route('/listener/edit', methods=['POST'])
+def post_listener_edit():
+    if get_role(session) != 'listener':
+        return "You are not authorized to do that", 401
+
+    if request.form['newpassword'] != request.form['confirmpassword']:
+        return "Passwords do not match", 400
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        query = 'SELECT Password FROM Listener WHERE UserID=%s'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        result = cursor.fetchone()
+        if result[0] != request.form['password']:
+            return "Incorrect old password", 400
+
+        # Do not change the password if the newpassword value is left blank
+        if len(request.form['newpassword']) == 0:
+            request.form['newpassword'] = request.form['password']
+
+        query = 'UPDATE Listener SET Username=%s,Password=%s,Email=%s WHERE UserID=%s'
+        vals = (request.form['username'],request.form['newpassword'],request.form['email'],session['id'])
+        cursor.execute(query,vals)
+
+        conn.commit()
+
+        return redirect(url_for('get_listener_edit'))
+
 @app.route('/')
 def index():
-    name = "sign in"
-    role = None
-    id_ = None
-    if 'logged_in' in session and session['logged_in']:
-        name = session['username']
-        role = session['role']
-        id_ = session['id']
+    if get_role(session) == 'listener':
+        return get_listener()
+    return render_template('index.html')
 
-    return render_template('index.html', name=name, role=role, id_=id_)
+@app.route('/profile', methods=['GET'])
+def get_profile():
+    if get_role(session) == 'listener':
+        return get_listener_profile()
+    return "",404
+
+@app.route('/edit', methods=['GET'])
+def get_edit():
+    if get_role(session) == 'listener':
+        return get_listener_edit()
+    return "",404
+
+@app.route('/edit', methods=['POST'])
+def post_edit():
+    if get_role(session) == 'listener':
+        return post_listener_edit()
+    return "",404
 
 @app.route('/login', methods=['GET'])
 def get_login():
@@ -53,7 +175,7 @@ def get_login():
         return render_template('login.html', role='listener')
     elif role == 'artist':
         return render_template('login.html', role='artist')
-    return "Not found"
+    return "",404
 
 @app.route('/register', methods=['GET'])
 def get_register():
@@ -63,7 +185,7 @@ def get_register():
         return render_template('register.html', role='listener')
     elif role == 'artist':
         return render_template('register.html', role='artist')
-    return "Not found"
+    return "",404
 
 @app.route('/logout')
 def logout():
@@ -112,116 +234,6 @@ def get_playlists(user_id):
         playlists = cursor.fetchall()
 
         return str(playlists)
-
-def get_listener_base_data(user_id, cursor):
-    data = {}
-
-    query = 'SELECT Follow.*,ArtistName,Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=%s'
-    vals = (user_id)
-    cursor.execute(query,vals)
-    data['following'] = cursor.fetchall()
-
-    query = 'SELECT * FROM Playlist WHERE UserID=%s'
-    vals = (user_id)
-    cursor.execute(query,vals)
-    data['playlists'] = cursor.fetchall()
-
-    return data
-
-@app.route('/listener', methods=['GET'])
-def get_listener():
-    if get_role(session) != 'listener':
-        return "You are not authorized to do that", 401
-
-    with get_conn() as conn, conn.cursor() as cursor:
-        data = get_listener_base_data(session['id'], cursor)
-
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID ORDER BY ReleaseDate LIMIT 5'
-        cursor.execute(query)
-        data['new_releases'] = cursor.fetchall()
-
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=%s ORDER BY ReleaseDate LIMIT 5'
-        vals = (session['id'])
-        cursor.execute(query,vals)
-        data['for_you'] = cursor.fetchall()
-
-        data['username'] = session['username']
-
-        return render_template('listener.html', data=data)
-
-@app.route('/listener/profile', methods=['GET'])
-def get_listener_profile():
-    if get_role(session) != 'listener':
-        return "You are not authorized to do that", 401
-
-    with get_conn() as conn, conn.cursor() as cursor:
-        data = get_listener_base_data(session['id'], cursor)
-
-        query = 'SELECT Listener.UserID,Fname,Lname,COUNT(DISTINCT Follow.ArtistID) FROM Listener,Follow WHERE Listener.UserID=%s'
-        vals = (session['id'])
-        cursor.execute(query,vals)
-        data['user'] = cursor.fetchone()
-
-        query = 'SELECT PlaylistName,Listener.Fname,Listener.Lname,PlaylistID FROM Playlist,Listener WHERE Listener.UserID=Playlist.UserID AND Playlist.UserID=%s'
-        vals = (session['id'])
-        cursor.execute(query,vals)
-        data['playlists'] = cursor.fetchall()
-
-        data['username'] = session['username']
-
-        return render_template('profile_listener.html', data=data)
-
-@app.route('/listener/edit', methods=['GET'])
-def get_listener_edit():
-    if get_role(session) != 'listener':
-        return "You are not authorized to do that", 401
-
-    with get_conn() as conn, conn.cursor() as cursor:
-        data = get_listener_base_data(session['id'], cursor)
-        data['username'] = session['username']
-
-        query = 'SELECT Username,Email FROM Listener WHERE UserID=%s'
-        vals = (session['id'])
-        cursor.execute(query,vals)
-        result = cursor.fetchone()
-
-        data['username'] = result[0]
-        data['email'] = result[1]
-
-        query = 'SELECT Listener.UserID,Fname,Lname,COUNT(DISTINCT Follow.ArtistID) FROM Listener,Follow WHERE Listener.UserID=%s'
-        vals = (session['id'])
-        cursor.execute(query,vals)
-        data['user'] = cursor.fetchone()
-
-        return render_template('listener_edit.html', data=data)
-
-@app.route('/listener/edit', methods=['POST'])
-def post_listener_edit():
-    if get_role(session) != 'listener':
-        return "You are not authorized to do that", 401
-
-    if request.form['newpassword'] != request.form['confirmpassword']:
-        return "Passwords do not match", 400
-
-    with get_conn() as conn, conn.cursor() as cursor:
-        query = 'SELECT Password FROM Listener WHERE UserID=%s'
-        vals = (session['id'])
-        cursor.execute(query,vals)
-        result = cursor.fetchone()
-        if result[0] != request.form['password']:
-            return "Incorrect old password", 400
-
-        # Do not change the password if the newpassword value is left blank
-        if len(request.form['newpassword']) == 0:
-            request.form['newpassword'] = request.form['password']
-
-        query = 'UPDATE Listener SET Username=%s,Password=%s,Email=%s WHERE UserID=%s'
-        vals = (request.form['username'],request.form['newpassword'],request.form['email'],session['id'])
-        cursor.execute(query,vals)
-
-        conn.commit()
-
-        return redirect(url_for('get_listener_edit'))
 
 @app.route('/register', methods=['POST'])
 def post_register():
@@ -399,8 +411,8 @@ def get_album_pic(album_id):
 
         return send_file(file, mimetype=mimetype)
 
-@app.route('/listener/pic', methods=['GET'])
-def get_listener_pic():
+@app.route('/pic', methods=['GET'])
+def get_pic():
     if get_role(session) != 'listener':
         return "You are not authorized to access this", 401
 

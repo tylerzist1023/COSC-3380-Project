@@ -3,7 +3,7 @@
 <!-- Main Container To Display Profile -->
 <div class="main_container">
     <div class="edit_profile">
-        <img src="/listener/pic" alt="profile picture">
+        <img src="/pic" alt="profile picture">
         <h1>{{ data.user[1] }} {{ data.user[2] }}</h1>
     </div>
     <section class="edit_profile_form">
@@ -12,7 +12,7 @@
                 <h1>Edit Profile</h1>
             </header>
             <!-- May need to query database to retrieve the current username and email for the user -->
-            <form action="/listener/edit" method='POST' class="form">
+            <form action="/edit" method='POST' class="form">
                 <div class="input_box">
                     <label for="username">Username</label>
                     <input type="text" name="username" id="username" class="edit_box" value='{{ data.username }}' placeholder="Enter your new username">
