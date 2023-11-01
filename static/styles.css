@@ -1,4 +1,4 @@
-h1,h2,h3,h4,h5,p
+h1,h2,h3,h4,h5,p,label
 {
     color: #859ad3;
 }
@@ -17,6 +17,10 @@ body {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+.song-inputs {
+    margin-bottom: 10px;
 }
 
 /* Left Sidebar Positioning */

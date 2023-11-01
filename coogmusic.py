@@ -5,6 +5,8 @@ from datetime import datetime,date
 from io import BytesIO
 import magic
 from pydub import AudioSegment
+from werkzeug.exceptions import BadRequest
+import os
 
 f = None
 try:
@@ -25,6 +27,8 @@ def get_conn():
 
 app = Flask(__name__, static_url_path='', static_folder='static/')
 app.secret_key = '}dMpN?XNRqzV?y!)&[%E!;cRDPtSFW'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'wav'}
 
 mime_detector = magic.Magic()
 
@@ -497,6 +501,132 @@ def song_fix_durations():
 @app.route('/getstarted', methods=['GET'])
 def login_options():
     return render_template('login_options.html')
+
+def get_mp3_duration_from_bytes(song_data):
+    total_frames = 0
+    total_bytes = 0
+    position = 0
+
+    # Skip ID3v2 tags if present
+    position += 10 if song_data[:3] == b'ID3' else 0
+
+    while position < len(song_data) - 4:
+        header = song_data[position:position + 4]
+        
+        # Check for MP3 frame sync word
+        if bytes([header[0]]) == b'\xff' and (header[1] & 0xE0) == 0xE0:
+            # Parse frame header
+            bitrate_values = [
+                None, 32, 40, 48, 56, 64, 80, 96,
+                112, 128, 160, 192, 224, 256, 320, None
+            ]
+            sample_rate_values = [44100, 48000, 32000]
+            version = (header[1] >> 3) & 0x03
+            layer = (header[1] >> 1) & 0x03
+            bitrate_index = (header[2] >> 4) & 0x0F
+            sample_rate_index = (header[2] >> 2) & 0x03
+
+            if version == 0 or layer == 0 or bitrate_index == 0 or bitrate_index == 15 or sample_rate_index == 3:
+                # Invalid frame, skip a byte and continue
+                position += 1
+                continue
+                
+            bitrate = bitrate_values[bitrate_index]
+            sample_rate = sample_rate_values[sample_rate_index]
+            padding = (header[2] >> 1) & 0x01
+            if version == 3:  # MPEG version 1
+                frame_length = int(144 * bitrate * 1000 / sample_rate + padding)
+            else:  # MPEG version 2 & 2.5
+                frame_length = int(72 * bitrate * 1000 / sample_rate + padding)
+            
+            total_frames += 1
+            total_bytes += frame_length
+            position += frame_length
+        else:
+            # Invalid frame, skip a byte and continue
+            position += 1
+
+    if total_frames > 0:
+        average_frame_length = total_bytes / total_frames
+        duration = (total_frames * average_frame_length) / (bitrate * 125)  # 125 = 1000 / 8 to convert kbps to kB/s
+        return int(duration)
+    else:
+        print("No MP3 frames found.")
+        return None
+
+@app.route('/album/create', methods=['GET'])
+def display_create_album_form():
+    if get_role(session) == 'artist':
+        return render_template('create_al.html', artist_id=session['id'])
+
+@app.route('/album/create', methods=['POST'])
+def create_album():
+    if get_role(session) != 'artist':
+        return "Not authorized", 401
+
+    artist_id = session['id']
+
+    album_name = request.form['albumName']
+    cover_file = request.files['albumCover']
+    release_date = request.form['releaseDate']
+
+    # Optionally, you can convert the release_date to a datetime object
+    release_date_object = datetime.strptime(release_date, '%Y-%m-%d')
+    cover_data = cover_file.read()
+    
+    with get_conn() as conn, conn.cursor() as cursor:
+        # Insert album into the Albums table
+        album_query = 'INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (%s,%s,%s,%s)'
+        cursor.execute(album_query, (album_name, cover_data, artist_id,release_date_object))
+
+        # Fetch the ID of the last inserted album
+        album_id_query = 'SELECT LAST_INSERT_ID()'
+        cursor.execute(album_id_query)
+        album_id = cursor.fetchone()[0]
+        
+        song_files = request.files.getlist('songs[]')
+        song_genres = request.form.getlist('songGenres[]')
+        
+        if len(song_files) != len(song_genres):
+            raise BadRequest("Mismatched number of songs and genres.")
+
+        for i, song_file in enumerate(song_files):
+            song_genre = song_genres[i]
+            if not song_file or song_file.filename == '' or not allowed_file(song_file.filename):
+                continue
+            
+            song_name = os.path.splitext(song_file.filename)[0]
+            song_data = song_file.read()
+
+            #return f'{len(song_data)}'
+
+            #calculate the duration 
+            duration = get_mp3_duration_from_bytes(song_data) # Convert from milliseconds to seconds
+            #return f'{duration}'
+            if duration==None:
+                return 'bad mp3 file'
+
+
+            genre_query = 'SELECT GenreCode FROM Genre WHERE Name=%s'
+            cursor.execute(genre_query, (song_genre,))
+            genre_id = cursor.fetchone()
+
+            if genre_id is None:
+                fetch_valid_genres_query = 'SELECT Name FROM Genre'
+                cursor.execute(fetch_valid_genres_query)
+                valid_genres = [row[0] for row in cursor.fetchall()]
+                valid_genres_str = ', '.join(valid_genres)
+                return f"Provided genre for song '{song_name}' is not valid. Valid genres are: {valid_genres_str}", 400
+
+            song_query = 'INSERT INTO Song (Name, GenreCode, AlbumID, SongFile,Duration,ReleaseDate) VALUES (%s,%s,%s,%s,%s,%s)'
+            cursor.execute(song_query, (song_name, genre_id[0], album_id, song_data,duration,release_date_object))
+
+        conn.commit()
+
+    return "Album and songs successfully added", 200
+def allowed_file(filename):
+    """Check if the file has an allowed extension."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in  {'mp3', 'wav', 'flac'}
 
 if __name__ == '__main__':
     app.jinja_env.trim_blocks = True
