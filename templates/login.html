@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Login{% endblock %}
 {% block body %}
+<div class="back_link">
+    <a href='/getstarted'>
+        <h2>Back</h2>
+    </a>
+</div>
+
 <section class="form_style">
     <div class="container">
         <header>
@@ -10,12 +16,12 @@
         <form method='POST' action="/login?role={{ role }}" class="form">
             <div class="input_box">
                 <label for="username">Username</label>
-                <input type="text" name="username" id="username" placeholder="Enter your username">
+                <input type="text" name="username" id="username" placeholder="Enter your username" required>
             </div>
 
             <div class="input_box">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password" placeholder="Enter your password">
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
             </div>
             
             <button type="submit" class="submit_btn">Login</button>

@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Register{% endblock %}
 {% block body %}
+<div class="back_link">
+    <a href='/getstarted'>
+        <h2>Back</h2>
+    </a>
+</div>
+
 <section class="form_style">
     <div class="container">
         <header>
@@ -42,12 +48,12 @@
 
             <div class="input_box">
                 <label for="username">Username</label>
-                <input type="text" name="username" id="username" placeholder="Create a Username" required>
+                <input type="text" name="username" id="username" placeholder="Create a Username" required required>
             </div>
 
             <div class="input_box">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password" placeholder="Create a Password" required>
+                <input type="password" name="password" id="password" placeholder="Create a Password" required required>
             </div>
 
             <button type="submit" class="submit_btn">Register</button>

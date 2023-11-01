@@ -1,16 +1,15 @@
-h1 
+h1,h2,h3,h4,h5,p
 {
     color: #859ad3;
 }
 
 a {
-    color: white;
+    color: #859ad3;
     text-decoration-line: underline;
 }
 
 body {
-
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', 'Orbitron', sans-serif;
     background-color: #111727;
 }
 
@@ -18,7 +17,6 @@ body {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Poppins', sans-serif;
 }
 
 /* Left Sidebar Positioning */
@@ -373,9 +371,64 @@ a.add_album {
     .song_player audio {
         width: 100%;
     }
+
+    .navbar_container{
+        display: flex;
+        justify-content: space-between;
+        height: 80px;
+        z-index: 1;
+        width: 100%;
+        max-width: 1300px;
+        padding: 0;
+    }
+    
+    .navbar_menu{
+        display: flex;
+        margin:0;
+        width: 100%;
+    }
+
+    .navbar_logo {
+        padding-left: 25px;
+    }
+
+    .navbar_item {
+        width: 100%;
+    }
+    
+    .navbar_links {
+        text-align: center;
+        padding: 2rem;
+        width: 100%;
+        display: table;
+    }
+
+    .main__content {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .main_content h1 {
+        font-size: 2rem;
+        margin-top: 3rem;
+    }
+
+    .main_content h2 {
+        font-size: 2rem;
+    }
+
+    .main_content p {
+        margin-top: 2rem;
+        font-size: 1.5rem;
+    }
+
+    .main_btn {
+        padding: 12px 36px;
+        margin: 2.5rem 0;
+    }
 }
 
-/*Form Styling*/
+/* Login and Register Form Styling*/
 .form_style {
     min-height: 100vh;
     display: flex;
@@ -416,6 +469,7 @@ a.add_album {
 
 .form .input_box input {
     position: relative;
+    display: flex;
     height: 50px;
     width: 100%;
     outline: none;
@@ -453,3 +507,447 @@ a.center_text {
 button.submit_btn:hover {
     background-color: rgb(43, 45, 161);
 }
+
+.listener_profile { 
+    position: relative;
+    display: flex;
+    overflow: hidden; 
+    width: auto;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px; 
+    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
+} 
+
+.listener_profile img { 
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%;
+    margin: 20px 20px;
+}
+
+.listener_profile .profile_information h1 {
+    color: white;
+}
+
+.listener_profile .profile_information h3 {
+    color: white;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.listener_profile .profile_information h4 {
+    color: white;
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.listener_profile a {
+    color: white;
+    font-size: 14px;
+    margin-left: 20px;
+}
+
+.song_list .list .artist_item {
+    min-width: 140px;
+    width: 160px;
+    padding: 15px;
+    background-color: #181818;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all ease 0.4s;
+}
+
+.song_list .list .artist_item:hover {
+    background-color: #252525;
+}
+
+.song_list .list .artist_item img {
+    width: 100%;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.song_list .list .artist_item h4 {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song_list .list .artist_item p {
+    color: #989898;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.edit_profile { 
+    position: relative;
+    overflow: hidden; 
+    float: left;
+    width: auto;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px; 
+    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
+} 
+
+.edit_profile img { 
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%;
+    margin: 20px 20px;
+}
+
+.edit_profile h1 { 
+    color: white;
+    text-align: center;
+}
+
+.edit_profile_form {
+    min-height: 100vh;
+    display: flex;
+    padding: 20px;
+}
+
+.edit_profile_form .form .input_box .edit_box {
+    height: 50px;
+    width: 700px;
+    position: relative;
+    align-items: center;
+    color: #707070;
+    outline: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 15px;
+}
+
+.edit_profile_form .form .input_box label {
+    height: 50px;
+    width: 350px;
+    line-height: 44px;
+    position: relative;
+    float: left;
+}
+
+.save_btn {
+    height: 55px;
+    width: 700px;
+    float: right;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+button.save_btn:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+.back_link {
+    margin: 20px;
+}
+
+/* Getting Started Page Style */
+.login_btn {
+    height: 55px;
+    width: 500px;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+.login_btn a {
+    text-decoration: none;
+}
+
+button.login_btn:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+.split {
+    height: 100%;
+    width: 50%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+.left {
+    left: 0;
+    background-color: #0b1320;
+}
+
+.right {
+    right: 0;
+    background-color: #111727;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+/* Homepage Navigation Bar Styling*/
+.navbar {
+    font-family: 'Orbitron', sans-serif;
+    background-color: #1e2844;
+    font-size: 1.2rem;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.navbar_container {
+    display: flex;
+    justify-content: space-between;
+    height: 80px;
+    z-index: 1;
+    width: 100%;
+    max-width: 1900px;
+    margin: 0 auto;
+    padding: 0 50px;
+    background-color: #1e2844;
+}
+
+.navbar_logo {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.navbar_menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    text-align: center;
+    background-color: #1e2844;
+}
+
+.navbar_item {
+    cursor: pointer;
+    height: 80px;
+
+}
+
+.navbar_links {
+    color: #71a7f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 0 1rem;
+    height: 100%;
+    
+}
+
+.navbar_btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    padding: 10px 20px;
+    height: 100%;
+    width: 100%;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    background-color: #2b4ba1;
+    color: #ffffff;
+}
+
+.button:hover {
+    background-color: rgb(43, 45, 161);
+    transition: all 0.3s ease;
+}
+
+.navbar_links:hover {
+    color: white;
+    transition: all 0.3s ease;
+}
+
+/* Main Page Design */
+.homepage_container {
+    font-family: 'Orbitron', sans-serif;
+    display: grid;
+    position: relative;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    justify-self: center;
+    margin: 0 auto;
+    height: 90vh;
+    z-index: 1;
+    width: 100%;
+    padding: 0 50px;
+    background-image: linear-gradient(to top, (#111727) 0%, #2b4ba1 100%);
+}
+
+.main_content h1 {
+    font-size: 4rem;
+    background-color: #facbcb;
+    background-image: linear-gradient(to top, rgb(255, 0, 0) 0%, #f7b9b9 100%);
+    background-size: 100%;
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-text-fill-color: transparent;
+}
+
+.main_content h2 {
+    font-size: 3rem;
+    background-color: #facbcb;
+    background-image: linear-gradient(to top, rgb(255, 0, 0) 0%, #f7b9b9 100%);
+    background-size: 100%;
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-text-fill-color: transparent;
+}
+
+.main_content p {
+    margin-top: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgb(255, 0, 0);
+}
+
+.main_btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    background-image: linear-gradient(to top, #cc0000 0%, rgb(255, 13, 13) 100%);
+    padding: 14px 32px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    margin-top: 2rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.35s;
+    outline: none;
+}
+
+.main_btn a {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-decoration: none;
+}
+
+.main_btn::after {
+    position: absolute;
+    content: '';
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: #ff3737;
+    transition: all 0.35s;
+    border-radius: 4px;
+}
+
+.main_btn:hover {
+    color: #ffffff;
+}
+
+.main_btn:hover:after {
+    width: 100%
+}
+
+.main_img_container {
+    text-align: center;
+}
+
+.main_img {
+    height: 80%;
+    width: 80%;
+}
+
+/*Footer Style*/
+.footer_container {
+    font-family: 'Orbitron', sans-serif;
+    background-color: #1e2844;
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.footer_links {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    justify-content: right;
+}
+
+.footer_links_wrapper {
+    display: flex;
+}
+
+.footer_link_items {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 16px;
+    text-align: left;
+    width: 160px;
+    box-sizing: border-box;
+}
+
+.footer_link_items > h2 {
+    color: #859ad3;
+    margin-bottom: 16px;
+}
+
+.footer_link_items a {
+    color: #71a7f8;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+
+.footer_link_items a:hover {
+    color: #e9e9e9;
+    transition: 0.3s ease-out;
+}
+
+.footer_link_items p {
+    color: #71a7f8;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+

@@ -111,6 +111,7 @@
             </div>
             <hr>
         </div>
+        <a href="/edit"><h4>Edit Profile</h4></a>
     </div>
 
     <!-- Left Side Bar -->
@@ -201,6 +202,7 @@
                 </li>
             </ul>
         </div>
+        <hr>
     </div>
 
      <!-- Music Player -->
@@ -215,6 +217,35 @@
             <source src="" type="">
         </audio>
         </div>
+        <hr>
     </div>
-</body>
-</html>
+
+    <div class="song_list">
+        <h2>Playlists</h2>
+        <div class="list">
+            {% for playlist in data.playlists %}
+            <div class="item">
+                <a><img src="/pic"></a>
+                <h4>{{ playlist[0] }}</h4>
+                <p>by {{ playlist[1] }} {{ playlist[2] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        <hr>
+    </div>
+
+    <div class="song_list">
+        <h2>Following</h2>
+        <div class="list">
+            {% for artist in data.following %}
+            <div class="artist_item">
+                <a><img src="/artist/{{ artist[4] }}/pic" class="artist_img"></a>
+                <h4>{{ artist[3] }}</h4>
+                <p>Profile</p>
+            </div>
+            {% endfor %}
+        </div>
+        <hr>
+    </div>
+</div>
+{% endblock %}
