@@ -126,19 +126,19 @@
 
 ### HTML Templates
 
-- [ ] /index.html
-- [ ] /account_login.html
-- [ ] /account_register.html
+- [x] /index.html
+- [x] /account_login.html
+- [x] /account_register.html
 - [ ] /account_reset.html
 - [ ] /account_delete.html
-- [ ] /profile_listener.html
+- [x] /profile_listener.html
 - [ ] /profile_artist.html
 - [ ] /control_admin.html
 - [ ] /search.html
 - [ ] /song.html
 - [ ] /browse.html
 - [ ] /upload.html
-- [ ] /playlist.html
+- [x] /playlist.html
 - [ ] /playlist_create.html
 - [ ] /artist.html
 - [ ] /listener_sidebar.html
