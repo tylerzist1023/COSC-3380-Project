@@ -416,10 +416,13 @@ def post_login():
             session['username'] = request.form['username']
             return redirect(url_for('index'))
 
-@app.route('/playlists/<user_id>')
-def get_playlists(user_id):
+@app.route('/playlists')
+def get_playlists():
+    if get_role(session) != 'listener':
+        return '401 Unauthorized',401
+
     query = 'SELECT * FROM Playlist WHERE UserID=%s'
-    vals = (user_id)
+    vals = (session['id'])
 
     with get_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, vals)
