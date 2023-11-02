@@ -1095,3 +1095,43 @@ button.login_btn:hover {
 .track_list:hover {
     background-color: #636363;
 }
+
+.album_container {
+    margin-left: 196px;
+    margin-right: 196px;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown_menu {
+    position: absolute;
+    left: 0;
+    top: calc(100% +.25rem);
+    background-color: #1e2844;
+
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: .25rem;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .1);
+    z-index: 1;
+    display: none;
+}
+
+.dropdown_item {
+    white-space: nowrap;
+    padding: 10px 10px 10px 10px;
+}
+
+.dropdown_item a {
+    color: white;
+}
+
+.dropdown_item:hover {
+    background-color: #636363
+}
+
+.dropdown:hover .dropdown_menu {
+    display: block;
+}
