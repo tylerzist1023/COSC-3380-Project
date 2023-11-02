@@ -32,6 +32,132 @@ app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'wav'}
 
 mime_detector = magic.Magic()
 
+def search_database(query, filters):
+    results = {}
+    
+    if len(filters) == 0:
+        filters.extend(['artist','album','song'])
+
+    # Connect to the database
+    with get_conn() as conn, conn.cursor() as cursor:
+        
+        like_pattern = f'%{query}%'
+        
+        if 'artist' in filters:
+            artist_query = 'SELECT ArtistName, CreationStamp FROM Artist WHERE ArtistName LIKE %s ORDER BY CreationStamp;'
+            cursor.execute(artist_query, (like_pattern,))
+            results['artists'] = cursor.fetchall()
+
+        if 'album' in filters:
+            album_query = 'SELECT AlbumName FROM Album WHERE AlbumName LIKE %s  ORDER BY AlbumName ;'
+            cursor.execute(album_query, (like_pattern,))
+            results['albums'] = cursor.fetchall()
+
+        if 'playlist' in filters:
+            playlist_query = 'SELECT PlaylistName FROM Playlist WHERE PlaylistName LIKE %s ORDER BY PlaylistName ;'
+            cursor.execute(playlist_query, (like_pattern,))
+            results['playlists'] = cursor.fetchall()
+
+        if 'listener' in filters:
+            listener_query = 'SELECT Fname,Lname FROM Listener WHERE Fname LIKE %s or Fname LIKE %s ORDER BY Fname;'
+            cursor.execute(listener_query, (like_pattern,like_pattern))
+            results['listeners'] = cursor.fetchall()
+
+        if 'song' in filters:
+            song_query = 'SELECT Name FROM Song WHERE Name LIKE %s ORDER BY Name;'
+            cursor.execute(song_query, (like_pattern,))
+            results['songs'] = cursor.fetchall()
+
+    return results
+
+def fetch_logs():
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    query = 'SELECT LogID, AdminTimeStamp, LoginID, ActionMessage FROM AdminLog ORDER BY AdminTimeStamp DESC;'
+
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.commit()
+    #print(result)
+    return result
+def fetch_inactive_users():
+
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    #query = 'SELECT  L.UserID, L.Username, SP.ProblemMessage FROM ServerProblems AS SP JOIN Listener AS L ON CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(SP.ProblemMessage, ' ', 4), ' ', -1) AS UNSIGNED) = L.UserID WHERE SP.ProblemMessage LIKE "Listener with ID%has a server problem";'
+    query = """
+SELECT 
+    L.UserID,
+    L.Username,
+    SP.ProblemMessage
+FROM 
+    ServerProblems AS SP
+JOIN 
+    Listener AS L 
+    ON CAST(
+        SUBSTRING_INDEX(
+            SUBSTRING_INDEX(SP.ProblemMessage, ' ', 4), 
+            ' ', 
+            -1
+        ) AS UNSIGNED
+    ) = L.UserID
+WHERE 
+    SP.ProblemMessage LIKE 'Listener with ID%% has not accessed for more than 10 days';
+"""
+
+# Note: The '%' in the LIKE clause is escaped as '%%' because in Python string formatting, '%' acts as a special character.
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.commit()
+    #print(result)
+    #print(result)
+    return result
+def fetch_top_artists():
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    query = 'SELECT ArtistName, CreationStamp  FROM Artist  ORDER BY CreationStamp DESC LIMIT 5;'
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        #conn.commit()
+   # print(result)
+    return result
+def fetch_top_songs():
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    query = 'SELECT Name, CreationTimestamp  FROM Song ORDER BY CreationTimestamp DESC LIMIT 5;'
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        #conn.commit()
+    print(result)
+    return result
+
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query', '')
+    filters = request.args.getlist('filters')
+    print(query,filters)
+
+    results = search_database(query, filters) # Replace with your actual function to search in your database
+    return render_template('search_results.html', query=query, filters=filters, results=results)
+
+def get_admin():
+    #loggedin(loginID)
+    #admin logins there needs to be an insertion into admin log
+    #admin logs out there needs to be an insertion into admin log
+    top_artists = fetch_top_artists() # Replace with your actual function
+    top_songs = fetch_top_songs() # Replace with your actual function
+    logs = fetch_logs() # Replace with your actual function
+    inactive_users = fetch_inactive_users() # Replace with your actual function
+    return render_template('admin.html', top_artists=top_artists, top_songs=top_songs, logs=logs, inactive_users=inactive_users)
+
 def get_role(fs):
     if 'logged_in' in fs and fs['logged_in'] and 'role' in fs:
         return fs['role']
@@ -203,7 +329,9 @@ def index():
     if get_role(session) == 'listener':
         return get_listener()
     if get_role(session) == 'artist':
-        return get_artist()    
+        return get_artist()
+    if get_role(session) == 'admin':
+        return get_admin()    
     return render_template('index.html')
 
 @app.route('/profile', methods=['GET'])
@@ -263,7 +391,7 @@ def post_login():
     elif role == 'artist':
         query = 'select * from Artist where Username=%s and Password=%s'
         vals = (request.form['username'], request.form['password'])
-    elif role == 'artist':
+    elif role == 'admin':
         query = 'select * from Admin where Username=%s and Password=%s'
         vals = (request.form['username'], request.form['password'])
     else:
