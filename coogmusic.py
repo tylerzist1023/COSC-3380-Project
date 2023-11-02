@@ -232,6 +232,8 @@ def get_login():
         return render_template('login.html', role='listener')
     elif role == 'artist':
         return render_template('login.html', role='artist')
+    elif role == 'admin':
+        return render_template('login.html', role='admin')
     return "",404
 
 @app.route('/register', methods=['GET'])
@@ -261,6 +263,9 @@ def post_login():
     elif role == 'artist':
         query = 'select * from Artist where Username=%s and Password=%s'
         vals = (request.form['username'], request.form['password'])
+    elif role == 'artist':
+        query = 'select * from Admin where Username=%s and Password=%s'
+        vals = (request.form['username'], request.form['password'])
     else:
         return redirect(url_for('get_login', role=[role]))
 
@@ -275,6 +280,8 @@ def post_login():
             if role is None or role == 'listener':
                 session['id'] = user[0]
             elif role == 'artist':
+                session['id'] = user[0]
+            elif role == 'admin':
                 session['id'] = user[0]
             session['role'] = role
             session['logged_in'] = True
