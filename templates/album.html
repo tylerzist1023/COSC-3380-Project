@@ -1,7 +1,7 @@
 {% extends template_parent %}
 {% block page %}
 <!-- Main Container To Display The Album Details and Songs-->
-<div class="main_container">
+<div class="album_container">
     <div class="album">
         <img src="/album/{{ data.album[0] }}/pic" alt="album picture">
         <div class="album_information">
@@ -47,6 +47,9 @@
                     <li>
                         <h4>Rate</h4> 
                     </li>
+                    <li>
+                        <h4></h4>
+                    </li>
                     {% endif %}
                 </div>
             </ul>
@@ -72,7 +75,16 @@
                         </li>
                         {% if role=='listener' %}
                         <li>
-                            <a><h4>+</h4></a>
+                            <div class="dropdown">
+                                <h4>+</h4>
+                                <div class="dropdown_menu">
+                                    {% for playlist in data.playlists %}
+                                    <div class="dropdown_item">
+                                        <a href="">{{ playlist[2] }}</a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </li>
                         <li>
                             <form method='POST' action="/song/{{ song[5] }}/rate">
