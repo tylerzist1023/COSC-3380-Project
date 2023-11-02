@@ -166,15 +166,17 @@
 
 
     <!-- Music Player -->
-    <div class="song_player">
-        <!-- Replace image, song name, artist name with actual database information -->
-        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
-        <h5>Song Name</br>
-            <div class="artist_name">Artist Name</div>
-        </h5>
-        <audio controls>
-            <!-- Provide the actual source path for the song -->
-            <source src="" type="">
-        </audio>
+<div id='playerDiv' class="song_player"  style='display:none;'>
+    <!-- Replace image, song name, artist name with actual database information -->
+    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <h5>
+    <div id='playerSong'>Song Name</div>
+    <div id='playerArtist' class="artist_name">Artist Name</div>
+</h5>
+    <audio id='playerAudio' controls>
+        <!-- Provide the actual source path for the song -->
+        <source id='playerSource' src="" type="">
+    </audio>
     </div>
+</div>
 {% endblock %}

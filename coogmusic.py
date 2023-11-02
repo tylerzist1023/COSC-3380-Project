@@ -348,7 +348,7 @@ def get_artist_public(artist_id):
 
         return render_template('artist_test.html', artist_id=artist_id)
 
-@app.route('/artist/<artist_id>/follow', methods=['POST'])
+@app.route('/artist/<artist_id>/follow', methods=['GET'])
 def follow_artist(artist_id):
     if get_role(session) != 'listener':
         return "You are not authorized to do that", 401
@@ -369,9 +369,9 @@ def follow_artist(artist_id):
 
         conn.commit()
 
-        return "", 200
+        return "Successfully followed", 200
 
-@app.route('/artist/<artist_id>/unfollow', methods=['POST'])
+@app.route('/artist/<artist_id>/unfollow', methods=['GET'])
 def unfollow_artist(artist_id):
     if get_role(session) != 'listener':
         return "You are not authorized to do that", 401
@@ -392,31 +392,70 @@ def unfollow_artist(artist_id):
 
         conn.commit()
 
-        return "", 200
+        return "Successfully unfollowed",200
 
 @app.route('/album/<album_id>', methods=['GET'])
 def get_album(album_id):
-    query = 'select AlbumID from Album where AlbumID=%s'
-    vals = (album_id)
+    role = get_role(session)
+    if role != 'listener' and role != 'artist':
+        return "You need to login first before accessing albums", 401
 
     with get_conn() as conn, conn.cursor() as cursor:
+        data = {}
+
+        template_parent = ''
+        if role == 'listener':
+            data = get_listener_base_data(session['id'], cursor)
+            template_parent = 'base_listener.html'
+        elif role == 'artist':
+            data = get_artist_base_data(session['id'], cursor)
+            template_parent = 'base_artist.html'
+
+        query = 'SELECT AlbumID,AlbumName,Album.ArtistID,AlbumDuration,ReleaseDate,ArtistName FROM Album,Artist WHERE AlbumID=%s AND Album.ArtistID=Artist.ArtistID'
+        vals = (album_id)
         cursor.execute(query, vals)
-        result = cursor.fetchone()
+        data['album'] = cursor.fetchone()
+
+        duration_min = data['album'][3] // 60
+        duration_sec = data['album'][3] % 60
+
+        data['album_duration'] = f"{duration_min} min {duration_sec} sec"
+
+        query = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num,Song.Name,Duration,ArtistName,Artist.ArtistID,Song.SongID FROM Song,Artist,Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=%s'
+        vals = (album_id)
+        cursor.execute(query, vals)
+        result = cursor.fetchall()
+        data['songs'] = []
+        for song in result:
+            duration_min = song[2] // 60
+            duration_sec = song[2] % 60
+            duration_str = f"{duration_min}:{duration_sec}"
+            data['songs'].append((song[0],song[1],duration_str,song[3],song[4],song[5]))
+
+        query = 'SELECT Artist.ArtistID,ArtistName,AlbumID,AlbumName FROM Album,Artist WHERE Album.ArtistID=Artist.ArtistID AND Album.ArtistID=%s AND Album.AlbumID!=%s ORDER BY ReleaseDate LIMIT 5'
+        vals = (data['album'][2], album_id)
+        cursor.execute(query, vals)
+        data['more_by'] = cursor.fetchall()
+
+        data['username'] = session['username']
+
         conn.commit()
 
-        return str(result)
+        return render_template('album.html', role=role, template_parent=template_parent, data=data)
 
 @app.route('/song/<song_id>', methods=['GET'])
 def get_song(song_id):
-    query = 'select SongID from Song where SongID=%s'
+    query = 'select SongID,Song.AlbumID,Name,AlbumName from Song,Album where SongID=%s AND Album.AlbumID=Song.AlbumID'
     vals = (song_id)
     with get_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, vals)
         result = cursor.fetchone()
         conn.commit()
 
+        print(result)
+
         if result:
-            return render_template('song_test.html', song_id=song_id)
+            return {"albumid": result[1], "songname": result[2], "artistname": result[3]}
         else:
             return "Song not found", 404
 
@@ -530,7 +569,8 @@ def rate_song(song_id):
 
         conn.commit()
 
-        return redirect(url_for('get_song', song_id=song_id))
+        return "Successfully rated song", 200
+        #return redirect(url_for('get_song', song_id=song_id))
 
 # do not run this on localhost!!! very slow!
 @app.route('/song/fix_durations')
@@ -687,10 +727,6 @@ def create_album():
 def allowed_file(filename):
     """Check if the file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in  {'mp3', 'wav', 'flac'}
-
-@app.route('/album', methods=['GET'])
-def album():
-    return render_template('album.html')
 
 @app.route('/playlist', methods=['GET'])
 def playlist():

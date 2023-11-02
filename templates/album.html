@@ -1,375 +1,150 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <title>Album</title>
-</head>
-<body>
-    <!-- Top Navigation Bar -->
-    <header>
-        <div class="topbar">
-            <ul class="topbar_navigation">
-                <li>
-                    <a href="">
-                        <span>Hello Listener User!</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span>Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span>Recommendations</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span>Listen History</span>
-                    </a>
-                </li>
-            </ul>
-            <div class="search">
-                <form>
-                    <input type="text" class="search_bar" placeholder="Search Music...">
-                    <button type="submit" class="search_btn">Search</button>
-                </form>
-            </div>
-            <ul class="topbar_navigation">
-                <li>
-                    <a href="/logout">
-                        <span>Log Out</span>
-                    </a>
-                </li>
-            </ul>
-    </header>
-
-    <!-- Main Container To Display The Album Details and Songs-->
-    <div class="main_container">
-        <div class="album">
-            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="album picture">
-            <div class="album_information">
-                <h1>Album Name</h1>
-                <div>
-                    <ul class="album_data">
-                        <li class="album_artist">
-                            <h3>Artist Name</h3> 
-                        </li>
-                        <li>
-                            <h4>24 min 39 sec</h4>
-                        </li>
-                        <li>
-                            <h4>2013</h4>
-                        </li>
-                    </ul>
-                </div>
+{% extends template_parent %}
+{% block page %}
+<!-- Main Container To Display The Album Details and Songs-->
+<div class="main_container">
+    <div class="album">
+        <img src="/album/{{ data.album[0] }}/pic" alt="album picture">
+        <div class="album_information">
+            <h1>{{ data.album[1] }}</h1>
+            <div>
+                <ul class="album_data">
+                    <li class="album_artist">
+                        <h3>{{ data.album[5] }}</h3> 
+                    </li>
+                    <li>
+                        <h4>{{ data.album_duration }}</h4>
+                    </li>
+                    <li>
+                        <h4>Released on {{ data.album[4] }}</h4>
+                    </li>
+                </ul>
+                <a href='/artist/{{ data.album[2] }}/follow'>Follow</a>
+                <a href='/artist/{{ data.album[2] }}/unfollow'>Unfollow</a>
             </div>
         </div>
+    </div>
 
-        <!-- List of Songs, Needs A Loop to Create the List Instead of Listing Them Manually -->
-        <div class="album_songs">
-            <div class="album_header">
+    <!-- List of Songs, Needs A Loop to Create the List Instead of Listing Them Manually -->
+    <div class="album_songs">
+        <div class="album_header">
+            <ul>
+                <div class="album_left_info">
+                    <li class="song_list_number">
+                        <h4>#</h4>
+                    </li>
+                    <li>
+                        <h4>Title</h4>
+                    </li>
+                </div>
+                <div class="album_right_info">
+                    <li>
+                        <h4>Duration</h4>
+                    </li>
+                    {% if role=='listener' %}
+                    <li>
+                        <h4></h4> 
+                    </li>
+                    <li>
+                        <h4>Rate</h4> 
+                    </li>
+                    {% endif %}
+                </div>
+            </ul>
+        </div>
+        <hr>
+
+        {% for song in data.songs %}
+        <div class="track_list">
+            <div class="track_info">
                 <ul>
-                    <div class="album_left_info">
+                    <div class="track_left_info">
                         <li class="song_list_number">
-                            <h4>#</h4>
+                            <h4>{{ song[0] }}</h4>
                         </li>
                         <li>
-                            <h4>Title</h4>
+                            <a id='playSong' songid='{{ song[5] }}' href='#'><h4>{{ song[1] }}</h4></a>
+                            <a href="/artist/{{ song[4] }}"><h5>{{ song[3] }}</h5></a>
                         </li>
                     </div>
-                    <div class="album_right_info">
+                    <div class="track_right_info">
                         <li>
-                            <h4>Duration</h4>
+                            <h4>{{ song[2] }}</h4>
+                        </li>
+                        {% if role=='listener' %}
+                        <li>
+                            <a><h4>+</h4></a>
                         </li>
                         <li>
-                            <h4></h4> 
+                            <form method='POST' action="/song/{{ song[5] }}/rate">
+
+                                <div>
+                                    <input style='width:32px;' type="number" name="rating" id="rating" placeholder="5">
+                                <button type="submit">Rate</button>
+                                </div>
+                            </form>
                         </li>
+                        {% endif %}
                     </div>
                 </ul>
             </div>
-            <hr>
+        </div>
+        {% endfor %}
 
-            <div class="track_list">
-                <div class="track_info">
-                    <ul>
-                        <div class="track_left_info">
-                            <li class="song_list_number">
-                                <h4>1</h4>
-                            </li>
-                            <li>
-                                <a href=""><h4>Song</h4></a>
-                                <a href=""><h5>Artist Name</h5></a>
-                            </li>
-                        </div>
-                        <div class="track_right_info">
-                            <li>
-                                <h4>4:01</h4>
-                            </li>
-                            <li>
-                                <a><h4>+</h4></a>
-                            </li>
-                        </div>
-                    </ul>
+        <div class="song_list">
+            <h2>More Albums by {{ data.album[5] }}</h2>
+            <div class="list">
+                {% for album in data.more_by %}
+                <div class="item">
+                    <a><img src="/album/{{ album[0] }}/pic"></a>
+                    <h4>{{ album[1] }}</h4>
+                    <p>{{ album[3] }}</p>
                 </div>
-            </div>
-
-            <div class="track_list">
-                <div class="track_info">
-                    <ul>
-                        <div class="track_left_info">
-                            <li class="song_list_number">
-                                <h4>2</h4>
-                            </li>
-                            <li>
-                                <a href=""><h4>Song of Wind</h4></a>
-                                <a href=""><h5>Artist Name</h5></a>
-                            </li>
-                        </div>
-                        <div class="track_right_info">
-                            <li>
-                                <h4>4:01</h4>
-                            </li>
-                            <li>
-                                <a><h4>+</h4></a>
-                            </li>
-                        </div>
-                    </ul>
-                </div>
-            </div>
-
-            
-
-            <div class="track_list">
-                <div class="track_info">
-                    <ul>
-                        <div class="track_left_info">
-                            <li class="song_list_number">
-                                <h4>3</h4>
-                            </li>
-                            <li>
-                                <a href=""><h4>Another Song</h4></a>
-                                <a href=""><h5>Artist Name</h5></a>
-                            </li>
-                        </div>
-                        <div class="track_right_info">
-                            <li>
-                                <h4>4:01</h4>
-                            </li>
-                            <li>
-                                <a><h4>+</h4></a>
-                            </li>
-                        </div>
-                    </ul>
-                </div>
-            </div>
-
-            
-            <div class="track_list">
-                <div class="track_info">
-                    <ul>
-                        <div class="track_left_info">
-                            <li class="song_list_number">
-                                <h4>4</h4>
-                            </li>
-                            <li>
-                                <a href=""><h4>Some Song Name</h4></a>
-                                <a href=""><h5>Artist Name</h5></a>
-                            </li>
-                        </div>
-                        <div class="track_right_info">
-                            <li>
-                                <h4>4:01</h4>
-                            </li>
-                            <li>
-                                <a><h4>+</h4></a>
-                            </li>
-                        </div>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="song_list">
-                <h2>More by Artist Name</h2>
-                <div class="list">
-                    <div class="item">
-                        <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                        <h4>Song Name</h4>
-                        <p>Arist Name</p>
-                    </div>
-                    
-                    <div class="item">
-                        <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                        <h4>Song Name</h4>
-                        <p>Arist Name</p>
-                    </div>
-                    <div class="item">
-                        <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                        <h4>Song Name</h4>
-                        <p>Arist Name</p>
-                    </div>
-                    
-                    <div class="item">
-                        <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                        <h4>Song Name</h4>
-                        <p>Arist Name</p>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-            
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<script>
+function playSong(e) {
+    e.preventDefault();
+
+    let songid = this.getAttribute('songid');
     
-    <!-- Left Side Bar -->
-    <div class="left_sidebar">
-        <div class="logo">
-            <a href="">
-                <img src="{{url_for('static', filename='logo.png')}}" alt="Logo">
-            </a>
-        </div>
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Search</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+    fetch('/song/'+songid)
+        .then(response => response.json())
+        .then(data => {
+            let playerImage = document.getElementById('playerImage');
+            let playerSong = document.getElementById('playerSong');
+            let playerArtist = document.getElementById('playerArtist');
+            let playerSource = document.getElementById('playerSource');
 
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>My Playlists</span>
-                    </a>
-                    <a href="" class="add_playlist">+</a>
-                    <ul class="list_container">
-                        <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>A Playlist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                            <span>Another Playlist</span>
-                        </li>
-                    </ul>
-                </li>
-                <!-- <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Create Playlist</span>
-                    </a>
-                </li> -->
-            </ul>
-        </div>
-
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="">
-                        <span class="link_icon"></span>
-                        <span>Followed Artists</span>
-                    </a>
-                    <ul class="list_container">
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>An Artist</span>
-                        </li>
-                        <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
-                            <span>Another Artist</span>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Right Sidebar -->
-    <div class="right_sidebar">
-        <h1>Top Hits</h1>
-        <div class="navigation">
-            <ul>
-                <li>
-                    <p>
-                        <span class="link_icon"></span>
-                        <span>Weekly:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A Song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                    </p>
-                </li>
-            </ul>
-        </div>
-
-        <div class="navigation">
-            <ul>
-                <li>
-                    <p>
-                        <span class="link_icon"></span>
-                        <span>Daily:</span>
-                        <ul class="list_container">
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>A song</span>
-                            </li>
-                            <li>
-                                <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
-                                <span>Another Song</span>
-                            </li>
-                    </p>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Music Player -->
-    <div class="song_player">
-        <!-- Replace image, song name, artist name with actual database information -->
-        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
-        <h5>Song Name</br>
-            <div class="artist_name">Artist Name</div>
-        </h5>
-        <audio controls>
-            <!-- Provide the actual source path for the song -->
-            <source src="" type="">
-        </audio>
-        </div>
-    </div>
-</body>
-</html>
+            playerImage.setAttribute('src', '/album/'+data['albumid']+'/pic');
+            playerSong.innerHTML = data['songname'];
+            playerArtist.innerHTML = data['artistname'];
+        })
+        .finally(() => {
+            let playerSource = document.getElementById('playerSource');
+            let playerAudio = document.getElementById('playerAudio');
+            playerSource.setAttribute('src', '/song/'+songid+'/audio');
+            playerAudio.load();
+            playerAudio.play();
+            let playerDiv = document.getElementById('playerDiv');
+            playerDiv.style.display = '';
+        })
+        .catch(error => console.error('Error:', error));
+}
+addEventListener("DOMContentLoaded", (event) => {
+    const playSongLinks = document.querySelectorAll('#playSong');
+    for (var i = 0; i < playSongLinks.length; i++) {
+        playSongLinks[i].addEventListener('click', playSong);
+    }
+});
+</script>
+{% endblock %}
