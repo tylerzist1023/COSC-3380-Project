@@ -634,7 +634,16 @@ def album():
 
 @app.route('/playlist', methods=['GET'])
 def playlist():
-    return render_template('playlist.html')
+    if get_role(session) == 'listener':
+        return render_template('playlist.html')
+    return "Not authorized", 401
+
+@app.route('/createplaylist', methods=['GET'])
+def create_playlist():
+    if get_role(session) == 'listener':
+        return render_template('create_playlist.html')
+    return "Not authorized", 401
+
 
 if __name__ == '__main__':
     app.jinja_env.trim_blocks = True
