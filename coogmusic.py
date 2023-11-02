@@ -664,16 +664,16 @@ def get_pic():
 
         return send_file(file, mimetype=mimetype)
 
-@app.route('/playlist/<playlist_id>', methods=['GET'])
-def get_playlist(playlist_id):
-    query = 'select * from Playlist where PlaylistID=%s'
-    vals = (playlist_id)
-    with get_conn() as conn, conn.cursor() as cursor:
-        cursor.execute(query, vals)
-        result = cursor.fetchone()
-        conn.commit()
+# @app.route('/playlist/<playlist_id>', methods=['GET'])
+# def get_playlist(playlist_id):
+#     query = 'select * from Playlist where PlaylistID=%s'
+#     vals = (playlist_id)
+#     with get_conn() as conn, conn.cursor() as cursor:
+#         cursor.execute(query, vals)
+#         result = cursor.fetchone()
+#         conn.commit()
 
-        return str(result)
+#         return str(result)
 
 @app.route('/song/<song_id>/rate', methods=['POST'])
 def rate_song(song_id):
@@ -859,11 +859,37 @@ def allowed_file(filename):
     """Check if the file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in  {'mp3', 'wav', 'flac'}
 
-@app.route('/playlist', methods=['GET'])
-def playlist():
-    if get_role(session) == 'listener':
-        return render_template('playlist.html')
-    return "Not authorized", 401
+@app.route('/playlist/<playlist_id>', methods=['GET'])
+def get_playlist_songs(playlist_id):
+    if get_role(session) != 'listener':
+        return "You are not authorized to do that", 401
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        data = get_listener_base_data(session['id'], cursor)
+        data['username'] = session['username']
+
+        query ='SELECT PlaylistName, PlaylistDuration From Playlist Where PlaylistID=%s'
+        vals = (playlist_id)
+        cursor.execute(query, vals)
+        data['playlist'] = cursor.fetchone()
+
+        # duration_min = data['playlist'][1] // 60
+        # duration_sec = data['playlist'][1] % 60
+
+        # data['playlist_duration'] = f"{duration_min} min {duration_sec} sec"
+
+        query = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=%s AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID'
+        vals = (playlist_id)
+        cursor.execute(query, vals)
+        result = cursor.fetchall()
+        data['songs'] = []
+        for song in result:
+            duration_min = song[3] // 60
+            duration_sec = song[3] % 60
+            duration_str = f"{duration_min}:{duration_sec}"
+            data['songs'].append((song[0],song[1],song[2],song[3],duration_str))
+
+        return render_template('playlist.html', data=data)
 
 @app.route('/createplaylist', methods=['GET'])
 def create_playlist():
