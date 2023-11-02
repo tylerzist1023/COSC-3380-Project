@@ -47,6 +47,9 @@
                     <li>
                         <h4>Rate</h4> 
                     </li>
+                    <li>
+                        <h4></h4>
+                    </li>
                     {% endif %}
                 </div>
             </ul>
@@ -75,12 +78,11 @@
                             <div class="dropdown">
                                 <h4>+</h4>
                                 <div class="dropdown_menu">
+                                    {% for playlist in data.playlists %}
                                     <div class="dropdown_item">
-                                        <a href=""> Playlist Name</a>
+                                        <a href="">{{ playlist[2] }}</a>
                                     </div>
-                                    <div class="dropdown_item">
-                                        <a href=""> Playlist Name</a>
-                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </li>
