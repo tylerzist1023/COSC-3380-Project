@@ -68,6 +68,8 @@ def search_database(query, filters):
             cursor.execute(song_query, (like_pattern,))
             results['songs'] = cursor.fetchall()
 
+        conn.commit()
+
     return results
 
 def fetch_logs():
@@ -124,7 +126,7 @@ def fetch_top_artists():
         #cursor.execute(query, vals)
         cursor.execute(query)
         result = cursor.fetchall()
-        #conn.commit()
+        conn.commit()
    # print(result)
     return result
 def fetch_top_songs():
@@ -135,7 +137,7 @@ def fetch_top_songs():
         #cursor.execute(query, vals)
         cursor.execute(query)
         result = cursor.fetchall()
-        #conn.commit()
+        conn.commit()
     print(result)
     return result
 
@@ -227,6 +229,8 @@ def get_artist():
 
         data['username'] = session['username']
 
+        conn.commit()
+
         return render_template('artist.html', data=data)
 
 # @app.route('/listener', methods=['GET'])
@@ -247,6 +251,8 @@ def get_listener():
         data['for_you'] = cursor.fetchall()
 
         data['username'] = session['username']
+
+        conn.commit()
 
         return render_template('listener.html', data=data)
 
@@ -269,6 +275,8 @@ def get_listener_profile():
         data['playlists'] = cursor.fetchall()
 
         data['username'] = session['username']
+
+        conn.commit()
 
         return render_template('profile_listener.html', data=data)
 
@@ -293,6 +301,8 @@ def get_listener_edit():
         vals = (session['id'])
         cursor.execute(query,vals)
         data['user'] = cursor.fetchone()
+
+        conn.commit()
 
         return render_template('listener_edit.html', data=data)
 
@@ -401,6 +411,8 @@ def post_login():
         cursor.execute(query, vals)
         user = cursor.fetchone()
 
+        conn.commit()
+
         if user is None:
             return redirect(url_for('get_login', role=[role]))
         else:
@@ -427,6 +439,7 @@ def get_playlists():
     with get_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, vals)
         playlists = cursor.fetchall()
+        conn.commit()
 
         return str(playlists)
 
