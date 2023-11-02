@@ -118,7 +118,7 @@ WHERE
     return result
 def fetch_top_artists():
     #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    query = 'SELECT ArtistName, CreationStamp  FROM Artist  ORDER BY CreationStamp DESC LIMIT 5;'
+    query = 'SELECT ArtistName, CreationStamp  FROM Artist  ORDER BY CreationStamp DESC LIMIT 10;'
 
     with get_conn() as conn, conn.cursor() as cursor:
         #cursor.execute(query, vals)
@@ -129,7 +129,7 @@ def fetch_top_artists():
     return result
 def fetch_top_songs():
     #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    query = 'SELECT Name, CreationTimestamp  FROM Song ORDER BY CreationTimestamp DESC LIMIT 5;'
+    query = 'SELECT Name, CreationTimestamp  FROM Song ORDER BY CreationTimestamp DESC LIMIT 10;'
 
     with get_conn() as conn, conn.cursor() as cursor:
         #cursor.execute(query, vals)
@@ -205,22 +205,22 @@ def get_artist():
         cursor.execute(query,vals)
         data['my_music'] = cursor.fetchall()
 
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=%s ORDER BY Album.AverageRating DESC LIMIT 5'
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=%s ORDER BY Album.AverageRating DESC LIMIT 10'
         vals = (session['id'])
         cursor.execute(query,vals)
         data['highest_rated_albums'] = cursor.fetchall()
 
-        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    Song.AverageRating, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID WHERE     Album.ArtistID = %s ORDER BY     Song.AverageRating DESC LIMIT 5'
+        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    Song.AverageRating, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID WHERE     Album.ArtistID = %s ORDER BY     Song.AverageRating DESC LIMIT 10'
         vals = (session['id'])
         cursor.execute(query,vals)
         data['highest_rated_songs'] = cursor.fetchall()
 
-        query = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = %s GROUP BY      Album.AlbumID, AlbumName, ArtistName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 5'
+        query = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = %s GROUP BY      Album.AlbumID, AlbumName, ArtistName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 10'
         vals = (session['id'])
         cursor.execute(query,vals)
         data['most_played_albums'] = cursor.fetchall()
 
-        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    COUNT(ListenedToHistory.UserID) AS PlayCount, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN     ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE Artist.ArtistID=%s GROUP BY     Song.SongID, SongName, Album.AlbumName, Artist.ArtistName, Album.ArtistID, Song.SongID ORDER BY     PlayCount DESC LIMIT 5'
+        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    COUNT(ListenedToHistory.UserID) AS PlayCount, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN     ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE Artist.ArtistID=%s GROUP BY     Song.SongID, SongName, Album.AlbumName, Artist.ArtistName, Album.ArtistID, Song.SongID ORDER BY     PlayCount DESC LIMIT 10'
         vals = (session['id'])
         cursor.execute(query,vals)
         data['most_played_songs'] = cursor.fetchall()
@@ -237,11 +237,11 @@ def get_listener():
     with get_conn() as conn, conn.cursor() as cursor:
         data = get_listener_base_data(session['id'], cursor)
 
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID ORDER BY ReleaseDate DESC LIMIT 5'
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID ORDER BY ReleaseDate DESC LIMIT 10'
         cursor.execute(query)
         data['new_releases'] = cursor.fetchall()
 
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=%s ORDER BY ReleaseDate DESC LIMIT 5'
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=%s ORDER BY ReleaseDate DESC LIMIT 10'
         vals = (session['id'])
         cursor.execute(query,vals)
         data['for_you'] = cursor.fetchall()
@@ -563,7 +563,7 @@ def get_album(album_id):
             duration_str = f"{duration_min}:{duration_sec}"
             data['songs'].append((song[0],song[1],duration_str,song[3],song[4],song[5]))
 
-        query = 'SELECT Artist.ArtistID,ArtistName,AlbumID,AlbumName FROM Album,Artist WHERE Album.ArtistID=Artist.ArtistID AND Album.ArtistID=%s AND Album.AlbumID!=%s ORDER BY ReleaseDate DESC LIMIT 5'
+        query = 'SELECT Artist.ArtistID,ArtistName,AlbumID,AlbumName FROM Album,Artist WHERE Album.ArtistID=Artist.ArtistID AND Album.ArtistID=%s AND Album.AlbumID!=%s ORDER BY ReleaseDate DESC LIMIT 10'
         vals = (data['album'][2], album_id)
         cursor.execute(query, vals)
         data['more_by'] = cursor.fetchall()
