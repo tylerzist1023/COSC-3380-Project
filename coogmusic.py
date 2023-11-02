@@ -32,6 +32,132 @@ app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'wav'}
 
 mime_detector = magic.Magic()
 
+def search_database(query, filters):
+    results = {}
+    
+    if len(filters) == 0:
+        filters.extend(['artist','album','song'])
+
+    # Connect to the database
+    with get_conn() as conn, conn.cursor() as cursor:
+        
+        like_pattern = f'%{query}%'
+        
+        if 'artist' in filters:
+            artist_query = 'SELECT ArtistName, CreationStamp FROM Artist WHERE ArtistName LIKE %s ORDER BY CreationStamp;'
+            cursor.execute(artist_query, (like_pattern,))
+            results['artists'] = cursor.fetchall()
+
+        if 'album' in filters:
+            album_query = 'SELECT AlbumName FROM Album WHERE AlbumName LIKE %s  ORDER BY AlbumName ;'
+            cursor.execute(album_query, (like_pattern,))
+            results['albums'] = cursor.fetchall()
+
+        if 'playlist' in filters:
+            playlist_query = 'SELECT PlaylistName FROM Playlist WHERE PlaylistName LIKE %s ORDER BY PlaylistName ;'
+            cursor.execute(playlist_query, (like_pattern,))
+            results['playlists'] = cursor.fetchall()
+
+        if 'listener' in filters:
+            listener_query = 'SELECT Fname,Lname FROM Listener WHERE Fname LIKE %s or Fname LIKE %s ORDER BY Fname;'
+            cursor.execute(listener_query, (like_pattern,like_pattern))
+            results['listeners'] = cursor.fetchall()
+
+        if 'song' in filters:
+            song_query = 'SELECT Name FROM Song WHERE Name LIKE %s ORDER BY Name;'
+            cursor.execute(song_query, (like_pattern,))
+            results['songs'] = cursor.fetchall()
+
+    return results
+
+def fetch_logs():
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    query = 'SELECT LogID, AdminTimeStamp, LoginID, ActionMessage FROM AdminLog ORDER BY AdminTimeStamp DESC;'
+
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.commit()
+    #print(result)
+    return result
+def fetch_inactive_users():
+
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    #query = 'SELECT  L.UserID, L.Username, SP.ProblemMessage FROM ServerProblems AS SP JOIN Listener AS L ON CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(SP.ProblemMessage, ' ', 4), ' ', -1) AS UNSIGNED) = L.UserID WHERE SP.ProblemMessage LIKE "Listener with ID%has a server problem";'
+    query = """
+SELECT 
+    L.UserID,
+    L.Username,
+    SP.ProblemMessage
+FROM 
+    ServerProblems AS SP
+JOIN 
+    Listener AS L 
+    ON CAST(
+        SUBSTRING_INDEX(
+            SUBSTRING_INDEX(SP.ProblemMessage, ' ', 4), 
+            ' ', 
+            -1
+        ) AS UNSIGNED
+    ) = L.UserID
+WHERE 
+    SP.ProblemMessage LIKE 'Listener with ID%% has not accessed for more than 10 days';
+"""
+
+# Note: The '%' in the LIKE clause is escaped as '%%' because in Python string formatting, '%' acts as a special character.
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.commit()
+    #print(result)
+    #print(result)
+    return result
+def fetch_top_artists():
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    query = 'SELECT ArtistName, CreationStamp  FROM Artist  ORDER BY CreationStamp DESC LIMIT 10;'
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        #conn.commit()
+   # print(result)
+    return result
+def fetch_top_songs():
+    #query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber, ProfilePic, Bio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    query = 'SELECT Name, CreationTimestamp  FROM Song ORDER BY CreationTimestamp DESC LIMIT 10;'
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        #cursor.execute(query, vals)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        #conn.commit()
+    print(result)
+    return result
+
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query', '')
+    filters = request.args.getlist('filters')
+    print(query,filters)
+
+    results = search_database(query, filters) # Replace with your actual function to search in your database
+    return render_template('search_results.html', query=query, filters=filters, results=results)
+
+def get_admin():
+    #loggedin(loginID)
+    #admin logins there needs to be an insertion into admin log
+    #admin logs out there needs to be an insertion into admin log
+    top_artists = fetch_top_artists() # Replace with your actual function
+    top_songs = fetch_top_songs() # Replace with your actual function
+    logs = fetch_logs() # Replace with your actual function
+    inactive_users = fetch_inactive_users() # Replace with your actual function
+    return render_template('admin.html', top_artists=top_artists, top_songs=top_songs, logs=logs, inactive_users=inactive_users)
+
 def get_role(fs):
     if 'logged_in' in fs and fs['logged_in'] and 'role' in fs:
         return fs['role']
@@ -52,6 +178,57 @@ def get_listener_base_data(user_id, cursor):
 
     return data
 
+def get_artist_base_data(artist_id, cursor):
+    data = {}
+
+    query = 'SELECT AlbumID,AlbumName FROM Album WHERE ArtistID=%s'
+    vals = (artist_id)
+    cursor.execute(query,vals)
+    data['albums'] = cursor.fetchall()
+
+    query = 'SELECT Follow.UserID,Username FROM Follow,Listener WHERE Follow.ArtistID=%s AND Follow.UserID=Listener.UserID'
+    vals=(artist_id)
+    cursor.execute(query,vals)
+    data['followers'] = cursor.fetchall()
+
+    return data
+
+def get_artist():
+    if get_role(session) != 'artist':
+        return "You are not authorized to do that", 401
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        data = get_artist_base_data(session['id'], cursor)
+
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=%s ORDER BY ReleaseDate DESC'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['my_music'] = cursor.fetchall()
+
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=%s ORDER BY Album.AverageRating DESC LIMIT 10'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['highest_rated_albums'] = cursor.fetchall()
+
+        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    Song.AverageRating, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID WHERE     Album.ArtistID = %s ORDER BY     Song.AverageRating DESC LIMIT 10'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['highest_rated_songs'] = cursor.fetchall()
+
+        query = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = %s GROUP BY      Album.AlbumID, AlbumName, ArtistName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 10'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['most_played_albums'] = cursor.fetchall()
+
+        query = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    COUNT(ListenedToHistory.UserID) AS PlayCount, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN     ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE Artist.ArtistID=%s GROUP BY     Song.SongID, SongName, Album.AlbumName, Artist.ArtistName, Album.ArtistID, Song.SongID ORDER BY     PlayCount DESC LIMIT 10'
+        vals = (session['id'])
+        cursor.execute(query,vals)
+        data['most_played_songs'] = cursor.fetchall()
+
+        data['username'] = session['username']
+
+        return render_template('artist.html', data=data)
+
 # @app.route('/listener', methods=['GET'])
 def get_listener():
     if get_role(session) != 'listener':
@@ -60,11 +237,11 @@ def get_listener():
     with get_conn() as conn, conn.cursor() as cursor:
         data = get_listener_base_data(session['id'], cursor)
 
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID ORDER BY ReleaseDate LIMIT 5'
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID ORDER BY ReleaseDate DESC LIMIT 10'
         cursor.execute(query)
         data['new_releases'] = cursor.fetchall()
 
-        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=%s ORDER BY ReleaseDate LIMIT 5'
+        query = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=%s ORDER BY ReleaseDate DESC LIMIT 10'
         vals = (session['id'])
         cursor.execute(query,vals)
         data['for_you'] = cursor.fetchall()
@@ -151,6 +328,10 @@ def post_listener_edit():
 def index():
     if get_role(session) == 'listener':
         return get_listener()
+    if get_role(session) == 'artist':
+        return get_artist()
+    if get_role(session) == 'admin':
+        return get_admin()    
     return render_template('index.html')
 
 @app.route('/profile', methods=['GET'])
@@ -179,6 +360,8 @@ def get_login():
         return render_template('login.html', role='listener')
     elif role == 'artist':
         return render_template('login.html', role='artist')
+    elif role == 'admin':
+        return render_template('login.html', role='admin')
     return "",404
 
 @app.route('/register', methods=['GET'])
@@ -208,6 +391,9 @@ def post_login():
     elif role == 'artist':
         query = 'select * from Artist where Username=%s and Password=%s'
         vals = (request.form['username'], request.form['password'])
+    elif role == 'admin':
+        query = 'select * from Admin where Username=%s and Password=%s'
+        vals = (request.form['username'], request.form['password'])
     else:
         return redirect(url_for('get_login', role=[role]))
 
@@ -223,15 +409,20 @@ def post_login():
                 session['id'] = user[0]
             elif role == 'artist':
                 session['id'] = user[0]
+            elif role == 'admin':
+                session['id'] = user[0]
             session['role'] = role
             session['logged_in'] = True
             session['username'] = request.form['username']
             return redirect(url_for('index'))
 
-@app.route('/playlists/<user_id>')
-def get_playlists(user_id):
+@app.route('/playlists')
+def get_playlists():
+    if get_role(session) != 'listener':
+        return '401 Unauthorized',401
+
     query = 'SELECT * FROM Playlist WHERE UserID=%s'
-    vals = (user_id)
+    vals = (session['id'])
 
     with get_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, vals)
@@ -274,7 +465,7 @@ def post_register():
     return redirect(url_for('index'))
 
 @app.route('/artist/<artist_id>', methods=['GET'])
-def get_artist(artist_id):
+def get_artist_public(artist_id):
     query = 'select ArtistID from Artist where ArtistID=%s'
     vals = (artist_id)
     with get_conn() as conn, conn.cursor() as cursor:
@@ -288,7 +479,7 @@ def get_artist(artist_id):
 
         return render_template('artist_test.html', artist_id=artist_id)
 
-@app.route('/artist/<artist_id>/follow', methods=['POST'])
+@app.route('/artist/<artist_id>/follow', methods=['GET'])
 def follow_artist(artist_id):
     if get_role(session) != 'listener':
         return "You are not authorized to do that", 401
@@ -309,9 +500,9 @@ def follow_artist(artist_id):
 
         conn.commit()
 
-        return "", 200
+        return "Successfully followed", 200
 
-@app.route('/artist/<artist_id>/unfollow', methods=['POST'])
+@app.route('/artist/<artist_id>/unfollow', methods=['GET'])
 def unfollow_artist(artist_id):
     if get_role(session) != 'listener':
         return "You are not authorized to do that", 401
@@ -332,31 +523,70 @@ def unfollow_artist(artist_id):
 
         conn.commit()
 
-        return "", 200
+        return "Successfully unfollowed",200
 
 @app.route('/album/<album_id>', methods=['GET'])
 def get_album(album_id):
-    query = 'select AlbumID from Album where AlbumID=%s'
-    vals = (album_id)
+    role = get_role(session)
+    if role != 'listener' and role != 'artist':
+        return "You need to login first before accessing albums", 401
 
     with get_conn() as conn, conn.cursor() as cursor:
+        data = {}
+
+        template_parent = ''
+        if role == 'listener':
+            data = get_listener_base_data(session['id'], cursor)
+            template_parent = 'base_listener.html'
+        elif role == 'artist':
+            data = get_artist_base_data(session['id'], cursor)
+            template_parent = 'base_artist.html'
+
+        query = 'SELECT AlbumID,AlbumName,Album.ArtistID,AlbumDuration,ReleaseDate,ArtistName FROM Album,Artist WHERE AlbumID=%s AND Album.ArtistID=Artist.ArtistID'
+        vals = (album_id)
         cursor.execute(query, vals)
-        result = cursor.fetchone()
+        data['album'] = cursor.fetchone()
+
+        duration_min = data['album'][3] // 60
+        duration_sec = data['album'][3] % 60
+
+        data['album_duration'] = f"{duration_min} min {duration_sec} sec"
+
+        query = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num,Song.Name,Duration,ArtistName,Artist.ArtistID,Song.SongID FROM Song,Artist,Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=%s'
+        vals = (album_id)
+        cursor.execute(query, vals)
+        result = cursor.fetchall()
+        data['songs'] = []
+        for song in result:
+            duration_min = song[2] // 60
+            duration_sec = song[2] % 60
+            duration_str = f"{duration_min}:{duration_sec}"
+            data['songs'].append((song[0],song[1],duration_str,song[3],song[4],song[5]))
+
+        query = 'SELECT Artist.ArtistID,ArtistName,AlbumID,AlbumName FROM Album,Artist WHERE Album.ArtistID=Artist.ArtistID AND Album.ArtistID=%s AND Album.AlbumID!=%s ORDER BY ReleaseDate DESC LIMIT 10'
+        vals = (data['album'][2], album_id)
+        cursor.execute(query, vals)
+        data['more_by'] = cursor.fetchall()
+
+        data['username'] = session['username']
+
         conn.commit()
 
-        return str(result)
+        return render_template('album.html', role=role, template_parent=template_parent, data=data)
 
 @app.route('/song/<song_id>', methods=['GET'])
 def get_song(song_id):
-    query = 'select SongID from Song where SongID=%s'
+    query = 'select SongID,Song.AlbumID,Name,AlbumName from Song,Album where SongID=%s AND Album.AlbumID=Song.AlbumID'
     vals = (song_id)
     with get_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, vals)
         result = cursor.fetchone()
         conn.commit()
 
+        print(result)
+
         if result:
-            return render_template('song_test.html', song_id=song_id)
+            return {"albumid": result[1], "songname": result[2], "artistname": result[3]}
         else:
             return "Song not found", 404
 
@@ -470,7 +700,8 @@ def rate_song(song_id):
 
         conn.commit()
 
-        return redirect(url_for('get_song', song_id=song_id))
+        return "Successfully rated song", 200
+        #return redirect(url_for('get_song', song_id=song_id))
 
 # do not run this on localhost!!! very slow!
 @app.route('/song/fix_durations')
@@ -627,10 +858,6 @@ def create_album():
 def allowed_file(filename):
     """Check if the file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in  {'mp3', 'wav', 'flac'}
-
-@app.route('/album', methods=['GET'])
-def album():
-    return render_template('album.html')
 
 @app.route('/playlist', methods=['GET'])
 def playlist():

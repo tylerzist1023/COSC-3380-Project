@@ -27,8 +27,8 @@
             </li>
         </ul>
         <div class="search">
-            <form>
-                <input type="text" class="search_bar" placeholder="Search Music...">
+            <form action='/search'>
+                <input type="text" class="search_bar" name='query' placeholder="Search Music...">
                 <button type="submit" class="search_btn">Search</button>
             </form>
         </div>
@@ -46,14 +46,14 @@
 <!-- Left Side Bar -->
 <div class="left_sidebar">
     <div class="logo">
-        <a href="">
+        <a href="/">
             <img src="{{url_for('static', filename='logo.png')}}" alt="Logo">
         </a>
     </div>
     <div class="navigation">
         <ul>
             <li>
-                <a href="">
+                <a href="/">
                     <span class="link_icon"></span>
                     <span>Home</span>
                 </a>
@@ -108,7 +108,7 @@
 </div>
 
 <!-- Right Sidebar -->
-<div class="right_sidebar">
+<!-- <div class="right_sidebar">
     <h1>Top Hits</h1>
     <div class="navigation">
         <ul>
@@ -151,18 +151,19 @@
             </li>
         </ul>
     </div>
-</div>
+</div> -->
 
 <!-- Music Player -->
-<div class="song_player">
+<div id='playerDiv' style='display:none;' class="song_player">
     <!-- Replace image, song name, artist name with actual database information -->
-    <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
-    <h5>Song Name</br>
-        <div class="artist_name">Artist Name</div>
-    </h5>
-    <audio controls>
+    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <h5>
+    <div id='playerSong'>Song Name</div>
+    <div id='playerArtist' class="artist_name">Artist Name</div>
+</h5>
+    <audio id='playerAudio' controls>
         <!-- Provide the actual source path for the song -->
-        <source src="" type="">
+        <source id='playerSource' src="" type="">
     </audio>
     </div>
 </div>
