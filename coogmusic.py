@@ -868,7 +868,7 @@ def get_playlist_songs(playlist_id):
         data = get_listener_base_data(session['id'], cursor)
         data['username'] = session['username']
 
-        query ='SELECT PlaylistName, PlaylistDuration From Playlist Where PlaylistID=%s'
+        query ='SELECT PlaylistID, PlaylistName, PlaylistDuration From Playlist Where PlaylistID=%s'
         vals = (playlist_id)
         cursor.execute(query, vals)
         data['playlist'] = cursor.fetchone()
@@ -878,7 +878,7 @@ def get_playlist_songs(playlist_id):
 
         # data['playlist_duration'] = f"{duration_min} min {duration_sec} sec"
 
-        query = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=%s AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID'
+        query = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=%s AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID'
         vals = (playlist_id)
         cursor.execute(query, vals)
         result = cursor.fetchall()
@@ -887,9 +887,30 @@ def get_playlist_songs(playlist_id):
             duration_min = song[3] // 60
             duration_sec = song[3] % 60
             duration_str = f"{duration_min}:{duration_sec}"
-            data['songs'].append((song[0],song[1],song[2],song[3],duration_str))
+            data['songs'].append((song[0],song[1],song[2],song[3],duration_str, song[4]))
+
+        query = 'SELECT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID =%s AND Song.AlbumID=Album.AlbumID And Album.ArtistID=Artist.ArtistID AND GenreCode = (SELECT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=%s  AND Song.SongID=PlaylistSong.SongID)'
+        vals = (playlist_id, playlist_id)
+        cursor.execute(query, vals)
+        data['recommended'] = cursor.fetchall()
 
         return render_template('playlist.html', data=data)
+
+@app.route('/playlist/<playlist_id>/pic', methods=['GET'])
+def get_playlist_pic(playlist_id):
+    query = 'SELECT AlbumPic FROM Album, PlaylistSong, Song WHERE PlaylistSong.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND PlaylistID=%s'
+    vals = (playlist_id)
+    with get_conn() as conn, conn.cursor() as cursor:
+        cursor.execute(query, vals)
+        result = cursor.fetchone()
+        conn.commit()
+
+        if not result or result[0] is None:
+            return "Playlist pic not found", 404
+
+        (file, mimetype) = get_file(result[0])
+
+        return send_file(file, mimetype=mimetype)
 
 @app.route('/createplaylist', methods=['GET'])
 def create_playlist():

@@ -3,9 +3,9 @@
 <!-- Main Container To Display The Album Details and Songs-->
 <div class="main_container">
     <div class="album">
-        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="album picture">
+        <img src="/playlist/{{ data.playlist[0] }}/pic" alt="playlist picture">
         <div class="album_information">
-            <h1>{{ data.playlist[0] }}</h1>
+            <h1>{{ data.playlist[1] }}</h1>
             <div>
                 <ul class="album_data">
                     <li>
@@ -52,7 +52,7 @@
                             <h4>{{ song[0] }}</h4>
                         </li>
                         <li>
-                            <a href=""><h4>{{ song[1] }}</h4></a>
+                            <a id='playSong' songid='{{ song[5] }}' href='#'><h4>{{ song[1] }}</h4></a>
                             <a href=""><h5>{{ song[2] }}</h5></a>
                         </li>
                     </div>
@@ -72,30 +72,52 @@
         <div class="song_list">
             <h2>Recommended</h2>
             <div class="list">
+                {% for song in data.recommended %}
                 <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
+                    <a id='playSong' songid='{{ song[2] }}' href='#'><img src="/album/{{ song[4] }}/pic" alt="song name"></a>
+                    <h4>{{ song[0] }}</h4>
+                    <a href='/artist/{{ song[3] }}'><p>{{ song[1] }}</p></a>
                 </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='placeholder.png')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
-                
-                <div class="item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
-                    <h4>Song Name</h4>
-                    <p>Arist Name</p>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function playSong(e) {
+    e.preventDefault();
+
+    let songid = this.getAttribute('songid');
+    
+    fetch('/song/'+songid)
+        .then(response => response.json())
+        .then(data => {
+            let playerImage = document.getElementById('playerImage');
+            let playerSong = document.getElementById('playerSong');
+            let playerArtist = document.getElementById('playerArtist');
+            let playerSource = document.getElementById('playerSource');
+
+            playerImage.setAttribute('src', '/album/'+data['albumid']+'/pic');
+            playerSong.innerHTML = data['songname'];
+            playerArtist.innerHTML = data['artistname'];
+        })
+        .finally(() => {
+            let playerSource = document.getElementById('playerSource');
+            let playerAudio = document.getElementById('playerAudio');
+            playerSource.setAttribute('src', '/song/'+songid+'/audio');
+            playerAudio.load();
+            playerAudio.play();
+            let playerDiv = document.getElementById('playerDiv');
+            playerDiv.style.display = '';
+        })
+        .catch(error => console.error('Error:', error));
+}
+addEventListener("DOMContentLoaded", (event) => {
+    const playSongLinks = document.querySelectorAll('#playSong');
+    for (var i = 0; i < playSongLinks.length; i++) {
+        playSongLinks[i].addEventListener('click', playSong);
+    }
+});
+</script>
 {% endblock %}
