@@ -889,7 +889,7 @@ def get_playlist_songs(playlist_id):
             duration_str = f"{duration_min}:{duration_sec}"
             data['songs'].append((song[0],song[1],song[2],song[3],duration_str, song[4]))
 
-        query = 'SELECT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID =%s AND Song.AlbumID=Album.AlbumID And Album.ArtistID=Artist.ArtistID AND GenreCode = (SELECT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=%s  AND Song.SongID=PlaylistSong.SongID)'
+        query = 'SELECT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID =%s AND Song.AlbumID=Album.AlbumID And Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=%s  AND Song.SongID=PlaylistSong.SongID) LIMIT 10'
         vals = (playlist_id, playlist_id)
         cursor.execute(query, vals)
         data['recommended'] = cursor.fetchall()
