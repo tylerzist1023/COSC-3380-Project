@@ -902,7 +902,7 @@ def get_playlist_songs(playlist_id):
             duration_str = f"{duration_min}:{duration_sec}"
             data['songs'].append((song[0],song[1],song[2],song[3],duration_str, song[4]))
 
-        query = 'SELECT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID =%s AND Song.AlbumID=Album.AlbumID And Album.ArtistID=Artist.ArtistID AND GenreCode = (SELECT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=%s  AND Song.SongID=PlaylistSong.SongID)'
+        query = 'SELECT DISTINCT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID =%s AND Song.AlbumID=Album.AlbumID And Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT DISTINCT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=%s  AND Song.SongID=PlaylistSong.SongID) LIMIT 10'
         vals = (playlist_id, playlist_id)
         cursor.execute(query, vals)
         data['recommended'] = cursor.fetchall()
@@ -925,10 +925,15 @@ def get_playlist_pic(playlist_id):
 
         return send_file(file, mimetype=mimetype)
 
-@app.route('/createplaylist', methods=['GET'])
+@app.route('/playlist/create', methods=['GET'])
 def create_playlist():
     if get_role(session) == 'listener':
-        return render_template('create_playlist.html')
+        
+        with get_conn() as conn, conn.cursor() as cursor:
+            data = get_listener_base_data(session['id'], cursor)
+            data['username'] = session['username']
+
+        return render_template('create_playlist.html', data=data)
     return "Not authorized", 401
 
 
