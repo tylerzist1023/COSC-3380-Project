@@ -1,0 +1,185 @@
+{% extends 'base 1.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 20px;
+    }
+
+    h1, h2 {
+        color: #e20000;
+    }
+
+    .search-section {
+        background: #1e1e1e;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 2em;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    ul li {
+        background: #333;
+        margin-bottom: .5em;
+        padding: .5em;
+        border-radius: 3px;
+        transition: background-color 0.3s;
+    }
+
+    ul li:hover {
+        background: #424242;
+    }
+
+    /* If you want to customize scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #af4c4c;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #d6da11;
+    }
+    .button-style {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<script>
+    // Function to handle the click on a list item
+    function offerRemoval(element, itemType, itemId) {
+        // Check if a button already exists to prevent multiple buttons
+        if (element.querySelector('.button-style')) return;
+
+        // Create a new button element for removal confirmation
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'button-style'; // Add styling class
+        removeBtn.textContent = 'Remove'; // Set button text
+
+        // Add event listener for the remove action
+        removeBtn.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent the list item click event
+            if (confirm('Are you sure you want to remove this item?')) {
+                // AJAX request to server to remove the item
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/remove_item', true);
+                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                xhr.onload = function () {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        // Remove the item from the DOM if the request is successful
+                        element.remove();
+                    } else {
+                        // Handle errors here, e.g., item couldn't be removed
+                        alert('Error: Could not remove the item.');
+                    }
+                };
+                xhr.send(JSON.stringify({ itemType: itemType, itemId: itemId }));
+            }
+        });
+
+        // Append the remove button to the list item
+        element.appendChild(removeBtn);
+    }
+</script>
+
+<div class="container">
+    <h1>Search Results for "{{ query }}"</h1>
+    {% if 'artist' in filters %}
+<div class="search-section">
+    <h2>Artists</h2>
+    <ul>
+        {% for result in results.artists %}
+        <li onclick="offerRemoval(this, 'artist', '{{ result[1] }}');">
+            {{ result[0] }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if 'album' in filters %}
+<div class="search-section">
+    <h2>Albums</h2>
+    <ul>
+        {% for result in results.albums %}
+        <li onclick="offerRemoval(this, 'album', '{{ result[1] }}');">
+            {{ result[0] }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if 'playlist' in filters %}
+<div class="search-section">
+    <h2>Playlists</h2>
+    <ul>
+        {% for result in results.albums %}
+        <li onclick="offerRemoval(this, 'playlist', '{{ result[1]}}');">
+            {{ result[0] }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+{% if 'listener' in filters %}
+<div class="search-section">
+    <h2>Listeners</h2>
+    <ul>
+        {% for result in results.albums %}
+        <li onclick="offerRemoval(this, 'listener', '{{ result[2]}}');">
+            {{ result[0] }} {{ result[1] }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Repeat the structure for other filters/categories like playlists and listeners -->
+
+{% if 'song' in filters %}
+<div class="search-section">
+    <h2>Songs</h2>
+    <ul>
+        {% for result in results.songs %}
+        <li onclick="offerRemoval(this, 'song', '{{ result[1] }}');">
+            {{ result[0] }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+   
+</div>
+
+{% endblock %}
