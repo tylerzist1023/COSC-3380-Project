@@ -79,7 +79,7 @@
                     {% for playlist in data.playlists %}
                     <li>
                         <img src="/playlist/{{ playlist[0] }}/pic" alt="{{ playlist[2] }}">
-                        <span>{{ playlist[2] }}</span>
+                        <a href="/playlist/{{ playlist[0] }}">{{ playlist[2] }}</a>
                     </li>
                     {% endfor %}
                 </ul>
