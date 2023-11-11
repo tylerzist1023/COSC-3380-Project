@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}Listener{% endblock %}
+{% block body %}
+<!-- Top Navigation Bar -->
+<header>
+    <div class="topbar">
+        <ul class="topbar_navigation">
+            <li>
+                <a href="/">
+                    <span>Hello {{ data.username }}!</span>
+                </a>
+            </li>
+            <li>
+                <a href="/profile">
+                    <span>Profile</span>
+                </a>
+            </li>
+            <li>
+                <a href="">
+                    <span>Recommendations</span>
+                </a>
+            </li>
+            <li>
+                <a href="">
+                    <span>Listen History</span>
+                </a>
+            </li>
+        </ul>
+        <div class="search">
+            <form action='/search'>
+                <input type="text" class="search_bar" name='query' placeholder="Search Music...">
+                <button type="submit" class="search_btn">Search</button>
+            </form>
+        </div>
+        <ul class="topbar_navigation">
+            <li>
+                <a href="/logout">
+                    <span>Log Out</span>
+                </a>
+            </li>
+        </ul>
+</header>
+
+{% block page %}{% endblock %}
+
+<!-- Left Side Bar -->
+<div class="left_sidebar">
+    <div class="logo">
+        <a href="/">
+            <img src="/logo.png" alt="Logo">
+        </a>
+    </div>
+    <div class="navigation">
+        <ul>
+            <li>
+                <a href="/">
+                    <span class="link_icon"></span>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="">
+                    <span class="link_icon"></span>
+                    <span>Search</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="navigation">
+        <ul>
+            <li>
+                <a href="">
+                    <span class="link_icon"></span>
+                    <span>My Playlists</span>
+                </a>
+                <a href="/playlist/create" class="add_playlist">+</a>
+                <ul class="list_container">
+                    {% for playlist in data.playlists %}
+                    <li>
+                        <img src="/playlist/{{ playlist['PlaylistID'] }}/pic" alt="{{ playlist['PlaylistName'] }}">
+                        <a href="/playlist/{{ playlist['PlaylistID'] }}">{{ playlist['PlaylistName'] }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="navigation">
+        <ul>
+            <li>
+                <a href="">
+                    <span class="link_icon"></span>
+                    <span>Followed Artists</span>
+                </a>
+                <ul class="list_container">
+                    {% for follow in data.following %}
+                    <li>
+                        <img src="/artist/{{ follow['ArtistID'] }}/pic">
+                        <a href='/artist/{{ follow['ArtistID'] }}'><span>{{ follow['ArtistName'] }}</span></a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Right Sidebar -->
+<!-- <div class="right_sidebar">
+    <h1>Top Hits</h1>
+    <div class="navigation">
+        <ul>
+            <li>
+                <p>
+                    <span class="link_icon"></span>
+                    <span>Weekly:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>A Song</span>
+                        </li>
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                    </ul>
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="navigation">
+        <ul>
+            <li>
+                <p>
+                    <span class="link_icon"></span>
+                    <span>Daily:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>A song</span>
+                        </li>
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                    </ul>
+                </p>
+            </li>
+        </ul>
+    </div>
+</div> -->
+
+<!-- Music Player -->
+<div id='playerDiv' style='display:none;' class="song_player">
+    <!-- Replace image, song name, artist name with actual database information -->
+    <img id='playerImage' src="/Cockatiel-2.jpg" alt="song name">
+    <h5>
+    <div id='playerSong'>Song Name</div>
+    <div id='playerArtist' class="artist_name">Artist Name</div>
+</h5>
+    <audio id='playerAudio' controls>
+        <!-- Provide the actual source path for the song -->
+        <source id='playerSource' src="" type="">
+    </audio>
+    </div>
+</div>
+{% endblock %}

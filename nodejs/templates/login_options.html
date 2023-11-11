@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block body %}
+
+<nav class="navbar">
+    <div class="navbar_container">
+        <a href="/" class="navbar_logo"><img src="/logo.png" height="75px"></a>
+        <div class="navbar_toggle" id="mobile-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <ul class="navbar_menu">
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    Home
+                </a>
+            </li>
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    About
+                </a>
+            </li>
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    Contact
+                </a>
+            </li>
+            <li class="navbar_item">
+                <a href="/" class="navbar_links">
+                    Help
+                </a>
+            </li>
+        </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="split left">
+    <div class="centered">
+        <h1>I Am A Listener</h1>
+        <a href='/login?role=listener'><button class="login_btn">Login as Listener</button></a>
+        <a href='/register?role=listener'><button class="login_btn">Register as Listener</button></a>
+    </div>
+</div>
+
+<div class="split right">
+    <div class="centered">
+        <h1>I Am An Artist</h1>
+        <a href='/login?role=artist'><button class="login_btn">Login as Artist</button></a>
+        <a href='/register?role=artist'><button class="login_btn">Register as Artist</button></a>
+    </div>
+</div>
+{% endblock %}

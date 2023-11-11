@@ -1,0 +1,24 @@
+{% extends 'base_listener.html' %}
+{% block page %}
+    <!-- Main Container To Display The Album Details and Songs-->
+    <div class="main_container">
+
+        <section class="form_style">
+            <div class="container">
+                <header>
+                    <h1>Create New Playlist</h1>
+                </header>
+                
+                <form method='POST' action="" class="form">
+                    <div class="input_box">
+                        <label for="username">Playlist Name</label>
+                        <input type="text" name="username" id="username" placeholder="Enter a name for the playlist" required>
+                    </div>
+                    
+                    <button type="submit" class="submit_btn">Create</button>
+                </form></br>
+            </div>
+        </section>
+        
+    </div>
+{% endblock %}

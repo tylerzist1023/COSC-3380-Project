@@ -1,0 +1,1137 @@
+h1,h2,h3,h4,h5,p,label
+{
+    color: #859ad3;
+}
+
+a {
+    color: #859ad3;
+    text-decoration-line: underline;
+}
+
+body {
+    font-family: 'Montserrat', 'Orbitron', sans-serif;
+    background-color: #111727;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.song-inputs {
+    margin-bottom: 10px;
+}
+
+/* Left Sidebar Positioning */
+.left_sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 196px;
+    background-color: #1e2844;
+    padding: 20px;
+    overflow: auto;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #333 #666; /* Track and thumb colors */
+}
+
+/* Style the scrollbar thumb */
+.left_sidebar::-webkit-scrollbar {
+    width: 12px; /* Adjust the width as needed */
+}
+
+.left_sidebar::-webkit-scrollbar-thumb {
+    background-color: #666; /* Thumb color */
+    border-radius: 6px; /* Rounded corners */
+}
+
+.left_sidebar::-webkit-scrollbar-track {
+    background-color: #333; /* Track color */
+}
+
+
+/* Logo sizing */
+.left_sidebar .logo img {
+    width: 130px;
+}
+
+/* Right Sidebar Positioning */
+.right_sidebar {
+    position: absolute;
+    right: 0;
+    top: 60px;
+    bottom: 0;
+    width: 196px;
+    padding: 20px;
+}
+
+/* Sidebar Text and Link Styling*/
+.navigation ul {
+    list-style: none;
+    margin-top: 20px;
+}
+
+.navigation ul li {
+    padding: 10px 0px;
+}
+
+.navigation ul li p {
+    color: #b3b3b3;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: default;
+}
+
+.navigation ul li a {
+    color: #b3b3b3;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.navigation ul li a:hover,
+.navigation ul li a:active,
+.navigation ul li a:focus {
+    color: white;
+}
+
+.navigation ul li a:hover .link_icon,
+.navigation ul li a:active .link_icon,
+.navigation ul li a:focus .link_icon {
+    color: #b3b3b3;
+}
+
+.navigation ul li a:hover .link_icon:hover,
+.navigation ul li a:active .link_icon:active,
+.navigation ul li a:focus .link_icon:focus {
+    color: white;
+}
+
+/* Sidebar Playlist Container */
+.list_container li {
+    list-style: none;
+    padding: 5px 0px 5px 20px;
+    display: flex;
+    align-items: center;
+}
+
+.list_container li span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #b3b3b3;
+}
+
+.list_container li img {
+    width: 32px;
+    height: 32px;
+    margin-right: 15px;
+}
+
+a.add_playlist {
+    float: right;
+    padding-top: 4px;
+}
+
+a.add_album {
+    float: right;
+    padding-top: 4px;
+}
+
+/* Topbar positionioning and sizing */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 196px;
+    padding: 14px 30px;
+    width: auto;
+    height: 10%;
+    align-items: center;
+}
+
+/* Search bar styling */
+.topbar .search {
+    position: relative;
+    padding: 1px 10px;
+    border-radius: 20px;
+    color: gray;
+}
+
+.topbar .search .search_bar {
+    width: 400px;
+    background: rgb(184, 184, 184, .1);
+    outline: none;
+    border: none;
+    padding: 0px 10px;
+    color: white;
+    font-size: 12px;
+    border-radius: 20px;
+}
+
+.topbar .search .search_btn {
+    background: rgb(184, 184, 184, .1);
+    outline: none;
+    padding: 0px 10px;
+    color: white;
+    font-size: 12px;
+    border-radius: 20px;
+}
+
+/* Topbar Link and Text Styling */
+.topbar .topbar_navigation {
+    display: flex;   
+}
+
+.topbar .topbar_navigation  li {
+    position: relative;
+    list-style-type: none;
+    font-size: 13px;
+}
+
+.topbar .topbar_navigation  li a {
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: bold;
+    color: #b3b3b3;
+    margin-right: 25px;
+}
+
+.topbar_navigation li a:hover,
+.topbar_navigation li a:active,
+.topbar_navigation li a:focus {
+    color: white;
+}
+
+/* Main Container Position */
+.main_container {
+    margin-left: 196px;
+    margin-right: 196px;
+    overflow: hidden;
+}
+
+/* Main Container Link and Text Styling */
+.main_container ul li a:hover,
+.main_container ul li a:active,
+.main_container ul li a:focus {
+    color: white;
+}
+
+.main_container ul li a:hover .link_icon,
+.main_container ul li a:active .link_icon,
+.main_container ul li a:focus .link_icon {
+    color: #b3b3b3;
+}
+
+.main_container ul li a:hover .link_icon:hover,
+.main_container ul li a:active .link_icon:active,
+.main_container ul li a:focus .link_icon:focus {
+    color: white;
+}
+
+/* Song List Styling */
+.song_list {
+    padding: 20px 40px;
+}
+
+.song_list h2 {
+    color: white;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+.song_list .list {
+    display: flex;
+    gap: 20px;
+    overflow: auto;
+}
+
+.song_list .list::-webkit-scrollbar {
+    background-color: #3e5185;
+}
+
+.song_list .list::-webkit-scrollbar-thumb {
+    background-color: #2c3a61;
+}
+
+.song_list .list .item {
+    min-width: 140px;
+    width: 160px;
+    padding: 15px;
+    background-color: #181818;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all ease 0.4s;
+}
+
+.song_list .list .item:hover {
+    background-color: #252525;
+}
+
+.song_list .list .item img {
+    width: 100%;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.song_list .list .item h4 {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song_list .list .item p {
+    color: #989898;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.song_list .list .item a {
+    text-decoration: none;
+}
+
+.song_list hr {
+    margin: 70px 0px 0px;
+    border-color: #636363;
+}
+
+/* Music Player Container Styling */
+.song_player {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    height: 100px;
+    background: #0b1320;
+    display: flex;
+    color: white;
+    align-items: center;
+    padding: 0px 20px;
+    overflow: hidden;
+}
+
+.song_player img {
+    width: 55x;
+    height: 55px;
+}
+
+.song_player h5 {
+    width: 130px;
+    font-size: 13px;
+    margin-left: 15px;
+    color: white;
+    line-height: 17px;
+}
+
+.song_player h5 .artist_name {
+    font-size: 11px;
+    color: #989898;
+}
+
+.song_player audio {
+    /* margin: 0 auto; Removed for now but can enable if we want the music player centered */
+    width: 900px;
+}
+
+/* Display when the window screen is smaller */
+@media screen and (max-width:960px) {
+    .left_sidebar {
+        display: none;
+    }
+    
+    .right_sidebar {
+        display: none;
+    }
+
+    .topbar {
+        display: inline-block;
+        margin-left: 0px;
+        width: 100%;
+        height: auto;
+        justify-content: space-between;
+    }
+
+    .topbar .search .search_bar {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .main_container {
+        display: flex;
+        margin-left: 0px;
+        width: 100%;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .song_list .list {
+        display: flex;
+        gap: 20px;
+        overflow: auto;
+    }
+
+    .song_player {
+        position: absolute;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .song_player audio {
+        width: 100%;
+    }
+
+    .navbar_container{
+        display: flex;
+        justify-content: space-between;
+        height: 80px;
+        z-index: 1;
+        width: 100%;
+        max-width: 1300px;
+        padding: 0;
+    }
+    
+    .navbar_menu{
+        display: flex;
+        margin:0;
+        width: 100%;
+    }
+
+    .navbar_logo {
+        padding-left: 25px;
+    }
+
+    .navbar_item {
+        width: 100%;
+    }
+    
+    .navbar_links {
+        text-align: center;
+        padding: 2rem;
+        width: 100%;
+        display: table;
+    }
+
+    .main__content {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .main_content h1 {
+        font-size: 2rem;
+        margin-top: 3rem;
+    }
+
+    .main_content h2 {
+        font-size: 2rem;
+    }
+
+    .main_content p {
+        margin-top: 2rem;
+        font-size: 1.5rem;
+    }
+
+    .main_btn {
+        padding: 12px 36px;
+        margin: 2.5rem 0;
+    }
+}
+
+/* Login and Register Form Styling*/
+.form_style {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    position: relative;
+    max-width: 700px;
+    width: 100%;
+    background: #1e2844;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.container header {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 500;
+    text-align: center;
+}
+
+.container .form {
+    margin-top: 30px;
+}
+
+.form .input_box {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.input_box label {
+    color: #859ad3;
+}
+
+.form .input_box input {
+    position: relative;
+    display: flex;
+    height: 50px;
+    width: 100%;
+    outline: none;
+    font-size: 1rem;
+    color: #707070;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 15px;
+}
+
+.center_text {
+    text-align: center;
+}
+
+a.center_text {
+    color: white;
+    display: block;
+}
+
+.submit_btn {
+    height: 55px;
+    width: 100%;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+button.submit_btn:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+/* Listener Profile Styling */
+.listener_profile { 
+    position: relative;
+    display: flex;
+    overflow: hidden; 
+    width: auto;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px; 
+    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
+} 
+
+.listener_profile img { 
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%;
+    margin: 20px 20px;
+}
+
+.listener_profile .profile_information h1 {
+    color: white;
+}
+
+.listener_profile .profile_information h3 {
+    color: white;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.listener_profile .profile_information h4 {
+    color: white;
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.listener_profile a {
+    font-size: 14px;
+    margin-left: 20px;
+}
+
+.listener_profile h4 {
+    color: white;
+}
+
+.song_list .list .artist_item {
+    min-width: 140px;
+    width: 160px;
+    padding: 15px;
+    background-color: #181818;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all ease 0.4s;
+}
+
+.song_list .list .artist_item:hover {
+    background-color: #252525;
+}
+
+.song_list .list .artist_item img {
+    width: 100%;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.song_list .list .artist_item h4 {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song_list .list .artist_item p {
+    color: #989898;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.edit_profile { 
+    position: relative;
+    overflow: hidden; 
+    float: left;
+    width: 300px;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px;
+    text-overflow: ellipsis;
+    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
+} 
+
+.edit_profile img { 
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%;
+    margin: 20px 20px;
+}
+
+.edit_profile h1 { 
+    color: white;
+    text-align: center;
+}
+
+.edit_profile_form {
+    min-height: 100vh;
+    display: flex;
+    padding: 20px;
+}
+
+.edit_profile_form .form .input_box .edit_box {
+    height: 50px;
+    width: 700px;
+    position: relative;
+    align-items: center;
+    color: #707070;
+    outline: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 15px;
+}
+
+.edit_profile_form .form .input_box label {
+    height: 50px;
+    width: 350px;
+    line-height: 44px;
+    position: relative;
+    float: left;
+}
+
+.save_btn {
+    height: 55px;
+    width: 700px;
+    float: right;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+button.save_btn:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+.back_link {
+    margin: 20px;
+}
+
+/* Getting Started Page Style */
+.login_btn {
+    height: 55px;
+    width: 500px;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+.login_btn a {
+    text-decoration: none;
+}
+
+button.login_btn:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+.split {
+    height: 100%;
+    width: 50%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+.left {
+    left: 0;
+    background-color: #0b1320;
+}
+
+.right {
+    right: 0;
+    background-color: #111727;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+/* Homepage Navigation Bar Styling*/
+.navbar {
+    font-family: 'Orbitron', sans-serif;
+    background-color: #1e2844;
+    font-size: 1.2rem;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.navbar_container {
+    display: flex;
+    justify-content: space-between;
+    height: 80px;
+    z-index: 1;
+    width: 100%;
+    max-width: 1900px;
+    margin: 0 auto;
+    padding: 0 50px;
+    background-color: #1e2844;
+}
+
+.navbar_logo {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.navbar_menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    text-align: center;
+    background-color: #1e2844;
+}
+
+.navbar_item {
+    cursor: pointer;
+    height: 80px;
+
+}
+
+.navbar_links {
+    color: #71a7f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 0 1rem;
+    height: 100%;
+    
+}
+
+.navbar_btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    padding: 10px 20px;
+    height: 100%;
+    width: 100%;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    background-color: #2b4ba1;
+    color: #ffffff;
+}
+
+.button:hover {
+    background-color: rgb(43, 45, 161);
+    transition: all 0.3s ease;
+}
+
+.navbar_links:hover {
+    color: white;
+    transition: all 0.3s ease;
+}
+
+/* Main Page Design */
+.homepage_container {
+    font-family: 'Orbitron', sans-serif;
+    display: grid;
+    position: relative;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    justify-self: center;
+    margin: 0 auto;
+    height: 90vh;
+    z-index: 1;
+    width: 100%;
+    padding: 0 50px;
+    background-image: linear-gradient(to top, (#111727) 0%, #2b4ba1 100%);
+}
+
+.main_content h1 {
+    font-size: 4rem;
+    background-color: #facbcb;
+    background-image: linear-gradient(to top, rgb(255, 0, 0) 0%, #f7b9b9 100%);
+    background-size: 100%;
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-text-fill-color: transparent;
+}
+
+.main_content h2 {
+    font-size: 3rem;
+    background-color: #facbcb;
+    background-image: linear-gradient(to top, rgb(255, 0, 0) 0%, #f7b9b9 100%);
+    background-size: 100%;
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -moz-text-fill-color: transparent;
+}
+
+.main_content p {
+    margin-top: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgb(255, 0, 0);
+}
+
+.main_btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    background-image: linear-gradient(to top, #cc0000 0%, rgb(255, 13, 13) 100%);
+    padding: 14px 32px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    margin-top: 2rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.35s;
+    outline: none;
+}
+
+.main_btn a {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-decoration: none;
+}
+
+.main_btn::after {
+    position: absolute;
+    content: '';
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: #ff3737;
+    transition: all 0.35s;
+    border-radius: 4px;
+}
+
+.main_btn:hover {
+    color: #ffffff;
+}
+
+.main_btn:hover:after {
+    width: 100%
+}
+
+.main_img_container {
+    text-align: center;
+}
+
+.main_img {
+    height: 80%;
+    width: 80%;
+}
+
+/*Footer Style*/
+.footer_container {
+    font-family: 'Orbitron', sans-serif;
+    background-color: #1e2844;
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.footer_links {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    justify-content: right;
+}
+
+.footer_links_wrapper {
+    display: flex;
+}
+
+.footer_link_items {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 16px;
+    text-align: left;
+    width: 160px;
+    box-sizing: border-box;
+}
+
+.footer_link_items > h2 {
+    color: #859ad3;
+    margin-bottom: 16px;
+}
+
+.footer_link_items a {
+    color: #71a7f8;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+
+.footer_link_items a:hover {
+    color: #e9e9e9;
+    transition: 0.3s ease-out;
+}
+
+.footer_link_items p {
+    color: #71a7f8;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+
+/* Album Styling */
+.album { 
+    position: relative;
+    display: flex;
+    overflow: hidden; 
+    width: auto;
+    height: auto;
+    align-items: center;
+    padding: 5px 0px 5px 20px;
+} 
+
+.album img {
+    overflow: hidden; 
+    width: 200px; 
+    height: 200px; 
+    margin: 20px 20px;
+}
+
+.album_information h1 {
+    color: white;
+}
+
+.album_information div h3 { 
+    color: white;
+}
+
+.album_information div h4 { 
+    color: #989898;
+    font-size: 12px;
+}
+
+.album_information .album_data {
+    color: white;
+    list-style: none;
+}
+
+.album_information .album_data .album_artist {
+    list-style: none;
+}
+
+.album_information .album_data li {
+    margin-right: 25px;
+}
+
+.album_songs .album_header ul {
+    display: flex;
+    padding: 5px 0px 5px 20px;
+    list-style: none;
+    justify-content: space-between;
+}
+
+.album_songs .album_header .album_left_info {
+    text-align: left;
+    display: flex;
+}
+
+.album_songs .album_header .album_left_info li {
+    margin-right: 25px;
+}
+
+.album_songs .album_header .album_right_info {
+    display: flex;
+}
+
+.album_songs .album_header .album_right_info li {
+    margin-right: 25px;
+}
+
+.album_songs hr {
+    margin: 0px 15px;
+    border-color: #636363;
+}
+
+.track_list .track_info ul {
+    display: flex;
+    padding: 5px 0px 5px 20px;
+    list-style: none;
+    justify-content: space-between;
+}
+
+.track_left_info {
+    text-align: left;
+    display: flex;
+}
+
+.track_left_info a {
+    text-decoration: none;
+}
+
+.track_left_info h4 {
+    color: white;
+}
+
+.track_left_info li {
+    margin-right: 25px;
+}
+
+.song_list_number {
+    justify-content: space-between;
+    width: 25px;
+    text-align: right;
+}
+
+
+.track_right_info {
+    display: flex;
+}
+
+.track_right_info a {
+    text-decoration: none;
+}
+
+.track_right_info li h4 {
+    color: white
+}
+
+.track_right_info li {
+    margin-right: 25px;
+}
+
+.track_list h5 {
+    color: #989898;
+}
+
+.track_list:hover {
+    background-color: #636363;
+}
+
+.album_container {
+    margin-left: 196px;
+    margin-right: 196px;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown_menu {
+    position: absolute;
+    left: 0;
+    top: calc(100% +.25rem);
+    background-color: #1e2844;
+
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: .25rem;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .1);
+    z-index: 1;
+    display: none;
+}
+
+.dropdown_item {
+    white-space: nowrap;
+    padding: 10px 10px 10px 10px;
+}
+
+.dropdown_item a {
+    color: white;
+}
+
+.dropdown_item:hover {
+    background-color: #636363
+}
+
+.dropdown:hover .dropdown_menu {
+    display: block;
+}
