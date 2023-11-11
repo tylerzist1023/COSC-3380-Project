@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, session, send_file
+from flask import Flask, render_template, request, url_for, redirect, session, send_file,jsonify
 from jinja2.utils import urlize 
 import pymysql
 from datetime import datetime,date
@@ -44,27 +44,27 @@ def search_database(query, filters):
         like_pattern = f'%{query}%'
         
         if 'artist' in filters:
-            artist_query = 'SELECT ArtistName, CreationStamp FROM Artist WHERE ArtistName LIKE %s ORDER BY CreationStamp;'
+            artist_query = 'SELECT ArtistName,ArtistID CreationStamp FROM Artist WHERE ArtistName LIKE %s ORDER BY CreationStamp;'
             cursor.execute(artist_query, (like_pattern,))
             results['artists'] = cursor.fetchall()
 
         if 'album' in filters:
-            album_query = 'SELECT AlbumName FROM Album WHERE AlbumName LIKE %s  ORDER BY AlbumName ;'
+            album_query = 'SELECT AlbumName,AlbumID FROM Album WHERE AlbumName LIKE %s  ORDER BY AlbumName ;'
             cursor.execute(album_query, (like_pattern,))
             results['albums'] = cursor.fetchall()
 
         if 'playlist' in filters:
-            playlist_query = 'SELECT PlaylistName FROM Playlist WHERE PlaylistName LIKE %s ORDER BY PlaylistName ;'
+            playlist_query = 'SELECT PlaylistName,PlaylistID FROM Playlist WHERE PlaylistName LIKE %s ORDER BY PlaylistName ;'
             cursor.execute(playlist_query, (like_pattern,))
             results['playlists'] = cursor.fetchall()
 
         if 'listener' in filters:
-            listener_query = 'SELECT Fname,Lname FROM Listener WHERE Fname LIKE %s or Fname LIKE %s ORDER BY Fname;'
+            listener_query = 'SELECT Fname,Lname,UserID FROM Listener WHERE Fname LIKE %s or Fname LIKE %s ORDER BY Fname;'
             cursor.execute(listener_query, (like_pattern,like_pattern))
             results['listeners'] = cursor.fetchall()
 
         if 'song' in filters:
-            song_query = 'SELECT Name FROM Song WHERE Name LIKE %s ORDER BY Name;'
+            song_query = 'SELECT Name,SongID FROM Song WHERE Name LIKE %s ORDER BY Name;'
             cursor.execute(song_query, (like_pattern,))
             results['songs'] = cursor.fetchall()
 
@@ -148,10 +148,50 @@ def search():
     print(query,filters)
 
     results = search_database(query, filters) # Replace with your actual function to search in your database
+    if(get_role(session)=='admin'):
+        return render_template ('search_results_admin.html', query=query, filters=filters, results=results)
     return render_template('search_results.html', query=query, filters=filters, results=results)
+def admin_status(check):
+
+    with get_conn() as conn, conn.cursor() as cursor:
+        query = 'INSERT INTO AdminLog (LoginID, ActionMessage) VALUES (%s,%s)'
+        if(check):
+            vals = (session['id'],'logged in') 
+        else:
+            vals = (session['id'],'logged out') 
+        cursor.execute(query, vals)
+        conn.commit()
+
+@app.route('/remove_item', methods=['POST'])
+def remove_item():
+    data = request.json
+    item_type = data.get('itemType')
+    item_id = data.get('itemId')
+    print(item_id,item_type)
+    # Define your DELETE query based on the item type
+    # You need to have different queries or logic based on the item_type
+    # For example, if item_type is 'song', the query might be "DELETE FROM songs WHERE id = %s"
+    if item_type == 'song':
+        query = "DELETE FROM songs WHERE id = %s"
+    if item_type == 'artist':
+        query = "DELETE FROM songs WHERE id = %s"
+    if item_type == 'playlist': #can delete with no problems
+        query = "DELETE FROM songs WHERE id = %s"
+    if item_type == 'song': 
+        query = "DELETE FROM songs WHERE id = %s"
+    
+
+    # Now execute the query with the provided item ID
+    # with get_conn() as conn, conn.cursor() as cursor:
+    #     cursor.execute(query, (item_id,))  # The comma is necessary for a single tuple element
+    #     conn.commit()
+
+    # After removing, return a success response
+    return jsonify({'status': 'success'}), 200
+
 
 def get_admin():
-    #loggedin(loginID)
+    admin_status(True)
     #admin logins there needs to be an insertion into admin log
     #admin logs out there needs to be an insertion into admin log
     top_artists = fetch_top_artists() # Replace with your actual function
@@ -386,6 +426,8 @@ def get_register():
 
 @app.route('/logout')
 def logout():
+    if(get_role(session)=="admin"):
+        admin_status(False)
     session.clear()
     return redirect(url_for('index'))
 
