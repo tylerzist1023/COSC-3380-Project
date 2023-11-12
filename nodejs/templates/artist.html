@@ -9,9 +9,9 @@
             <div class="list">
                 {% for album in data.my_music %}
                 <div class="item">
-                    <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
-                    <h4>{{ album[1] }}</h4>
-                    <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+                    <a href='/album/{{ album['AlbumID'] }}'><img src="/album/{{ album['AlbumID'] }}/pic"></a>
+                    <h4>{{ album['AlbumName'] }}</h4>
+                    <a href='/artist/{{ album['ArtistID'] }}'>{{ album['ArtistName'] }}</a>
                 </div>
                 {% endfor %}
             </div>
@@ -23,9 +23,9 @@
             <div class="list">
                 {% for album in data.most_played_albums %}
                 <div class="item">
-                    <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
-                    <h4>{{ album[1] }}</h4>
-                    <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+                    <a href='/album/{{ album['AlbumID'] }}'><img src="/album/{{ album['AlbumID'] }}/pic"></a>
+                    <h4>{{ album['AlbumName'] }}</h4>
+                    <a href='/artist/{{ album['ArtistID'] }}'>{{ album['ArtistName'] }}</a>
                 </div>
                 {% endfor %}
             </div>
@@ -37,9 +37,9 @@
             <div class="list">
                 {% for album in data.highest_rated_albums %}
                 <div class="item">
-                    <a href='/album/{{ album[0] }}'><img src="/album/{{ album[0] }}/pic"></a>
-                    <h4>{{ album[1] }}</h4>
-                    <a href='/artist/{{ album[3] }}'>{{ album[2] }}</a>
+                    <a href='/album/{{ album['AlbumID'] }}'><img src="/album/{{ album['AlbumID'] }}/pic"></a>
+                    <h4>{{ album['AlbumName'] }}</h4>
+                    <a href='/artist/{{ album['ArtistID'] }}'>{{ album['ArtistName'] }}</a>
                 </div>
                 {% endfor %}
             </div>
@@ -51,9 +51,9 @@
             <div class="list">
                 {% for song in data.most_played_songs %}
                 <div class="item">
-                    <a href='/album/{{ song[0] }}'><img src="/album/{{ song[0] }}/pic"></a>
-                    <h4>{{ song[1] }}</h4>
-                    <a href='/album/{{ song[0] }}'>{{ song[2] }}</a>
+                    <a href='/album/{{ song['AlbumID'] }}'><img src="/album/{{ song['AlbumID'] }}/pic"></a>
+                    <h4>{{ song['Name'] }}</h4>
+                    <a href='/album/{{ song['AlbumID'] }}'>{{ song['AlbumName'] }}</a>
                 </div>
                 {% endfor %}
             </div>
@@ -65,9 +65,9 @@
             <div class="list">
                 {% for song in data.highest_rated_songs %}
                 <div class="item">
-                    <a href='/album/{{ song[0] }}'><img src="/album/{{ song[0] }}/pic"></a>
-                    <h4>{{ song[1] }}</h4>
-                    <a href='/album/{{ song[0] }}'>{{ song[2] }}</a>
+                    <a href='/album/{{ song['AlbumID'] }}'><img src="/album/{{ song['AlbumID'] }}/pic"></a>
+                    <h4>{{ song['Name'] }}</h4>
+                    <a href='/album/{{ song['AlbumID'] }}'>{{ song['AlbumName'] }}</a>
                 </div>
                 {% endfor %}
             </div>

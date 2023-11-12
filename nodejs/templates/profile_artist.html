@@ -20,7 +20,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{url_for('profile_artist')}}">
+                    <a href="/profile">
                         <span>Profile</span>
                     </a>
                 </li>
@@ -35,7 +35,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{url_for('artist_publish_album')}}">
+                    <a href="/album/create">
                         <span>Publish Album</span>
                     </a>
                 </li>
@@ -60,13 +60,13 @@
     <div class="main_container">
 
         <div class="artist_profile">
-            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="profile picture">
+            <img src="/Cockatiel-2.jpg" alt="profile picture">
             <div class="profile_information">
                 <h4>Profile</h4>
                 <h1>User Name</h1>
                 <h3>12 Followers</h3>
             </div>
-            <a href="{{url_for('artist_edit')}}"><h4>Edit Profile</h4></a>
+            <a href="/edit"><h4>Edit Profile</h4></a>
         </div>
 
         <div class="song_list">
@@ -75,7 +75,7 @@
                 Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
             <div class="list">
                 <div class="artist_item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"></a>
+                    <a><img src="/Cockatiel-2.jpg" alt="song name"></a>
                     <h4>Song Name</h4>
                     <p>Artist</p>
                 </div>
@@ -87,7 +87,7 @@
             <h2>Followers</h2>
             <div class="list">
                 <div class="artist_item">
-                    <a><img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name"class="artist_img"></a>
+                    <a><img src="/Cockatiel-2.jpg" alt="song name"class="artist_img"></a>
                     <h4>User Name</h4>
                     <p>Profile</p>
                 </div>
@@ -100,7 +100,7 @@
     <div class="left_sidebar">
         <div class="logo">
             <a href="">
-                <img src="{{url_for('static', filename='logo.png')}}" alt="Logo">
+                <img src="/logo.png" alt="Logo">
             </a>
         </div>
         <div class="navigation">
@@ -130,11 +130,11 @@
                     <a href="" class="add_album">+</a>
                     <ul class="list_container">
                         <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
                             <span>An Album</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
                             <span>Another Album</span>
                         </li>
                     </ul>
@@ -157,27 +157,27 @@
                     </a>
                     <ul class="list_container">
                         <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
+                            <img src="/placeholder.png" alt="playlist name">
                             <span>A User</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
+                            <img src="/placeholder.png" alt="playlist name">
                             <span>Another User</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
+                            <img src="/placeholder.png" alt="playlist name">
                             <span>A User</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
+                            <img src="/placeholder.png" alt="playlist name">
                             <span>Another User</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
+                            <img src="/placeholder.png" alt="playlist name">
                             <span>A User</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='placeholder.png')}}" alt="playlist name">
+                            <img src="/placeholder.png" alt="playlist name">
                             <span>Another User</span>
                         </li>
                     </ul>
@@ -197,11 +197,11 @@
                         <span>Weekly:</span>
                     <ul class="list_container">
                         <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
                             <span>A Song</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
                             <span>Another Song</span>
                         </li>
                         </p>
@@ -217,11 +217,11 @@
                         <span>Daily:</span>
                     <ul class="list_container">
                         <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
                             <span>A song</span>
                         </li>
                         <li>
-                            <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="playlist name">
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
                             <span>Another Song</span>
                         </li>
                         </p>
@@ -234,7 +234,7 @@
     <!-- Music Player -->
     <div class="song_player">
         <!-- Replace image, song name, artist name with actual database information -->
-        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+        <img src="/Cockatiel-2.jpg" alt="song name">
         <h5>Song Name</br>
             <div class="artist_name">Artist Name</div>
         </h5>
