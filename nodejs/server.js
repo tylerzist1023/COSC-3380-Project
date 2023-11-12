@@ -8,8 +8,7 @@ const querystring = require('querystring');
 const cookie = require('cookie');
 const session = require('./session');
 const formidable = require("formidable");
-const fs = require('fs');
-const fileType = require('file-type');
+// const fileType = require('file-type');
 require('dotenv').config();
 
 // Create a connection to the database
@@ -272,8 +271,11 @@ const server = http.createServer((req, res) => {
                 sessionData['username'] = fields['username'][0]
 
                 res.setHeader('Set-Cookie', `session=${session.createToken(sessionData)}; HttpOnly`);
-                res.writeHead(200);
-                res.end(JSON.stringify(results));
+                // res.writeHead(200);
+                // res.end(JSON.stringify(results));
+                //Redirect to index upon sucessful log in
+                res.writeHead(302, { Location: '/' });
+                res.end();
             });
         });
     } else if (req.url === '/data') {
@@ -291,8 +293,10 @@ const server = http.createServer((req, res) => {
     } else if(matchUrl(req.url, '/logout') && req.method == 'GET') {
         sessionData = {};
         res.setHeader('Set-Cookie', `session=${session.createToken(sessionData)}; HttpOnly`);
-        res.writeHead(200);
-        res.end('Logged out');
+        // res.writeHead(200);
+        // res.end('Logged out');
+        res.writeHead(302, { Location: '/' });
+        res.end();
     } else {
         //print those not found and keep going with this slow slow process
         print(req.url)
