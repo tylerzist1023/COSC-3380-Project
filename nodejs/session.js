@@ -1,4 +1,4 @@
-const cryptojs = require('crypto-js');
+import cryptojs from 'crypto-js';
 
 var secretKey = 'test';
 
@@ -15,12 +15,12 @@ function b64DecodeUnicode(str) {
     }).join(''));
 }
 
-function createToken(session) {
+export const createToken = function(session) {
     let sessionb64 = b64EncodeUnicode(JSON.stringify(session));
     return sessionb64+'.'+signSession(sessionb64);
 }
 
-function parseToken(token) {
+export const parseToken = function(token) {
     if(token === undefined) {
         return {};
     }
@@ -47,8 +47,3 @@ function signSession(sessionb64) {
 function verifySession(sessionb64, signature) {
     return signSession(sessionb64) === signature;
 }
-
-module.exports = {
-    createToken: createToken,
-    parseToken: parseToken,
-};

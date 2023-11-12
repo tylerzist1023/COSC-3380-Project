@@ -1,19 +1,25 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const mysql = require('mysql2');
-const nunjucks = require('nunjucks');
-const url = require('url');
-const querystring = require('querystring');
-const cookie = require('cookie');
-const session = require('./session');
-const formidable = require("formidable");
-// const fileType = require('file-type');
-require('dotenv').config();
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import mysql from 'mysql2';
+import nunjucks from 'nunjucks';
+import url from 'url';
+import querystring from 'querystring';
+import cookie from 'cookie';
+import { createToken, parseToken } from './session.js';
+import dotenv from 'dotenv';
+import formidable from 'formidable';
+import { Readable } from 'stream';
+import {fileTypeFromBuffer} from 'file-type';
+
+// bruh...
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 // Create a connection to the database
 //print to the console hehe (Python)
-print = (a) =>console.log(a);
+const print = (a) =>console.log(a);
 const conn = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -32,12 +38,13 @@ function escapeRegex(r) {
     return r.replace(/[\\\.\+\*\?\^\$\[\]\(\)\{\}\/\'\#\:\!\=\|]/ig, "\\$&");
 }
 
-function matchUrl(userUrl, url) {
-    let endpoint = escapeRegex(url);
-    print(endpoint);
+function captureUrl(userUrl, url) {
     let match = userUrl.match(new RegExp(`^${url}(\\?.*)?\\/?$`, 'g')); 
-    print(match);
-    return match !== null;
+    return match;
+}
+
+function matchUrl(userUrl, url) {
+    return captureUrl(userUrl, url) !== null;
 }
 
 // Function to serve static files
@@ -162,14 +169,10 @@ const server = http.createServer((req, res) => {
     const rawCookies = req.headers.cookie;
     const parsedCookies = cookie.parse(rawCookies);
     const sessionToken = parsedCookies['session'];
-    let sessionData = session.parseToken(sessionToken);
+    let sessionData = parseToken(sessionToken);
 
     const parsedUrl = url.parse(req.url);
     const params = querystring.parse(parsedUrl.query);
-
-    print(req.url) // debug every request made
-
-    print(sessionData);
 
     // html of the homepage
     if (req.url === '/') {
@@ -270,7 +273,7 @@ const server = http.createServer((req, res) => {
                 sessionData['logged_in'] = true;
                 sessionData['username'] = fields['username'][0]
 
-                res.setHeader('Set-Cookie', `session=${session.createToken(sessionData)}; HttpOnly`);
+                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
                 // res.writeHead(200);
                 // res.end(JSON.stringify(results));
                 //Redirect to index upon sucessful log in
@@ -292,11 +295,177 @@ const server = http.createServer((req, res) => {
         });
     } else if(matchUrl(req.url, '/logout') && req.method == 'GET') {
         sessionData = {};
-        res.setHeader('Set-Cookie', `session=${session.createToken(sessionData)}; HttpOnly`);
+        res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
         // res.writeHead(200);
         // res.end('Logged out');
         res.writeHead(302, { Location: '/' });
         res.end();
+    } else if(matchUrl(req.url, '/pic') && req.method == 'GET') {
+        if(getRole(sessionData) !== 'listener') {
+            res.writeHead(401);
+            res.end('<h1>Unauthorized</h1>');
+        }
+
+        let query = 'select ProfilePic from Listener where UserID=?';
+        let vals = [sessionData['id']];
+
+        conn.query(query, vals, (err, results) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            const profilePic = results[0]['ProfilePic'];
+            if(profilePic === null) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+            const { file, mimetype } = getFile(profilePic);
+
+            res.writeHead(200, { 'Content-Type': mimetype });
+            res.end(file);
+        });
+    } else if(matchUrl(req.url, '/artist/([0-9]+)') && req.method == 'GET') {
+        let artistId = req.url.split('/')[2];
+
+        let query = 'select * from Artist where ArtistID=?';
+        let vals = [artistId];
+
+        conn.query(query, vals, (err, results) => {
+            if (err || results.length === 0) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            res.writeHead(200);
+            res.end(JSON.stringify(results));
+        });
+    } else if(matchUrl(req.url, '/artist/([0-9]+)/pic') && req.method == 'GET') {
+        let artistId = req.url.split('/')[2];
+
+        let query = 'select ProfilePic from Artist where ArtistID=?';
+        let vals = [artistId];
+
+        conn.query(query, vals, (err, results) => {
+            if (err || results.length === 0) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            const profilePic = results[0]['ProfilePic'];
+            if(profilePic === null || profilePic === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+            const type = fileTypeFromBuffer(profilePic);
+            print(type);
+
+            res.writeHead(200, { 'Content-Type': type });
+            res.end(profilePic);
+        });
+    } else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method == 'GET') {
+
+        let albumId = req.url.split('/')[2];
+
+        let query = 'select AlbumPic from Album where AlbumID=?';
+        let vals = [albumId];
+
+        conn.query(query, vals, (err, results) => {
+            if (err || results.length === 0) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            const albumPic = results[0]['AlbumPic'];
+            if(albumPic === null || albumPic === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+            const type = fileTypeFromBuffer(albumPic);
+            print(type);
+
+            res.writeHead(200, { 'Content-Type': type });
+            res.end(albumPic);
+        });
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/pic') && req.method == 'GET') {
+
+        let playlistId = req.url.split('/')[2];
+
+        let query = 'SELECT AlbumPic FROM Album, PlaylistSong, Song WHERE PlaylistSong.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND PlaylistID=?';
+        let vals = [playlistId];
+
+        conn.query(query, vals, (err, results) => {
+            if (err || results.length === 0) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            const albumPic = results[0]['AlbumPic'];
+            if(albumPic === null || albumPic === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+            const type = fileTypeFromBuffer(albumPic);
+            print(type);
+
+            res.writeHead(200, { 'Content-Type': type });
+            res.end(albumPic);
+        });
+    } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method == 'GET') {
+
+        let songId = req.url.split('/')[2];
+
+        let query = 'select SongID,Song.AlbumID,Name,AlbumName from Song,Album where SongID=? AND Album.AlbumID=Song.AlbumID';
+        let vals = [songId];
+
+        conn.query(query, vals, (err, results) => {
+            if (err || results.length === 0) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            results = results[0];
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ "albumid":results['AlbumID'],"songname":results['Name'],"artistname":results['AlbumName'] }));
+        });
+    } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method == 'GET') {
+
+        let songId = req.url.split('/')[2];
+
+        let query = 'select SongFile from Song where SongID=?';
+        let vals = [songId];
+
+        conn.query(query, vals, (err, results) => {
+            if (err || results.length === 0) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+                return;
+            }
+
+            const songFile = results[0]['SongFile'];
+            if(songFile === null || songFile === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+            const type = fileTypeFromBuffer(songFile);
+            print(type);
+
+            // player doesn't work right. you'll see what i mean.
+            res.writeHead(200, { 'Content-Type': type });
+            res.end(songFile);
+        });
     } else {
         //print those not found and keep going with this slow slow process
         print(req.url)
