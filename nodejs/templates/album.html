@@ -3,13 +3,13 @@
 <!-- Main Container To Display The Album Details and Songs-->
 <div class="album_container">
     <div class="album">
-        <img src="/album/{{ albumData['AlbumID'] }}/pic" alt="album picture">
+        <img src="/album/{{ data.albumData['AlbumID'] }}/pic" alt="album picture">
         <div class="album_information">
-            <h1>{{ albumData['AlbumName'] }}</h1>
+            <h1>{{ data.albumData['AlbumName'] }}</h1>
             <div>
                 <ul class="album_data">
                     <li class="album_artist">
-                        <h3>{{ albumData['ArtistName'] }}</h3> 
+                        <h3>{{ data.albumData['ArtistName'] }}</h3> 
                     </li>
                     <li>
                         <h4>{{ data.album_duration }}</h4>
@@ -56,7 +56,7 @@
         </div>
         <hr>
 
-        {% for song in data.songs %}
+        {% for song in data.songData %}
         <div class="track_list">
             <div class="track_info">
                 <ul>

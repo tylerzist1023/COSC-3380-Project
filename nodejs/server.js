@@ -372,32 +372,96 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': type });
             res.end(profilePic);
         });
-    } 
+    }
+    // Serve Page for an Album 
     else if (matchUrl(req.url, '/album/([0-9]+)') && req.method == 'GET') {
         if (getRole(sessionData) === 'listener') {
+
+            getListenerBaseData(sessionData.id)
+            .then((data) => {
             let albumId = req.url.split('/')[2];
     
             const albumQuery = 'SELECT AlbumID, AlbumName, Album.ArtistID, AlbumDuration, ReleaseDate, ArtistName FROM Album, Artist WHERE AlbumID=? AND Album.ArtistID=Artist.ArtistID';
             let vals = [albumId];
-    
-            conn.query(albumQuery, vals, (err, results) => {
-                if (err) {
-                    console.error('Error fetching album:', err);
-                    res.writeHead(500, { 'Content-Type': 'text/html' });
-                    res.end('<h1>Internal Server Error</h1>');
-                    return;
-                }
-    
-                if (results.length === 0) {
-                    res.writeHead(404);
-                    res.end('Not Found');
-                    return;
-                }
-    
-                const albumData = results[0];
-                res.writeHead(200);
-                res.end(nunjucks.render('album.html', { albumData }));
+
+            const albumQueryPromise = new Promise((resolve, reject) => {
+                conn.query(albumQuery, vals, (err, results) => {
+                    if (err) {
+                        reject(err);
+                    } else if (results.length === 0) {
+                        reject('Album not found');
+                    } else {
+                        data.albumData = results[0];
+                        resolve();
+                    }
+                });
             });
+
+            const songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num,Song.Name,Duration,ArtistName,Artist.ArtistID,Song.SongID FROM Song,Artist,Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?'
+            
+            const songQueryPromise = new Promise((resolve, reject) => {
+                conn.query(songQuery, vals, (err, results) => {
+                    if (err) {
+                        reject(err);
+                    } else if (results.length === 0) {
+                        reject('No songs in album');
+                    } else {
+                        data.songData = results;
+                        resolve();
+                    }
+                });
+            });
+
+            // const moreByQuery = 'SELECT Artist.ArtistID,ArtistName,AlbumID,AlbumName FROM Album,Artist WHERE Album.ArtistID=Artist.ArtistID AND Album.ArtistID=? AND Album.AlbumID!=? ORDER BY ReleaseDate DESC LIMIT 10'
+            // let morebyVals = [data.ArtistID, albumId]
+            // const moreByQueryPromise = new Promise((resolve, reject) => {
+            //     conn.query(moreByQuery, morebyVals, (err, results) => {
+            //         if (err) {
+            //             reject(err);
+            //         } else if (results.length === 0) {
+            //             console.log(data.artistId)
+            //             reject('No other album by this artist');
+            //         } else {
+            //             data.more_by = results;
+            //             resolve();
+            //         }
+            //     });
+            // });
+
+            Promise.all([albumQueryPromise, songQueryPromise])
+            .then(() => {
+                // All queries have completed
+                res.writeHead(200);
+                res.end(nunjucks.render('album.html', { data }));
+            })
+            .catch((error) => {
+                console.error('Error fetching data:', error);
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+            });
+    
+            // conn.query(albumQuery, vals, (err, results) => {
+            //     if (err) {
+            //         console.error('Error fetching album:', err);
+            //         res.writeHead(500, { 'Content-Type': 'text/html' });
+            //         res.end('<h1>Internal Server Error</h1>');
+            //         return;
+            //     }
+    
+            //     else if (results.length === 0) {
+            //         res.writeHead(404);
+            //         res.end('Not Found');
+            //         return;
+            //     }
+
+            //     else {
+            //         data.albumData = results[0];
+            //     }
+            //     // data.albumData = results[0];
+            //     res.writeHead(200);
+            //     res.end(nunjucks.render('album.html', { data }));
+            // });
+        });
         } 
         else {
             res.writeHead(404);
