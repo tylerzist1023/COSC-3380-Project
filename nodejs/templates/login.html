@@ -13,7 +13,7 @@
             <h1>Login for {{ role }}</h1>
         </header>
         
-        <form method='POST' action="/login?role={{ role }}" class="form">
+        <form method='POST' action="/login?role={{ role }}" id="loginForm" class="form">
             <div class="input_box">
                 <label for="username">Username</label>
                 <input type="text" name="username" id="username" placeholder="Enter your username" required>
@@ -30,4 +30,36 @@
         <a href="/" class="center_text">Lost Your Password?</a>
     </div>
 </section>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const formData = new FormData(event.target);
+
+  try {
+    const response = await fetch('/login', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Display a notification if login is successful
+      alert('Login successful');
+
+      // Redirect to the index page
+      window.location.href = '/';
+    } else {
+      console.error('Login failed');
+      // Display a notification if login failed.
+      alert('Login failed');
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+});
+
+</script>
 {% endblock %}

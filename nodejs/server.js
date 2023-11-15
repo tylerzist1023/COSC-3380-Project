@@ -260,25 +260,29 @@ const server = http.createServer((req, res) => {
                     return;
                 }
 
-                sessionData = {};
-                if(role === 'listener') {
-                    sessionData['id'] = results[0]['UserID']
-                } else if(role === 'artist') {
-                    sessionData['id'] = results[0]['ArtistID']
-                } else if(role === 'admin') {
-                    sessionData['id'] = results[0]['AdminID']
+                if (results.length > 0) {
+                    sessionData = {};
+                    if(role === 'listener') {
+                        sessionData['id'] = results[0]['UserID']
+                    } else if(role === 'artist') {
+                        sessionData['id'] = results[0]['ArtistID']
+                    } else if(role === 'admin') {
+                        sessionData['id'] = results[0]['AdminID']
+                    }
+    
+                    sessionData['role'] = role;
+                    sessionData['logged_in'] = true;
+                    sessionData['username'] = fields['username'][0]
+    
+                    res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: true, message: 'Login successful' }));
                 }
-
-                sessionData['role'] = role;
-                sessionData['logged_in'] = true;
-                sessionData['username'] = fields['username'][0]
-
-                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-                // res.writeHead(200);
-                // res.end(JSON.stringify(results));
-                //Redirect to index upon sucessful log in
-                res.writeHead(302, { Location: '/' });
-                res.end();
+                else {
+                    // No matching user found
+                    res.writeHead(401, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, message: 'Login failed' }));
+                }
             });
         });
     } else if (req.url === '/data') {
