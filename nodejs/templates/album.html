@@ -1,21 +1,21 @@
-{% extends template_parent %}
+{% extends 'base_listener.html' %}
 {% block page %}
 <!-- Main Container To Display The Album Details and Songs-->
 <div class="album_container">
     <div class="album">
-        <img src="/album/{{ data.album['AlbumID'] }}/pic" alt="album picture">
+        <img src="/album/{{ albumData['AlbumID'] }}/pic" alt="album picture">
         <div class="album_information">
-            <h1>{{ data.album['AlbumName'] }}</h1>
+            <h1>{{ albumData['AlbumName'] }}</h1>
             <div>
                 <ul class="album_data">
                     <li class="album_artist">
-                        <h3>{{ data.album['ArtistName'] }}</h3> 
+                        <h3>{{ albumData['ArtistName'] }}</h3> 
                     </li>
                     <li>
                         <h4>{{ data.album_duration }}</h4>
                     </li>
                     <li>
-                        <h4>Released on {{ data.album['ReleaseDate'] }}</h4>
+                        <h4>Released on {{ albumData['ReleaseDate'] }}</h4>
                     </li>
                 </ul>
                 <a href='/artist/{{ data.album['ArtistID'] }}/follow'>Follow</a>

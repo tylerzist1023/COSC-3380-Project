@@ -372,7 +372,39 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': type });
             res.end(profilePic);
         });
-    } else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method == 'GET') {
+    } 
+    else if (matchUrl(req.url, '/album/([0-9]+)') && req.method == 'GET') {
+        if (getRole(sessionData) === 'listener') {
+            let albumId = req.url.split('/')[2];
+    
+            const albumQuery = 'SELECT AlbumID, AlbumName, Album.ArtistID, AlbumDuration, ReleaseDate, ArtistName FROM Album, Artist WHERE AlbumID=? AND Album.ArtistID=Artist.ArtistID';
+            let vals = [albumId];
+    
+            conn.query(albumQuery, vals, (err, results) => {
+                if (err) {
+                    console.error('Error fetching album:', err);
+                    res.writeHead(500, { 'Content-Type': 'text/html' });
+                    res.end('<h1>Internal Server Error</h1>');
+                    return;
+                }
+    
+                if (results.length === 0) {
+                    res.writeHead(404);
+                    res.end('Not Found');
+                    return;
+                }
+    
+                const albumData = results[0];
+                res.writeHead(200);
+                res.end(nunjucks.render('album.html', { albumData }));
+            });
+        } 
+        else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    }
+    else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method == 'GET') {
 
         let albumId = req.url.split('/')[2];
 
