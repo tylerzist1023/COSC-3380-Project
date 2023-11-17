@@ -107,7 +107,7 @@
             <div class="list">
                 {% for album in data.more_by %}
                 <div class="item">
-                    <a><img src="/album/{{ album['AlbumID'] }}/pic"></a>
+                    <a href="/album/{{ album['AlbumID'] }}"><img src="/album/{{ album['AlbumID'] }}/pic"></a>
                     <h4>{{ album['AlbumName'] }}</h4>
                     <p>{{ album['ArtistName'] }}</p>
                 </div>
