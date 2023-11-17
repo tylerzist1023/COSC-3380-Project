@@ -15,11 +15,11 @@
                         <h4>{{ data.album_duration }}</h4>
                     </li>
                     <li>
-                        <h4>Released on {{ albumData['ReleaseDate'] }}</h4>
+                        <h4>Released on {{ data.formattedReleaseDate }}</h4>
                     </li>
                 </ul>
-                <a href='/artist/{{ data.album['ArtistID'] }}/follow'>Follow</a>
-                <a href='/artist/{{ data.album['ArtistID'] }}/unfollow'>Unfollow</a>
+                <a href='/artist/{{ data.album["ArtistID"] }}/follow'>Follow</a>
+                <a href='/artist/{{ data.album["ArtistID"] }}/unfollow'>Unfollow</a>
             </div>
         </div>
     </div>
@@ -65,8 +65,8 @@
                             <h4>{{ song['count'] }}</h4>
                         </li>
                         <li>
-                            <a id='playSong' songid='{{ song['SongID'] }}' href='#'><h4>{{ song['Name'] }}</h4></a>
-                            <a href="/artist/{{ song['ArtistID'] }}"><h5>{{ song['ArtistName'] }}</h5></a>
+                            <a id='playSong' songid="{{ song['songID'] }}" href='#'><h4>{{ song['songName'] }}</h4></a>
+                            <a href="/artist/{{ song['artistID'] }}"><h5>{{ song['artistName'] }}</h5></a>
                         </li>
                     </div>
                     <div class="track_right_info">
@@ -103,7 +103,7 @@
         {% endfor %}
 
         <div class="song_list">
-            <h2>More Albums by {{ data.album['ArtistName'] }}</h2>
+            <h2>More Albums by {{ data.albumData['ArtistName'] }}</h2>
             <div class="list">
                 {% for album in data.more_by %}
                 <div class="item">

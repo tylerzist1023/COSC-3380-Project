@@ -388,49 +388,95 @@ const server = http.createServer((req, res) => {
                 conn.query(albumQuery, vals, (err, results) => {
                     if (err) {
                         reject(err);
-                    } else if (results.length === 0) {
+                    }
+                    else if (results.length === 0) {
                         reject('Album not found');
-                    } else {
+                    } 
+                    else {
+                        // Store Query Results
                         data.albumData = results[0];
-                        resolve();
+
+                        // Calculate Album Duration in Minutes and Seconds
+                        const duration_min = Math.floor(data.albumData['AlbumDuration']/60);
+                        const duration_sec = Math.floor(data.albumData['AlbumDuration']%60);
+
+                        data.album_duration = `${duration_min} min ${duration_sec} sec`;
+
+                        // Format Release Date to MM/DD/YYYY
+                        const releaseDate = new Date(data.albumData['ReleaseDate']);
+                        const formattedDate = releaseDate.toLocaleDateString();
+                        data.formattedReleaseDate = formattedDate;
+
+                        console.log(data.albumData['ArtistID'])
+
+                        console.log('Data inside albumQueryPromise:', data);
+                        resolve(data);
                     }
                 });
             });
 
             const songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num,Song.Name,Duration,ArtistName,Artist.ArtistID,Song.SongID FROM Song,Artist,Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?'
-            
+
             const songQueryPromise = new Promise((resolve, reject) => {
                 conn.query(songQuery, vals, (err, results) => {
                     if (err) {
                         reject(err);
-                    } else if (results.length === 0) {
+                    }
+                    else if (results.length === 0) {
                         reject('No songs in album');
-                    } else {
-                        data.songData = results;
-                        resolve();
+                    }
+                    else {
+                        data.songData = [];
+
+                        for (const song of results) {
+                            const duration_min = Math.floor(song.Duration/60);
+                            const duration_sec = Math.floor(song.Duration%60);
+                            const duration_str = `${duration_min}:${duration_sec}`;
+
+                            data.songData.push({
+                                count: song.row_num,
+                                songName: song.Name,
+                                Duration: duration_str,
+                                artistName: song.ArtistName,
+                                artistID: song.ArtistID,
+                                songID: song.SongID
+                            });
+                        }
+
+                        resolve(data);
                     }
                 });
             });
 
-            // const moreByQuery = 'SELECT Artist.ArtistID,ArtistName,AlbumID,AlbumName FROM Album,Artist WHERE Album.ArtistID=Artist.ArtistID AND Album.ArtistID=? AND Album.AlbumID!=? ORDER BY ReleaseDate DESC LIMIT 10'
-            // let morebyVals = [data.ArtistID, albumId]
-            // const moreByQueryPromise = new Promise((resolve, reject) => {
-            //     conn.query(moreByQuery, morebyVals, (err, results) => {
-            //         if (err) {
-            //             reject(err);
-            //         } else if (results.length === 0) {
-            //             console.log(data.artistId)
-            //             reject('No other album by this artist');
-            //         } else {
-            //             data.more_by = results;
-            //             resolve();
-            //         }
-            //     });
-            // });
-
+            // Queries have completed
             Promise.all([albumQueryPromise, songQueryPromise])
+
+            // Can now get AristID from previous query, use that to do another query for more albums by the artist.
             .then(() => {
-                // All queries have completed
+                const artistID = data.albumData['ArtistID'];
+
+                const moreByQuery = 'SELECT Artist.ArtistID, ArtistName, AlbumID, AlbumName FROM Album, Artist WHERE Album.ArtistID = Artist.ArtistID AND Album.ArtistID = ? AND Album.AlbumID != ? ORDER BY ReleaseDate DESC LIMIT 10';
+                let moreByValues = [artistID, albumId];
+                console.log(moreByValues)
+            
+                const moreByQueryPromise = new Promise((resolve, reject) => {
+                  conn.query(moreByQuery, moreByValues, (err, results) => {
+                    if (err) {
+                      reject(err);
+                    } 
+                    else {
+                      data.more_by = results;
+                      resolve(data);
+                    }
+                  });
+                });
+            
+                return moreByQueryPromise;
+            })
+
+            // Get the username and display the page
+            .then(() => {
+                data.username = sessionData.username;
                 res.writeHead(200);
                 res.end(nunjucks.render('album.html', { data }));
             })
@@ -439,28 +485,6 @@ const server = http.createServer((req, res) => {
                 res.writeHead(500, { 'Content-Type': 'text/html' });
                 res.end('<h1>Internal Server Error</h1>');
             });
-    
-            // conn.query(albumQuery, vals, (err, results) => {
-            //     if (err) {
-            //         console.error('Error fetching album:', err);
-            //         res.writeHead(500, { 'Content-Type': 'text/html' });
-            //         res.end('<h1>Internal Server Error</h1>');
-            //         return;
-            //     }
-    
-            //     else if (results.length === 0) {
-            //         res.writeHead(404);
-            //         res.end('Not Found');
-            //         return;
-            //     }
-
-            //     else {
-            //         data.albumData = results[0];
-            //     }
-            //     // data.albumData = results[0];
-            //     res.writeHead(200);
-            //     res.end(nunjucks.render('album.html', { data }));
-            // });
         });
         } 
         else {
@@ -563,6 +587,7 @@ const server = http.createServer((req, res) => {
             print(type);
 
             // player doesn't work right. you'll see what i mean.
+            // player works. I think?
             res.writeHead(200, { 'Content-Type': type });
             res.end(songFile);
         });
