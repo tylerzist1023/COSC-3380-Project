@@ -8,7 +8,7 @@ import querystring from 'querystring';
 import cookie from 'cookie';
 import { createToken, parseToken } from './session.js';
 import dotenv from 'dotenv';
-import formidable from 'formidable';
+import { IncomingForm } from 'formidable';
 import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
 
@@ -166,7 +166,10 @@ function getListenerProfile(sessionData, res) {
 const server = http.createServer((req, res) => {
     nunjucks.configure('templates', { autoescape: true });
 
-    const rawCookies = req.headers.cookie;
+    let rawCookies = req.headers.cookie;
+    if(rawCookies === undefined) {
+        rawCookies = "";
+    }
     const parsedCookies = cookie.parse(rawCookies);
     const sessionToken = parsedCookies['session'];
     let sessionData = parseToken(sessionToken);
@@ -234,7 +237,7 @@ const server = http.createServer((req, res) => {
             role = 'listener';
         }
 
-        const form = new formidable.IncomingForm();
+        const form = new IncomingForm();
 
         form.parse(req, (err,fields,files) => {
             if(role === 'listener') {
