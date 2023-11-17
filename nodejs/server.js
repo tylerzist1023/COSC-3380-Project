@@ -304,7 +304,53 @@ const server = http.createServer((req, res) => {
         // res.end('Logged out');
         res.writeHead(302, { Location: '/' });
         res.end();
-    } else if(matchUrl(req.url, '/pic') && req.method == 'GET') {
+    } 
+
+    // Serve Edit Profile Page
+    else if (matchUrl(req.url, '/edit') && req.method =='GET') {
+        if (getRole(sessionData) === 'listener') {
+
+            getListenerBaseData(sessionData.id)
+            .then((data) => {
+                
+                const userProfileQuery = 'SELECT Username,Email FROM Listener WHERE UserID=?'
+                let vals = [sessionData['id']];
+                
+                const userProfileQueryPromise = new Promise((resolve, reject) => {
+                    conn.query(userProfileQuery, vals, (err, results) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        else if (results.length === 0) {
+                            reject('Album not found');
+                        } 
+                        else {
+                            // Store Query Results
+                            data.email= results[0]['Email'];
+                            console.log(data.email);
+                            resolve(data);
+                        }
+                    });
+                });
+
+                Promise.all([userProfileQueryPromise])
+                .then(() => {
+                    data.username = sessionData.username;
+                    res.writeHead(200);
+                    res.end(nunjucks.render('listener_edit.html', { data }));
+                })
+                .catch((error) => {
+                    console.error('Error fetching data:', error);
+                    res.writeHead(500, { 'Content-Type': 'text/html' });
+                    res.end('<h1>Internal Server Error</h1>');
+                });
+            });
+            } 
+        else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }}
+    else if(matchUrl(req.url, '/pic') && req.method == 'GET') {
         if(getRole(sessionData) !== 'listener') {
             res.writeHead(401);
             res.end('<h1>Unauthorized</h1>');
@@ -406,10 +452,7 @@ const server = http.createServer((req, res) => {
                         const releaseDate = new Date(data.albumData['ReleaseDate']);
                         const formattedDate = releaseDate.toLocaleDateString();
                         data.formattedReleaseDate = formattedDate;
-
-                        console.log(data.albumData['ArtistID'])
-
-                        console.log('Data inside albumQueryPromise:', data);
+                        
                         resolve(data);
                     }
                 });
