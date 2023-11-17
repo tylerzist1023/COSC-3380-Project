@@ -119,7 +119,7 @@ function getListener(sessionData, res) {
                 data.username = sessionData['username'];
 
                 res.writeHead(200);
-                res.end(nunjucks.render('listener.html', { data: data })); // Assuming you're using a templating engine like 'ejs'
+                res.end(nunjucks.render('listener.html', { data: data }));
             });
         });
     })
@@ -185,7 +185,7 @@ const server = http.createServer((req, res) => {
         }
 
         res.end(nunjucks.render('index.html'));
-    } else if (matchUrl(req.url, '/profile') && req.method == 'GET') {
+    } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             getListenerProfile(sessionData, res);
             return;
@@ -206,14 +206,14 @@ const server = http.createServer((req, res) => {
     else if(req.url === "/homepage.svg" ){
         serveStaticFile(res,'./public/homepage.svg','image/svg+xml');
     }
-    else if(req.url == "/favicon.ico"){
+    else if(req.url === "/favicon.ico"){
         serveStaticFile(res,"./public/favicon.ico",'');
     }
     //To go to the Login_Options HTML
-    else if(req.url == "/getstarted"){
+    else if(req.url === "/getstarted"){
         res.end(nunjucks.render('login_options.html'));
     }
-    else if(matchUrl(req.url, '/login') && req.method == 'GET'){
+    else if(matchUrl(req.url, '/login') && req.method === 'GET'){
         if(params['role'] === 'listener' || params['role'] === 'artist' || params['role'] === 'admin') {
             res.end(nunjucks.render('login.html', {role:params['role']}));
         } else {
@@ -221,14 +221,14 @@ const server = http.createServer((req, res) => {
             res.end('Not Found');
         }
     }
-    else if(matchUrl(req.url, '/register') && req.method == 'GET'){
+    else if(matchUrl(req.url, '/register') && req.method === 'GET'){
         if(params['role'] === 'listener' || params['role'] === 'artist') {
             res.end(nunjucks.render('register.html', {role:params['role']}));
         } else {
             res.writeHead(404);
             res.end('Not Found');
         }
-    } else if(matchUrl(req.url, '/login') && req.method == 'POST') {
+    } else if(matchUrl(req.url, '/login') && req.method === 'POST') {
         let query = '';
         let vals = [];
 
@@ -300,7 +300,7 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(results));
         });
-    } else if(matchUrl(req.url, '/logout') && req.method == 'GET') {
+    } else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
         // res.writeHead(200);
@@ -353,7 +353,7 @@ const server = http.createServer((req, res) => {
             res.writeHead(404);
             res.end('Not Found');
         }}
-    else if(matchUrl(req.url, '/pic') && req.method == 'GET') {
+    else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
         if(getRole(sessionData) !== 'listener') {
             res.writeHead(401);
             res.end('<h1>Unauthorized</h1>');
@@ -380,23 +380,144 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': mimetype });
             res.end(file);
         });
-    } else if(matchUrl(req.url, '/artist/([0-9]+)') && req.method == 'GET') {
+    } else if(matchUrl(req.url, '/artist/([0-9]+)/follow') && req.method === 'GET') {
+        if(getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
         let artistId = req.url.split('/')[2];
 
-        let query = 'select * from Artist where ArtistID=?';
-        let vals = [artistId];
-
-        conn.query(query, vals, (err, results) => {
-            if (err || results.length === 0) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
+        const followQuery = 'SELECT * FROM Follow WHERE ArtistID=? AND UserID=?';
+        conn.query(followQuery, [artistId, sessionData.id], (followError, followResult) => {
+            if (followError) {
+                console.error(followError);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end("Internal Server Error");
                 return;
             }
 
-            res.writeHead(200);
-            res.end(JSON.stringify(results));
+            if (followResult.length > 0) {
+                res.writeHead(400, { 'Content-Type': 'text/plain' });
+                res.end("You are already following this artist");
+                return;
+            }
+
+            const insertQuery = 'INSERT INTO Follow (UserID, ArtistID) VALUES (?, ?)';
+            conn.query(insertQuery, [sessionData.id, artistId], (insertError) => {
+                if (insertError) {
+                    console.error(insertError);
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end("Internal Server Error");
+                    return;
+                }
+
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end("Successfully followed");
+            });
         });
-    } else if(matchUrl(req.url, '/artist/([0-9]+)/pic') && req.method == 'GET') {
+    } else if(matchUrl(req.url, '/song/([0-9]+)/rate') && req.method === 'POST') {
+        let songId = req.url.split('/')[2];
+
+        // Create a new formidable form
+        const form = new IncomingForm();
+
+        // Parse form data
+        form.parse(req, (err, fields) => {
+            if (err) {
+                console.error(err);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end("Internal Server Error");
+                return;
+            }
+
+            // Check if 'rating' is in the form data
+            if (!('rating' in fields)) {
+                res.writeHead(400, { 'Content-Type': 'text/plain' });
+                res.end("Specify the rating in the form please");
+                return;
+            }
+
+            // Check if the user has already rated the song
+            const selectQuery = 'SELECT * FROM Rating WHERE SongID=? AND UserID=?';
+            conn.query(selectQuery, [songId, sessionData.id], (selectError, selectResult) => {
+                if (selectError) {
+                    console.error(selectError);
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end("Internal Server Error");
+                    return;
+                }
+
+                if (selectResult.length > 0) {
+                    // Update the existing rating
+                    const updateQuery = 'UPDATE Rating SET Value=? WHERE SongID=? AND UserID=?';
+                    conn.query(updateQuery, [fields.rating, songId, sessionData.id], (updateError) => {
+                        if (updateError) {
+                            console.error(updateError);
+                            res.writeHead(500, { 'Content-Type': 'text/plain' });
+                            res.end("Internal Server Error");
+                            return;
+                        }
+
+                        res.writeHead(200, { 'Content-Type': 'text/plain' });
+                        res.end("Successfully rated song");
+                    });
+                } else {
+                    // Insert a new rating
+                    const insertQuery = 'INSERT INTO Rating (UserID, SongID, Value) VALUES (?, ?, ?)';
+                    conn.query(insertQuery, [sessionData.id, songId, fields.rating], (insertError) => {
+                        if (insertError) {
+                            console.error(insertError);
+                            res.writeHead(500, { 'Content-Type': 'text/plain' });
+                            res.end("Internal Server Error");
+                            return;
+                        }
+
+                        res.writeHead(200, { 'Content-Type': 'text/plain' });
+                        res.end("Successfully rated song");
+                    });
+                }
+            });
+        });
+    } else if(matchUrl(req.url, '/artist/([0-9]+)/unfollow') && req.method === 'GET') {
+        if(getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        let artistId = req.url.split('/')[2];
+
+        const followQuery = 'SELECT * FROM Follow WHERE ArtistID=? AND UserID=?';
+        conn.query(followQuery, [artistId, sessionData.id], (followError, followResult) => {
+            if (followError) {
+                console.error(followError);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end("Internal Server Error");
+                return;
+            }
+
+            if (followResult.length === 0) {
+                res.writeHead(400, { 'Content-Type': 'text/plain' });
+                res.end("You are not following this artist");
+                return;
+            }
+
+            const insertQuery = 'DELETE FROM Follow WHERE ArtistID=? AND UserID=?';
+            conn.query(insertQuery, [artistId, sessionData.id], (insertError) => {
+                if (insertError) {
+                    console.error(insertError);
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end("Internal Server Error");
+                    return;
+                }
+
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end("Successfully unfollowed");
+            });
+        });
+    } else if(matchUrl(req.url, '/artist/([0-9]+)/pic') && req.method === 'GET') {
         let artistId = req.url.split('/')[2];
 
         let query = 'select ProfilePic from Artist where ArtistID=?';
@@ -423,7 +544,7 @@ const server = http.createServer((req, res) => {
         });
     }
     // Serve Page for an Album 
-    else if (matchUrl(req.url, '/album/([0-9]+)') && req.method == 'GET') {
+    else if (matchUrl(req.url, '/album/([0-9]+)') && req.method === 'GET') {
         if (getRole(sessionData) === 'listener') {
 
             getListenerBaseData(sessionData.id)
@@ -524,7 +645,7 @@ const server = http.createServer((req, res) => {
             .then(() => {
                 data.username = sessionData.username;
                 res.writeHead(200);
-                res.end(nunjucks.render('album.html', { data }));
+                res.end(nunjucks.render('album.html', { data, templateParent: 'base_listener.html', role: getRole(sessionData) }));
             })
             .catch((error) => {
                 console.error('Error fetching data:', error);
@@ -538,7 +659,8 @@ const server = http.createServer((req, res) => {
             res.end('Not Found');
         }
     }
-    else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method == 'GET') {
+
+    else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method === 'GET') {
 
         let albumId = req.url.split('/')[2];
 
@@ -564,7 +686,85 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': type });
             res.end(albumPic);
         });
-    } else if(matchUrl(req.url, '/playlist/([0-9]+)/pic') && req.method == 'GET') {
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[2];
+
+        // Check user role (you'll need to implement get_role function)
+        if (getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        // Get playlist data
+        let data = getListenerBaseData(sessionData.id);
+
+        // Get listener base data
+        const baseDataQuery = 'SELECT Follow.*, ArtistName, Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=?';
+        conn.query(baseDataQuery, [sessionData.id], (baseDataError, baseDataResult) => {
+            if (baseDataError) {
+                console.error(baseDataError);
+                connection.release();
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end("Internal Server Error");
+                return;
+            }
+
+            data.following = baseDataResult;
+
+            // Get playlist details
+            const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration FROM Playlist WHERE PlaylistID=?';
+            conn.query(playlistQuery, [playlistId], (playlistError, playlistResult) => {
+                if (playlistError) {
+                    console.error(playlistError);
+                    connection.release();
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end("Internal Server Error");
+                    return;
+                }
+
+                data.playlist = playlistResult[0];
+
+                // Get songs in the playlist
+                const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
+                conn.query(playlistSongsQuery, [playlistId], (playlistSongsError, playlistSongsResult) => {
+                    if (playlistSongsError) {
+                        console.error(playlistSongsError);
+                        connection.release();
+                        res.writeHead(500, { 'Content-Type': 'text/plain' });
+                        res.end("Internal Server Error");
+                        return;
+                    }
+
+                    data.songs = [];
+                    playlistSongsResult.forEach(song => {
+                        const duration_min = Math.floor(song.Duration / 60);
+                        const duration_sec = song.Duration % 60;
+                        const duration_str = `${duration_min}:${duration_sec}`;
+                        data.songs.push([song.row_num, song.Name, song.ArtistName, song.Duration, duration_str, song.SongID]);
+                    });
+
+                    // Get recommended songs
+                    const recommendedSongsQuery = 'SELECT DISTINCT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT DISTINCT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=? AND Song.SongID=PlaylistSong.SongID) LIMIT 10';
+                    conn.query(recommendedSongsQuery, [playlistId, playlistId], (recommendedSongsError, recommendedSongsResult) => {
+                        if (recommendedSongsError) {
+                            console.error(recommendedSongsError);
+                            connection.release();
+                            res.writeHead(500, { 'Content-Type': 'text/plain' });
+                            res.end("Internal Server Error");
+                            return;
+                        }
+
+                        data.recommended = recommendedSongsResult;
+
+                        // Render the template (you need to implement your own render_template function)
+
+                        res.end(nunjucks.render('playlist.html', { data, role: getRole(sessionData) }));
+                    });
+                });
+            });
+        });
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/pic') && req.method === 'GET') {
 
         let playlistId = req.url.split('/')[2];
 
@@ -590,7 +790,7 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': type });
             res.end(albumPic);
         });
-    } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method == 'GET') {
+    } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method === 'GET') {
 
         let songId = req.url.split('/')[2];
 
@@ -609,7 +809,7 @@ const server = http.createServer((req, res) => {
             res.writeHead(200);
             res.end(JSON.stringify({ "albumid":results['AlbumID'],"songname":results['Name'],"artistname":results['AlbumName'] }));
         });
-    } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method == 'GET') {
+    } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method === 'GET') {
 
         let songId = req.url.split('/')[2];
 
@@ -634,6 +834,7 @@ const server = http.createServer((req, res) => {
 
             // player doesn't work right. you'll see what i mean.
             // player works. I think?
+            // duration shows but can't seek
             res.writeHead(200, { 'Content-Type': type });
             res.end(songFile);
         });

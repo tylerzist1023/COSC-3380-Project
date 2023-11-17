@@ -1,4 +1,4 @@
-{% extends 'base_listener.html' %}
+{% extends templateParent %}
 {% block page %}
 <!-- Main Container To Display The Album Details and Songs-->
 <div class="album_container">
@@ -18,8 +18,8 @@
                         <h4>Released on {{ data.formattedReleaseDate }}</h4>
                     </li>
                 </ul>
-                <a href='/artist/{{ data.album["ArtistID"] }}/follow'>Follow</a>
-                <a href='/artist/{{ data.album["ArtistID"] }}/unfollow'>Unfollow</a>
+                <a href='/artist/{{ data.album["artistID"] }}/follow'>Follow</a>
+                <a href='/artist/{{ data.album["artistID"] }}/unfollow'>Unfollow</a>
             </div>
         </div>
     </div>
@@ -87,7 +87,7 @@
                             </div>
                         </li>
                         <li>
-                            <form method='POST' action="/song/{{ song['SongID'] }}/rate">
+                            <form method='POST' action="/song/{{ song['songID'] }}/rate">
 
                                 <div>
                                     <input style='width:32px;' type="number" name="rating" id="rating" placeholder="5">

@@ -3,9 +3,9 @@
 <!-- Main Container To Display The Album Details and Songs-->
 <div class="main_container">
     <div class="album">
-        <img src="/playlist/{{ data.playlist[0] }}/pic" alt="playlist picture">
+        <img src="/playlist/{{ data.playlist['PlaylistID'] }}/pic" alt="playlist picture">
         <div class="album_information">
-            <h1>{{ data.playlist[1] }}</h1>
+            <h1>{{ data.playlist['PlaylistName'] }}</h1>
             <div>
                 <ul class="album_data">
                     <li>
@@ -49,7 +49,7 @@
                 <ul>
                     <div class="track_left_info">
                         <li class="song_list_number">
-                            <h4>{{ song[0] }}</h4>
+                            <h4>{{ song['Name'] }}</h4>
                         </li>
                         <li>
                             <a id='playSong' songid='{{ song[5] }}' href='#'><h4>{{ song[1] }}</h4></a>
@@ -74,9 +74,9 @@
             <div class="list">
                 {% for song in data.recommended %}
                 <div class="item">
-                    <a id='playSong' songid='{{ song[2] }}' href='#'><img src="/album/{{ song[4] }}/pic" alt="song name"></a>
-                    <h4>{{ song[0] }}</h4>
-                    <a href='/artist/{{ song[3] }}'><p>{{ song[1] }}</p></a>
+                    <a id='playSong' songid='{{ song['SongID'] }}' href='#'><img src="/album/{{ song['AlbumID'] }}/pic" alt="{{ song['Name'] }}"></a>
+                    <h4>{{ song['Name'] }}</h4>
+                    <a href='/artist/{{ song['ArtistID'] }}'><p>{{ song['ArtistName'] }}</p></a>
                 </div>
                 {% endfor %}
             </div>
