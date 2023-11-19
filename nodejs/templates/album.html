@@ -1,27 +1,24 @@
-{% extends templateParent %}
-{% block page %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Album</title>
+</head>
+
+<body>
 <!-- Main Container To Display The Album Details and Songs-->
+<header id='topBar'>
+</header>
+
 <div class="album_container">
-    <div class="album">
-        <img src="/album/{{ data.albumData['AlbumID'] }}/pic" alt="album picture">
-        <div class="album_information">
-            <h1>{{ data.albumData['AlbumName'] }}</h1>
-            <div>
-                <ul class="album_data">
-                    <li class="album_artist">
-                        <h3>{{ data.albumData['ArtistName'] }}</h3> 
-                    </li>
-                    <li>
-                        <h4>{{ data.album_duration }}</h4>
-                    </li>
-                    <li>
-                        <h4>Released on {{ data.formattedReleaseDate }}</h4>
-                    </li>
-                </ul>
-                <a href='/artist/{{ data.album["artistID"] }}/follow'>Follow</a>
-                <a href='/artist/{{ data.album["artistID"] }}/unfollow'>Unfollow</a>
-            </div>
-        </div>
+    <div class="album" id='albumData'>
+        
     </div>
 
     <!-- List of Songs, Needs A Loop to Create the List Instead of Listing Them Manually -->
@@ -40,7 +37,6 @@
                     <li>
                         <h4>Duration</h4>
                     </li>
-                    {% if role=='listener' %}
                     <li>
                         <h4></h4> 
                     </li>
@@ -50,68 +46,17 @@
                     <li>
                         <h4></h4>
                     </li>
-                    {% endif %}
                 </div>
             </ul>
         </div>
         <hr>
 
-        {% for song in data.songData %}
-        <div class="track_list">
-            <div class="track_info">
-                <ul>
-                    <div class="track_left_info">
-                        <li class="song_list_number">
-                            <h4>{{ song['count'] }}</h4>
-                        </li>
-                        <li>
-                            <a id='playSong' songid="{{ song['songID'] }}" href='#'><h4>{{ song['songName'] }}</h4></a>
-                            <a href="/artist/{{ song['artistID'] }}"><h5>{{ song['artistName'] }}</h5></a>
-                        </li>
-                    </div>
-                    <div class="track_right_info">
-                        <li>
-                            <h4>{{ song['Duration'] }}</h4>
-                        </li>
-                        {% if role=='listener' %}
-                        <li>
-                            <div class="dropdown">
-                                <h4>+</h4>
-                                <div class="dropdown_menu">
-                                    {% for playlist in data.playlists %}
-                                    <div class="dropdown_item">
-                                        <a href="">{{ playlist['PlaylistName'] }}</a>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <form method='POST' action="/song/{{ song['songID'] }}/rate">
-
-                                <div>
-                                    <input style='width:32px;' type="number" name="rating" id="rating" placeholder="5">
-                                <button type="submit">Rate</button>
-                                </div>
-                            </form>
-                        </li>
-                        {% endif %}
-                    </div>
-                </ul>
-            </div>
+        <div id='songList'>
         </div>
-        {% endfor %}
 
         <div class="song_list">
-            <h2>More Albums by {{ data.albumData['ArtistName'] }}</h2>
-            <div class="list">
-                {% for album in data.more_by %}
-                <div class="item">
-                    <a href="/album/{{ album['AlbumID'] }}"><img src="/album/{{ album['AlbumID'] }}/pic"></a>
-                    <h4>{{ album['AlbumName'] }}</h4>
-                    <p>{{ album['ArtistName'] }}</p>
-                </div>
-                {% endfor %}
+            <h2>More</h2>
+            <div class="list" id='moreBy'>
             </div>
         </div>
     </div>
@@ -123,6 +68,24 @@
 <br>
 <br>
 
+<div class="left_sidebar" id='leftBar'>
+</div>
+
+<div id='playerDiv' style='display:none;' class="song_player">
+    <!-- Replace image, song name, artist name with actual database information -->
+    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <h5>
+    <div id='playerSong'>Song Name</div>
+    <div id='playerArtist' class="artist_name">Artist Name</div>
+</h5>
+    <audio id='playerAudio' controls>
+        <!-- Provide the actual source path for the song -->
+        <source id='playerSource' src="" type="">
+    </audio>
+    </div>
+</div>
+
+<script src='/base.js'></script>
 <script>
 function playSong(e) {
     e.preventDefault();
@@ -153,10 +116,106 @@ function playSong(e) {
         .catch(error => console.error('Error:', error));
 }
 addEventListener("DOMContentLoaded", (event) => {
-    const playSongLinks = document.querySelectorAll('#playSong');
-    for (var i = 0; i < playSongLinks.length; i++) {
-        playSongLinks[i].addEventListener('click', playSong);
-    }
+
+    let albumId = window.location.pathname.split('/')[2];
+    fetch(`/ajax/album/${albumId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+            console.log(data);
+
+            let html = '';
+
+            html += `<img src="/album/${data.albumData['AlbumID']}/pic" alt="album picture">
+                <div class="album_information">
+                    <h1>${data.albumData['AlbumName']}</h1>
+                    <div>
+                        <ul class="album_data">
+                            <li class="album_artist">
+                                <h3>${data.albumData['ArtistName'] }</h3> 
+                            </li>
+                            <li>
+                                <h4>${data.album_duration}</h4>
+                            </li>
+                            <li>
+                                <h4>Released on ${data.formattedReleaseDate}</h4>
+                            </li>
+                        </ul>
+                        <a href='/artist/${data.albumData["ArtistID"]}}/follow'>Follow</a>
+                        <a href='/artist/${data.albumData["ArtistID"]}/unfollow'>Unfollow</a>
+                    </div>
+                </div>`;
+            document.getElementById('albumData').innerHTML = html;
+
+
+            let playlistsDropdownHtml = '';
+            for(const playlist of data['playlists']) {
+                playlistsDropdownHtml += `<div class="dropdown_item">
+                    <a href="">${playlist['PlaylistName']}</a>
+                </div>`;
+            }
+
+            html = '';
+            for(const song of data['songData']) {
+                html += `<div class="track_list">
+                        <div class="track_info">
+                            <ul>
+                                <div class="track_left_info">
+                                    <li class="song_list_number">
+                                        <h4>${song['count'] }</h4>
+                                    </li>
+                                    <li>
+                                        <a id='playSong' songid="${ song['songID'] }" href='#'><h4>${ song['songName']}</h4></a>
+                                        <a href="/artist/${song['artistID']}"><h5>${song['artistName']}</h5></a>
+                                    </li>
+                                </div>
+                                <div class="track_right_info">
+                                    <li>
+                                        <h4>${song['Duration']}</h4>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown">
+                                            <h4>+</h4>
+                                            <div class="dropdown_menu">
+                                                ${playlistsDropdownHtml}
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <form method='POST' action="/song/${song['songID']}/rate">
+
+                                            <div>
+                                                <input style='width:32px;' type="number" name="rating" id="rating" placeholder="5">
+                                            <button type="submit">Rate</button>
+                                            </div>
+                                        </form>
+                                    </li>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>`;
+            }
+            document.getElementById('songList').innerHTML = html;
+
+            html = '';
+            for(const album of data.more_by) {
+                html += `<div class="item">
+                    <a href="/album/${album['AlbumID']}"><img src="/album/${ album['AlbumID']}/pic"></a>
+                    <h4>${album['AlbumName']}</h4>
+                    <p>${album['ArtistName']}</p>
+                </div>`;
+            }
+            document.getElementById('moreBy').innerHTML = html;
+        })
+    .finally(() => {
+        const playSongLinks = document.querySelectorAll('#playSong');
+        for (var i = 0; i < playSongLinks.length; i++) {
+            playSongLinks[i].addEventListener('click', playSong);
+        }
+    });
+
 });
 </script>
-{% endblock %}
+</body>
+</html>

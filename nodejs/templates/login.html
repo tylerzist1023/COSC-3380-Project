@@ -50,7 +50,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
   const formData = new FormData(event.target);
 
   try {
-    const response = await fetch('/login', {
+    const response = await fetch(window.location.href, {
       method: 'POST',
       body: formData,
     });

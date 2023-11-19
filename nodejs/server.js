@@ -2,7 +2,6 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import mysql from 'mysql2';
-import nunjucks from 'nunjucks';
 import url from 'url';
 import querystring from 'querystring';
 import cookie from 'cookie';
@@ -11,7 +10,9 @@ import dotenv from 'dotenv';
 import  Types  from 'formidable';
 import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
-import nodemon from 'nodemon';
+import { getAudioDurationInSeconds } from 'get-audio-duration';
+
+// import nodemon from 'nodemon';
 
 // bruh...
 const __filename = url.fileURLToPath(import.meta.url);
@@ -21,13 +22,13 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 // Create a connection to the database
 //print to the console hehe (Python)
 const print = (a) =>console.log(a);
-const conn = mysql.createConnection({
+
+let conn = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME
 });
-
 
 
 function getRole(session) {
@@ -48,6 +49,30 @@ function captureUrl(userUrl, url) {
 
 function matchUrl(userUrl, url) {
     return captureUrl(userUrl, url) !== null;
+}
+
+function readFile(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
+function removeFile(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
 }
 
 // Functions to serve static files
@@ -141,8 +166,6 @@ function getListener(sessionData, res) {
 
     getListenerBaseData(sessionData['id'])
     .then((data) => {
-       // console.log(data);
-
         const newReleasesQuery = 'SELECT AlbumID, AlbumName, ArtistName, Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID = Artist.ArtistID ORDER BY ReleaseDate DESC LIMIT 10';
         conn.query(newReleasesQuery, (newReleasesError, newReleasesResults) => {
             if (newReleasesError) {
@@ -164,8 +187,8 @@ function getListener(sessionData, res) {
                 data.username = sessionData['username'];
                 //console.log(data.new_releases);
 
-                res.writeHead(200);
-                res.end(nunjucks.render('listener.html', { data: data }));
+                // res.writeHead(200);
+                res.end(JSON.stringify(data));
             });
         });
     })
@@ -202,8 +225,8 @@ function getListenerProfile(sessionData, res) {
                 data.username = sessionData.username;
 
                 res.writeHead(200);
-                serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
-                res.end(nunjucks.render('profile_listener.html', { data }));
+                // serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
+                res.end(JSON.stringify(data));
             });
         });
     });
@@ -211,7 +234,6 @@ function getListenerProfile(sessionData, res) {
 
 // Create HTTP server
 const server = http.createServer((req, res) => {
-    nunjucks.configure('templates', { autoescape: true });
 
     let rawCookies = req.headers.cookie;
     if(rawCookies === undefined) {
@@ -224,16 +246,28 @@ const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url);
     const params = querystring.parse(parsedUrl.query);
 
+    print(sessionData);
 
     // html of the homepage
     if (req.url === '/') {
         if(getRole(sessionData) === 'listener') {
-            getListener(sessionData, res);
+            serveStaticFile(res, "./templates/listener.html", "");
             return;
         }
 
         serveStaticFile(res, './templates/index.html', 'text/html');
+    } else if(req.url === '/ajax') {
+            getListener(sessionData, res);
+
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
+        if(getRole(sessionData) === 'listener') {
+            serveStaticFile(res, "./templates/profile_listener.html", "");
+            return;
+        }
+
+        res.writeHead(404);
+        res.end('Not Found');
+    } else if (matchUrl(req.url, '/ajax/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             getListenerProfile(sessionData, res);
             return;
@@ -245,6 +279,9 @@ const server = http.createServer((req, res) => {
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
+    }
+    else if (req.url === '/base.js') {
+        serveStaticFile(res, './public/base.js', 'text/css');
     }
     //picture of Coog Music (top left screen)
     else if(req.url === '/logo.png'){
@@ -310,7 +347,6 @@ const server = http.createServer((req, res) => {
 
             conn.query(query, vals, (err, results) => {
                 if (err) {
-                    print(err);
                     res.writeHead(500, { 'Content-Type': 'text/html' });
                     res.end('<h1>Internal Server Error</h1>');
                     return;
@@ -328,7 +364,7 @@ const server = http.createServer((req, res) => {
     
                     sessionData['role'] = role;
                     sessionData['logged_in'] = true;
-                    sessionData['username'] = fields['username'][0]
+                    sessionData['username'] = fields['username']
     
                     res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -356,20 +392,20 @@ const server = http.createServer((req, res) => {
     } else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-        // res.writeHead(200);
-        // res.end('Logged out');
-        res.writeHead(302, { Location: '/' });
         res.end();
+        // res.writeHead(302, { Location: '/' });
     } 
-
+    else if (matchUrl(req.url, '/edit') && req.method =='GET'){
+        serveStaticFile(res, './templates/listener_edit.html', "");
+    }
     // Serve Edit Profile Page
-    else if (matchUrl(req.url, '/edit') && req.method =='GET') {
+    else if (matchUrl(req.url, '/ajax/edit') && req.method =='GET') {
         if (getRole(sessionData) === 'listener') {
 
             getListenerBaseData(sessionData.id)
             .then((data) => {
                 
-                const userProfileQuery = 'SELECT Username,Email FROM Listener WHERE UserID=?'
+                const userProfileQuery = 'SELECT Username,Email,Fname,Lname FROM Listener WHERE UserID=?'
                 let vals = [sessionData['id']];
                 
                 const userProfileQueryPromise = new Promise((resolve, reject) => {
@@ -383,6 +419,8 @@ const server = http.createServer((req, res) => {
                         else {
                             // Store Query Results
                             data.email= results[0]['Email'];
+                            data.Fname = results[0]['Fname'];
+                            data.Lname = results[0]['Lname'];
                             console.log(data.email);
                             resolve(data);
                         }
@@ -393,7 +431,7 @@ const server = http.createServer((req, res) => {
                 .then(() => {
                     data.username = sessionData.username;
                     res.writeHead(200);
-                    res.end(nunjucks.render('listener_edit.html', { data }));
+                    res.end(JSON.stringify(data));
                 })
                 .catch((error) => {
                     console.error('Error fetching data:', error);
@@ -590,19 +628,22 @@ const server = http.createServer((req, res) => {
                 return;
             }
             const type = fileTypeFromBuffer(profilePic);
-            print(type);
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(profilePic);
         });
     }
-    // Serve Page for an Album 
-    else if (matchUrl(req.url, '/album/([0-9]+)') && req.method === 'GET') {
+    else if (matchUrl(req.url, '/album/([0-9]+)') && req.method === 'GET'){
         if (getRole(sessionData) === 'listener') {
-
+            serveStaticFile(res, './templates/album.html', "");
+        }
+    }
+    // Serve Page for an Album 
+    else if (matchUrl(req.url, '/ajax/album/([0-9]+)') && req.method === 'GET') {
+        if (getRole(sessionData) === 'listener') {
             getListenerBaseData(sessionData.id)
             .then((data) => {
-            let albumId = req.url.split('/')[2];
+            let albumId = req.url.split('/')[3];
     
             const albumQuery = 'SELECT AlbumID, AlbumName, Album.ArtistID, AlbumDuration, ReleaseDate, ArtistName FROM Album, Artist WHERE AlbumID=? AND Album.ArtistID=Artist.ArtistID';
             let vals = [albumId];
@@ -698,7 +739,8 @@ const server = http.createServer((req, res) => {
             .then(() => {
                 data.username = sessionData.username;
                 res.writeHead(200);
-                res.end(nunjucks.render('album.html', { data, templateParent: 'base_listener.html', role: getRole(sessionData) }));
+                res.end(JSON.stringify(data));
+                // res.end(nunjucks.render('album.html', { data, templateParent: 'base_listener.html', role: getRole(sessionData) }));
             })
             .catch((error) => {
                 console.error('Error fetching data:', error);
@@ -734,13 +776,16 @@ const server = http.createServer((req, res) => {
                 return;
             }
             const type = fileTypeFromBuffer(albumPic);
-            print(type);
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(albumPic);
         });
     } else if(matchUrl(req.url, '/playlist/([0-9]+)') && req.method === 'GET') {
-        const playlistId = req.url.split('/')[2];
+        if(getRole(sessionData) === 'listener') {
+            serveStaticFile(res, './templates/playlist.html', "");
+        }
+    } else if(matchUrl(req.url, '/ajax/playlist/([0-9]+)') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[3];
 
         // Check user role (you'll need to implement get_role function)
         if (getRole(sessionData) !== 'listener') {
@@ -750,74 +795,77 @@ const server = http.createServer((req, res) => {
         }
 
         // Get playlist data
-        let data = getListenerBaseData(sessionData.id);
+        getListenerBaseData(sessionData.id).then((data) => {
+            
 
-        // Get listener base data
-        const baseDataQuery = 'SELECT Follow.*, ArtistName, Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=?';
-        conn.query(baseDataQuery, [sessionData.id], (baseDataError, baseDataResult) => {
-            if (baseDataError) {
-                console.error(baseDataError);
-                connection.release();
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end("Internal Server Error");
-                return;
-            }
-
-            data.following = baseDataResult;
-
-            // Get playlist details
-            const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration FROM Playlist WHERE PlaylistID=?';
-            conn.query(playlistQuery, [playlistId], (playlistError, playlistResult) => {
-                if (playlistError) {
-                    console.error(playlistError);
+            // Get listener base data
+            const baseDataQuery = 'SELECT Follow.*, ArtistName, Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=?';
+            conn.query(baseDataQuery, [sessionData.id], (baseDataError, baseDataResult) => {
+                if (baseDataError) {
+                    console.error(baseDataError);
                     connection.release();
                     res.writeHead(500, { 'Content-Type': 'text/plain' });
                     res.end("Internal Server Error");
                     return;
                 }
 
-                data.playlist = playlistResult[0];
+                data.following = baseDataResult;
 
-                // Get songs in the playlist
-                const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
-                conn.query(playlistSongsQuery, [playlistId], (playlistSongsError, playlistSongsResult) => {
-                    if (playlistSongsError) {
-                        console.error(playlistSongsError);
+                // Get playlist details
+                const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration FROM Playlist WHERE PlaylistID=?';
+                conn.query(playlistQuery, [playlistId], (playlistError, playlistResult) => {
+                    if (playlistError) {
+                        console.error(playlistError);
                         connection.release();
                         res.writeHead(500, { 'Content-Type': 'text/plain' });
                         res.end("Internal Server Error");
                         return;
                     }
 
-                    data.songs = [];
-                    playlistSongsResult.forEach(song => {
-                        const duration_min = Math.floor(song.Duration / 60);
-                        const duration_sec = song.Duration % 60;
-                        const duration_str = `${duration_min}:${duration_sec}`;
-                        data.songs.push([song.row_num, song.Name, song.ArtistName, song.Duration, duration_str, song.SongID]);
-                    });
+                    data.playlist = playlistResult[0];
+                    data.username = sessionData['username'];
 
-                    // Get recommended songs
-                    const recommendedSongsQuery = 'SELECT DISTINCT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT DISTINCT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=? AND Song.SongID=PlaylistSong.SongID) LIMIT 10';
-                    conn.query(recommendedSongsQuery, [playlistId, playlistId], (recommendedSongsError, recommendedSongsResult) => {
-                        if (recommendedSongsError) {
-                            console.error(recommendedSongsError);
+                    // Get songs in the playlist
+                    const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
+                    conn.query(playlistSongsQuery, [playlistId], (playlistSongsError, playlistSongsResult) => {
+                        if (playlistSongsError) {
+                            console.error(playlistSongsError);
                             connection.release();
                             res.writeHead(500, { 'Content-Type': 'text/plain' });
                             res.end("Internal Server Error");
                             return;
                         }
 
-                        data.recommended = recommendedSongsResult;
+                        data.songs = [];
+                        playlistSongsResult.forEach(song => {
+                            const duration_min = Math.floor(song.Duration / 60);
+                            const duration_sec = song.Duration % 60;
+                            const duration_str = `${duration_min}:${duration_sec}`;
+                            data.songs.push([song.row_num, song.Name, song.ArtistName, song.Duration, duration_str, song.SongID]);
+                        });
 
-                        // Render the template (you need to implement your own render_template function)
+                        // Get recommended songs
+                        const recommendedSongsQuery = 'SELECT DISTINCT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT DISTINCT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=? AND Song.SongID=PlaylistSong.SongID) LIMIT 10';
+                        conn.query(recommendedSongsQuery, [playlistId, playlistId], (recommendedSongsError, recommendedSongsResult) => {
+                            if (recommendedSongsError) {
+                                console.error(recommendedSongsError);
+                                connection.release();
+                                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                                res.end("Internal Server Error");
+                                return;
+                            }
 
-                        res.end(nunjucks.render('playlist.html', { data, role: getRole(sessionData) }));
+                            data.recommended = recommendedSongsResult;
+
+                            res.end(JSON.stringify(data));
+                        });
                     });
                 });
             });
         });
+
     } else if(matchUrl(req.url, '/playlist/([0-9]+)/pic') && req.method === 'GET') {
+        
 
         let playlistId = req.url.split('/')[2];
 
@@ -838,12 +886,60 @@ const server = http.createServer((req, res) => {
                 return;
             }
             const type = fileTypeFromBuffer(albumPic);
-            print(type);
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(albumPic);
         });
+    } else if(matchUrl(req.url, '/playlist/create') && req.method === 'GET') {
+        if(getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        serveStaticFile(res, './templates/create_playlist.html', "");
+    } else if(matchUrl(req.url, '/playlist/create') && req.method === 'POST') {
+        if(getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+        
+
+        const form = new Types.IncomingForm();
+
+        // Parse form data
+        form.parse(req, (err, fields) => {
+            if (err) {
+                console.error(err);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end("Internal Server Error");
+                return;
+            }
+
+            // Check if 'rating' is in the form data
+            if (!('playlistname' in fields)) {
+                res.writeHead(400, { 'Content-Type': 'text/plain' });
+                res.end("Specify the playlist name in the form please");
+                return;
+            }
+
+            const insertQuery = 'INSERT INTO Playlist (UserID, PlaylistName) VALUES (?, ?)';
+            conn.query(insertQuery, [sessionData.id, fields['playlistname']], (insertError) => {
+                if (insertError) {
+                    console.error(insertError);
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end("Internal Server Error");
+                    return;
+                }
+
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end("Successfully created playlist");
+            });
+        });
     } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method === 'GET') {
+
+        
 
         let songId = req.url.split('/')[2];
 
@@ -869,6 +965,8 @@ const server = http.createServer((req, res) => {
         let query = 'select SongFile from Song where SongID=?';
         let vals = [songId];
 
+        
+
         conn.query(query, vals, (err, results) => {
             if (err || results.length === 0) {
                 res.writeHead(500, { 'Content-Type': 'text/html' });
@@ -883,13 +981,85 @@ const server = http.createServer((req, res) => {
                 return;
             }
             const type = fileTypeFromBuffer(songFile);
-            print(type);
 
             // player doesn't work right. you'll see what i mean.
             // player works. I think?
             // duration shows but can't seek
             res.writeHead(200, { 'Content-Type': type });
             res.end(songFile);
+        });
+    } else if (matchUrl(req.url, '/album/create') && req.method === 'GET') {
+        if(getRole(sessionData) !== 'artist') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        serveStaticFile(res, './templates/create_al.html', "");
+    } else if (matchUrl(req.url, '/genres') && req.method === 'GET') {
+        
+        conn.query('SELECT Name FROM Genre', (err, results) => {
+            let genres = [];
+            for(const genre of results) {
+                genres.push(genre['Name']);
+
+            }
+            res.end(JSON.stringify(genres));
+        });
+    } else if (matchUrl(req.url, '/album/create') && req.method === 'POST') {
+        if(getRole(sessionData) !== 'artist') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        const form = new Types.IncomingForm({multiples: true});
+
+        form.parse(req, (err,fields,files) => {
+            console.log(fields, files);
+
+            readFile(files.albumCover.filepath)
+            .then((albumCover) => {
+                let query = 'INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (?,?,?,?)'
+                conn.query(query, [fields.albumName, albumCover, sessionData.id, fields.releaseDate], (err, results) => {
+                    if (err || results.length === 0) {
+                        res.writeHead(500, { 'Content-Type': 'text/html' });
+                        res.end(`<h1>Internal Server Error: ${err}</h1>`);
+                        return;
+                    }
+
+                    let albumId = results.insertId;
+
+                    let songPromises = [];
+                    for(let i = 0; i < fields.songNames.length; i++) {
+                        songPromises.push(readFile(files['songs[]'][i].filepath)
+                            .then((songAudio) => {
+                                getAudioDurationInSeconds(files['songs[]'][i].filepath).then((duration) => {
+
+                                    conn.query('SELECT GenreCode FROM Genre WHERE Name=?', [fields.songGenres[i]], (err,results) => {
+                                        if (results.length === 0) {
+                                                throw new Error(`Genre not found for song ${fields.songNames[i]}`);
+                                            }
+
+                                        const genreCode = results[0]['GenreCode'];
+
+                                        songPromises.push(new Promise((resolve, reject) => { conn.query('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
+                                            [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate])}));
+                                    });
+                                });
+                            }));
+
+                    }
+
+                    // This will happen before all the songs are uploaded.
+                    res.writeHead(200);
+                    res.end("Please wait a moment while your songs are being uploaded. You can close this tab and visit the home page.");
+                });
+
+            })
+            .then(() => {
+                removeFile(files.albumCover.filepath);
+            });
         });
     } else {
         //print those not found and keep going with this slow slow process

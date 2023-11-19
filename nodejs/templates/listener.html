@@ -1,5 +1,18 @@
-{% extends 'base_listener.html' %}
-{% block page %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Listener</title>
+</head>
+<body>
+<!-- Top Navigation Bar -->
+<header id='topBar'>
+</header>
 <!-- Main Container To Display The Songs -->
 <div class="main_container">
     <div class="song_list">
@@ -7,28 +20,14 @@
         <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
             Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
 
-        <div class="list">
-        {% for album in data.new_releases %}
-            <div class="item">
-                <a href="/album/{{ album['AlbumID'] }}"><img src="/album/{{ album['AlbumID'] }}/pic"></a>
-                <h4>{{ album['AlbumName'] }}</h4>
-                <a href="/artist/{{ album['ArtistID'] }}"><p>{{ album['ArtistName'] }}</p></a>
-            </div>
-        {% endfor %}
+        <div class="list" id='newReleases'>
         </div>
         <hr>
     </div>
 
     <div class="song_list">
         <h2>Albums For You</h2>
-        <div class="list">
-            {% for album in data.for_you %}
-                <div class="item">
-                    <a href="/album/{{ album['AlbumID'] }}"><img src="/album/{{ album['AlbumID'] }}/pic"></a>
-                    <h4>{{ album['AlbumName'] }}</h4>
-                    <a href="/artist/{{ album['ArtistID'] }}"><p>{{ album['ArtistName'] }}</p></a>
-                </div>
-            {% endfor %}
+        <div class="list" id='forYou'>
         </div>
         <hr>
     </div>
@@ -51,4 +50,88 @@
         <hr>
     </div> -->
 </div>
-{% endblock %}
+
+<div class="left_sidebar" id='leftBar'>
+    
+</div>
+
+<!-- Right Sidebar -->
+<!-- <div class="right_sidebar">
+    <h1>Top Hits</h1>
+    <div class="navigation">
+        <ul>
+            <li>
+                <p>
+                    <span class="link_icon"></span>
+                    <span>Weekly:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>A Song</span>
+                        </li>
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                    </ul>
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="navigation">
+        <ul>
+            <li>
+                <p>
+                    <span class="link_icon"></span>
+                    <span>Daily:</span>
+                    <ul class="list_container">
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>A song</span>
+                        </li>
+                        <li>
+                            <img src="/Cockatiel-2.jpg" alt="playlist name">
+                            <span>Another Song</span>
+                        </li>
+                    </ul>
+                </p>
+            </li>
+        </ul>
+    </div>
+</div> -->
+
+<script src='/base.js'></script>
+<script>
+addEventListener("DOMContentLoaded", (event) => {
+    fetch('/ajax')
+        .then(response => response.json())
+        .then(data => {
+
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            let html = '';
+            for(const album of data['new_releases']) {
+                html += `<div class="item">
+                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
+                    <h4>${album.AlbumName}</h4>
+                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
+                </div>`;
+            }
+            document.getElementById('newReleases').innerHTML = html;
+
+            html = '';
+            for(const album of data.for_you) {
+                html += `<div class="item">
+                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
+                    <h4>${album.AlbumName}</h4>
+                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
+                </div>`;
+            }
+            document.getElementById('forYou').innerHTML = html;
+        })
+});
+</script>
+</body>
+</html>

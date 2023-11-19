@@ -3,10 +3,7 @@
   "name": "basic",
   "version": "1.0.0",
   "description": "learning node js",
-  "exports": "./app.js",
-  "scripts": {
-    "dev": "nodemon server.js"
-  },
+  "exports": "./server.js",
   "engines": {
     "node": ">=16"
   },
@@ -19,6 +16,7 @@
     "esm": "^3.2.25",
     "file-type": "^18.7.0",
     "formidable": "^2.1.2",
+    "get-audio-duration": "^4.0.1",
     "mime": "^3.0.0",
     "mime-types": "^2.1.35",
     "mysql": "^2.18.1",
