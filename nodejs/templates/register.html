@@ -1,6 +1,15 @@
-{% extends 'base.html' %}
-{% block title %}Register{% endblock %}
-{% block body %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Register</title>
+</head>
+<body>
 <div class="back_link">
     <a href='/getstarted'>
         <h2>Back</h2>
@@ -10,26 +19,12 @@
 <section class="form_style">
     <div class="container">
         <header>
-            <h1>Register for {{ role }}</h1>
+            <h1>Register for {{ role }} </h1>
         </header>
         
         <form method='POST' action="/register?role={{ role }}" class="form">
-            {% if role == 'listener' %}
-            <div class="input_box">
-                <label for="first">First Name</label>
-                <input type="text" name="first" id="first" placeholder="Enter Your First Name">
-            </div>
-
-            <div class="input_box">
-                <label for="last">Last Name</label>
-                <input type="text" name="last" id="last" placeholder="Enter Your Last Name">
-            </div>
-            {% elif role == 'artist' %}
-            <div class="input_box">
-                <label for="name">Display Name</label>
-                <input type="text" name="name" id="name" placeholder="Enter Your Display Name">
-            </div>
-            {% endif %}
+            
+            {{conditionalContent}}
 
             <div class="input_box">
                 <label for="DOB">Date of Birth</label>
@@ -61,4 +56,3 @@
         <a href="/login?role={{ role }}" class="center_text">Already have an account? Log In</a>
     </div>
 </section>
-{% endblock %}

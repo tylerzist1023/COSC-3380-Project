@@ -1,6 +1,15 @@
-{% extends 'base.html' %}
-{% block title %}Welcome{% endblock %}
-{% block body %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Welcome</title>
+</head>
+<body>
 <nav class="navbar">
     <div class="navbar_container">
         <a href="/" class="navbar_logo"><img src="/logo.png" height="75px"></a>
@@ -11,17 +20,17 @@
         </div>
         <ul class="navbar_menu">
             <li class="navbar_item">
-                <a href="/about" class="navbar_links">
+                <a href="/" class="navbar_links">
                     About
                 </a>
             </li>
             <li class="navbar_item">
-                <a href="/contact" class="navbar_links">
+                <a href="/" class="navbar_links">
                     Contact
                 </a>
             </li>
             <li class="navbar_item">
-                <a href="/help" class="navbar_links">
+                <a href="/" class="navbar_links">
                     Help
                 </a>
             </li>
@@ -32,13 +41,13 @@
             </li>
         </ul>
         </div>
-    </div>
 </nav>
 
 <div class="homepage">
     <div class="homepage_container">
         <div class="main_img_container">
             <img src="/homepage.svg" alt="song name" class="main_img">
+
         </div>
         <div class="main_content">
             <h1>COOG MUSIC</h1>
@@ -71,7 +80,7 @@
                 <div class="footer_link_items">
                     <h2>Team Members</h2>
                     <p>Gonzalez, Angel E</p>
-                    <p>Matthews, Joshua T</p>
+                    <p>Mathews, Joshua T</p>
                     <p>Nguyen, Jacqueline</p>
                     <p>Oblock, Charlie J</p>
                     <p>Zistler, Tyler J</p>
@@ -80,4 +89,5 @@
         </div>
     </div>
 </footer>
-{% endblock %}
+</body>
+</html>

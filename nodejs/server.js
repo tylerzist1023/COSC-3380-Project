@@ -8,9 +8,10 @@ import querystring from 'querystring';
 import cookie from 'cookie';
 import { createToken, parseToken } from './session.js';
 import dotenv from 'dotenv';
-import { IncomingForm } from 'formidable';
+import  Types  from 'formidable';
 import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
+import nodemon from 'nodemon';
 
 // bruh...
 const __filename = url.fileURLToPath(import.meta.url);
@@ -26,6 +27,8 @@ const conn = mysql.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME
 });
+
+
 
 function getRole(session) {
     if(session['logged_in'] === true) {
@@ -47,7 +50,49 @@ function matchUrl(userUrl, url) {
     return captureUrl(userUrl, url) !== null;
 }
 
-// Function to serve static files
+// Functions to serve static files
+
+function serveStatic_Plus(res, filePath, contentType, replacements, responseCode = 200) {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            res.writeHead(500);
+            res.end('Server Error');
+        } else {
+            // Replace placeholders with dynamic content
+            if (replacements && typeof replacements === 'object') {
+                Object.keys(replacements).forEach(key => {
+                    // Updated RegExp to match {{ key }} with spaces
+                    data = data.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), replacements[key]);
+                });
+            }
+            let conditionalContent = '';
+            if (replacements['role'] === 'listener') {
+                conditionalContent = `
+                    <div class="input_box">
+                        <label for="first">First Name</label>
+                        <input type="text" name="first" id="first" placeholder="Enter Your First Name">
+                    </div>
+                    <div class="input_box">
+                        <label for="last">Last Name</label>
+                        <input type="text" name="last" id="last" placeholder="Enter Your Last Name">
+                    </div>
+                `;
+            } else if (replacements['role'] === 'artist') {
+                conditionalContent = `
+                    <div class="input_box">
+                        <label for="name">Display Name</label>
+                        <input type="text" name="name" id="name" placeholder="Enter Your Display Name">
+                    </div>
+                `;
+            }
+            data = data.replace('{{conditionalContent}}', conditionalContent);
+
+
+            res.writeHead(responseCode, { 'Content-Type': contentType });
+            res.end(data);
+        }
+    });
+}
 function serveStaticFile(res, filePath, contentType, responseCode = 200) {
     fs.readFile(filePath, (err, data) => {
         if (err) {
@@ -96,7 +141,7 @@ function getListener(sessionData, res) {
 
     getListenerBaseData(sessionData['id'])
     .then((data) => {
-        console.log(data);
+       // console.log(data);
 
         const newReleasesQuery = 'SELECT AlbumID, AlbumName, ArtistName, Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID = Artist.ArtistID ORDER BY ReleaseDate DESC LIMIT 10';
         conn.query(newReleasesQuery, (newReleasesError, newReleasesResults) => {
@@ -117,6 +162,7 @@ function getListener(sessionData, res) {
                 data.new_releases = newReleasesResults;
                 data.for_you = forYouResults;
                 data.username = sessionData['username'];
+                //console.log(data.new_releases);
 
                 res.writeHead(200);
                 res.end(nunjucks.render('listener.html', { data: data }));
@@ -156,6 +202,7 @@ function getListenerProfile(sessionData, res) {
                 data.username = sessionData.username;
 
                 res.writeHead(200);
+                serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
                 res.end(nunjucks.render('profile_listener.html', { data }));
             });
         });
@@ -177,6 +224,7 @@ const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url);
     const params = querystring.parse(parsedUrl.query);
 
+
     // html of the homepage
     if (req.url === '/') {
         if(getRole(sessionData) === 'listener') {
@@ -184,7 +232,7 @@ const server = http.createServer((req, res) => {
             return;
         }
 
-        res.end(nunjucks.render('index.html'));
+        serveStaticFile(res, './templates/index.html', 'text/html');
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             getListenerProfile(sessionData, res);
@@ -206,16 +254,20 @@ const server = http.createServer((req, res) => {
     else if(req.url === "/homepage.svg" ){
         serveStaticFile(res,'./public/homepage.svg','image/svg+xml');
     }
+    //picture of the logo
     else if(req.url === "/favicon.ico"){
         serveStaticFile(res,"./public/favicon.ico",'');
     }
     //To go to the Login_Options HTML
     else if(req.url === "/getstarted"){
-        res.end(nunjucks.render('login_options.html'));
+        serveStaticFile(res, './templates/login_options.html', 'text/html');
     }
-    else if(matchUrl(req.url, '/login') && req.method === 'GET'){
+    //cd Desktop/TRA/COSC-3380-Project/nodejs nodemon server.js
+    else if((matchUrl(req.url, '/login') ) &&  req.method === 'GET'){
+
+
         if(params['role'] === 'listener' || params['role'] === 'artist' || params['role'] === 'admin') {
-            res.end(nunjucks.render('login.html', {role:params['role']}));
+            serveStatic_Plus(res, './templates/login.html', 'text/html',{ 'role': params['role'] }); //basically doing nujucks 
         } else {
             res.writeHead(404);
             res.end('Not Found');
@@ -223,7 +275,8 @@ const server = http.createServer((req, res) => {
     }
     else if(matchUrl(req.url, '/register') && req.method === 'GET'){
         if(params['role'] === 'listener' || params['role'] === 'artist') {
-            res.end(nunjucks.render('register.html', {role:params['role']}));
+            console.log(params['role']);
+            serveStatic_Plus(res,'./templates/register.html', 'text/html',{ 'role': params['role'] });
         } else {
             res.writeHead(404);
             res.end('Not Found');
@@ -237,7 +290,7 @@ const server = http.createServer((req, res) => {
             role = 'listener';
         }
 
-        const form = new IncomingForm();
+        const form = new Types.IncomingForm();
 
         form.parse(req, (err,fields,files) => {
             if(role === 'listener') {
@@ -421,7 +474,7 @@ const server = http.createServer((req, res) => {
         let songId = req.url.split('/')[2];
 
         // Create a new formidable form
-        const form = new IncomingForm();
+        const form = new Types.IncomingForm();
 
         // Parse form data
         form.parse(req, (err, fields) => {
