@@ -384,9 +384,10 @@ const server = http.createServer(async (req, res) => {
         }
     } else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
-        // logout redirect does not work for some reason
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-        // res.writeHead(302, { Location: '/' });
+        // logout redirect does not work for some reason
+        // below line was commented out, it works I think?
+        res.writeHead(302, { Location: '/' });
         res.end();
     } 
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
