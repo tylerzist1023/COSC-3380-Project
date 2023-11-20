@@ -19,7 +19,7 @@
     <div class="main_container">
         <div class="report_form_container">
             <header>Listen History</header>
-            <form method="POST" action="/listenhistory" class="historyForm">
+            <form method="POST" action="/history" class="historyForm">
                 <div>
                     <label for="beginDate">From</label>
                     <input type="date" name="beginDate">
@@ -93,7 +93,7 @@
         formData.set('genre', selectedGenre);
 
         // Send form data to the server using fetch
-        fetch('/listenhistory', {
+        fetch('/history', {
             method: 'POST',
             body: formData
         })

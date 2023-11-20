@@ -1,7 +1,7 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 import url from 'url';
 import querystring from 'querystring';
 import cookie from 'cookie';
@@ -23,13 +23,16 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 //print to the console hehe (Python)
 const print = (a) =>console.log(a);
 
-let conn = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+let pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    idleTimeout:20*1000
 });
-
 
 function getRole(session) {
     if(session['logged_in'] === true) {
@@ -73,6 +76,28 @@ function removeFile(filePath) {
       }
     });
   });
+}
+
+function parseFormAsync(form, req) {
+    return new Promise((resolve, reject) => {
+        form.parse(req, (err, fields, files) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({ fields, files });
+            }
+        });
+    });
+}
+
+async function executeQuery(query, values) {
+    const connection = await pool.getConnection();
+    try {
+        const [rows, fields] = await connection.execute(query, values);
+        return rows;
+    } finally {
+        connection.release();
+    }
 }
 
 // Functions to serve static files
@@ -130,110 +155,83 @@ function serveStaticFile(res, filePath, contentType, responseCode = 200) {
     });
 }
 
-const getListenerBaseData = (userId) => {
-  return new Promise((resolve, reject) => {
-    const data = {};
+const getListenerBaseData = async (userId) => {
+    try {
+        const data = {};
 
-    // Get followed artists
-    const followQuery = 'SELECT Follow.*, ArtistName, Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=?';
-    conn.query(followQuery, [userId], (err, followResults) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      data['following'] = followResults;
+        // Get followed artists
+        const followQuery = 'SELECT Follow.*, ArtistName, Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=?';
+        const followResults = await executeQuery(followQuery, [userId]);
+        data['following'] = followResults;
 
-      // Get playlists
-      const playlistQuery = 'SELECT * FROM Playlist WHERE UserID=?';
-      conn.query(playlistQuery, [userId], (err, playlistResults) => {
-        if (err) {
-          reject(err);
-          return;
-        }
+        // Get playlists
+        const playlistQuery = 'SELECT * FROM Playlist WHERE UserID=?';
+        const playlistResults = await executeQuery(playlistQuery, [userId]);
         data['playlists'] = playlistResults;
 
-        resolve(data);
-      });
-    });
-  });
+        return data;
+    } catch (err) {
+        throw new Error(`Error in getListenerBaseData: ${err.message}`);
+    }
 };
 
 
-function getListener(sessionData, res) {
-    if(getRole(sessionData) !== 'listener') {
-        return;
-    }
+async function getListener(sessionData, res) {
+    try {
+        if (getRole(sessionData) !== 'listener') {
+            return;
+        }
 
-    getListenerBaseData(sessionData['id'])
-    .then((data) => {
+        const data = await getListenerBaseData(sessionData['id']);
+
         const newReleasesQuery = 'SELECT AlbumID, AlbumName, ArtistName, Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID = Artist.ArtistID ORDER BY ReleaseDate DESC LIMIT 10';
-        conn.query(newReleasesQuery, (newReleasesError, newReleasesResults) => {
-            if (newReleasesError) {
-                console.error('Error fetching new releases:', newReleasesError);
-                res.status(500).send('Internal Server Error');
-                return;
-            }
+        const newReleasesResults = await executeQuery(newReleasesQuery);
 
-            const forYouQuery = 'SELECT AlbumID, AlbumName, ArtistName, Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID = Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=? ORDER BY ReleaseDate DESC LIMIT 10';
-            conn.query(forYouQuery, [sessionData['id']], (forYouError, forYouResults) => {
-                if (forYouError) {
-                    console.error('Error fetching for you data:', forYouError);
-                    res.status(500).send('Internal Server Error');
-                    return;
-                }
+        const forYouQuery = 'SELECT AlbumID, AlbumName, ArtistName, Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID = Artist.ArtistID INNER JOIN Follow ON Album.ArtistID = Follow.ArtistID WHERE Follow.UserID=? ORDER BY ReleaseDate DESC LIMIT 10';
+        const forYouResults = await executeQuery(forYouQuery, [sessionData['id']]);
 
-                data.new_releases = newReleasesResults;
-                data.for_you = forYouResults;
-                data.username = sessionData['username'];
-                //console.log(data.new_releases);
+        data.new_releases = newReleasesResults;
+        data.for_you = forYouResults;
+        data.username = sessionData['username'];
 
-                // res.writeHead(200);
-                res.end(JSON.stringify(data));
-            });
-        });
-    })
-    .catch((error) => {
+        res.end(JSON.stringify(data));
+    } catch (error) {
         console.error(error);
-    });
-}
-
-function getListenerProfile(sessionData, res) {
-    if (getRole(sessionData) !== 'listener') {
-        return;
+        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.end('<h1>Internal Server Error</h1>');
     }
-
-    getListenerBaseData(sessionData.id).then((data) => {
-        const userQuery = 'SELECT Listener.UserID, Fname, Lname, COUNT(DISTINCT Follow.ArtistID) FROM Listener LEFT JOIN Follow ON Listener.UserID = Follow.UserID WHERE Listener.UserID=?';
-        conn.query(userQuery, [sessionData.id], (userError, userResults) => {
-            if (userError) {
-                console.error('Error fetching user data:', userError);
-                res.status(500).send('Internal Server Error');
-                return;
-            }
-
-            data.user = userResults[0];
-
-            const playlistsQuery = 'SELECT PlaylistName, Listener.Fname, Listener.Lname, PlaylistID FROM Playlist LEFT JOIN Listener ON Listener.UserID = Playlist.UserID WHERE Playlist.UserID=?';
-            conn.query(playlistsQuery, [sessionData.id], (playlistsError, playlistsResults) => {
-                if (playlistsError) {
-                    console.error('Error fetching playlists:', playlistsError);
-                    res.status(500).send('Internal Server Error');
-                    return;
-                }
-
-                data.playlists = playlistsResults;
-                data.username = sessionData.username;
-
-                res.writeHead(200);
-                // serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
-                res.end(JSON.stringify(data));
-            });
-        });
-    });
 }
+
+async function getListenerProfile(sessionData, res) {
+    try {
+        if (getRole(sessionData) !== 'listener') {
+            return;
+        }
+
+        const data = await getListenerBaseData(sessionData.id);
+
+        const userQuery = 'SELECT Listener.UserID, Fname, Lname, COUNT(DISTINCT Follow.ArtistID) FROM Listener LEFT JOIN Follow ON Listener.UserID = Follow.UserID WHERE Listener.UserID=? GROUP BY Listener.UserID, Fname, Lname';
+        const userResults = await executeQuery(userQuery, [sessionData.id]);
+        data.user = userResults[0];
+
+        const playlistsQuery = 'SELECT PlaylistName, Listener.Fname, Listener.Lname, PlaylistID FROM Playlist LEFT JOIN Listener ON Listener.UserID = Playlist.UserID WHERE Playlist.UserID=?';
+        const playlistsResults = await executeQuery(playlistsQuery, [sessionData.id]);
+        data.playlists = playlistsResults;
+        data.username = sessionData.username;
+
+        res.writeHead(200);
+        // serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
+        res.end(JSON.stringify(data));
+    } catch (error) {
+        console.error(error);
+        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.end('<h1>Internal Server Error</h1>');
+    }
+}
+
 
 // Create HTTP server
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
 
     let rawCookies = req.headers.cookie;
     if(rawCookies === undefined) {
@@ -257,7 +255,7 @@ const server = http.createServer((req, res) => {
 
         serveStaticFile(res, './templates/index.html', 'text/html');
     } else if(req.url === '/ajax') {
-            getListener(sessionData, res);
+        await getListener(sessionData, res);
 
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
@@ -323,77 +321,73 @@ const server = http.createServer((req, res) => {
         let vals = [];
 
         let role = params['role'];
-        if(role === undefined) {
+        if (role === undefined) {
             role = 'listener';
         }
 
         const form = new Types.IncomingForm();
 
-        form.parse(req, (err,fields,files) => {
-            if(role === 'listener') {
-                query = 'SELECT UserID FROM Listener WHERE Username=? AND Password=?'
-                vals = [fields['username'], fields['password']]
-            } else if(role === 'artist') {
-                query = 'SELECT ArtistID FROM Artist WHERE Username=? AND Password=?'
-                vals = [fields['username'], fields['password']]
-            } else if(role === 'admin') {
-                query = 'SELECT AdminID FROM Admin WHERE Username=? AND Password=?'
-                vals = [fields['username'], fields['password']]
+        try {
+            const [fields, files] = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields, files) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve([fields, files]);
+                    }
+                });
+            });
+
+            if (role === 'listener') {
+                query = 'SELECT UserID FROM Listener WHERE Username=? AND Password=?';
+                vals = [fields['username'], fields['password']];
+            } else if (role === 'artist') {
+                query = 'SELECT ArtistID FROM Artist WHERE Username=? AND Password=?';
+                vals = [fields['username'], fields['password']];
+            } else if (role === 'admin') {
+                query = 'SELECT AdminID FROM Admin WHERE Username=? AND Password=?';
+                vals = [fields['username'], fields['password']];
             } else {
                 res.writeHead(404);
                 res.end('Not found');
                 return;
             }
 
-            conn.query(query, vals, (err, results) => {
-                if (err) {
-                    res.writeHead(500, { 'Content-Type': 'text/html' });
-                    res.end('<h1>Internal Server Error</h1>');
-                    return;
+            const results = await executeQuery(query, vals);
+
+            if (results.length > 0) {
+                const sessionData = {};
+                if (role === 'listener') {
+                    sessionData['id'] = results[0]['UserID'];
+                } else if (role === 'artist') {
+                    sessionData['id'] = results[0]['ArtistID'];
+                } else if (role === 'admin') {
+                    sessionData['id'] = results[0]['AdminID'];
                 }
 
-                if (results.length > 0) {
-                    sessionData = {};
-                    if(role === 'listener') {
-                        sessionData['id'] = results[0]['UserID']
-                    } else if(role === 'artist') {
-                        sessionData['id'] = results[0]['ArtistID']
-                    } else if(role === 'admin') {
-                        sessionData['id'] = results[0]['AdminID']
-                    }
-    
-                    sessionData['role'] = role;
-                    sessionData['logged_in'] = true;
-                    sessionData['username'] = fields['username']
-    
-                    res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: true, message: 'Login successful' }));
-                }
-                else {
-                    // No matching user found
-                    res.writeHead(401, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, message: 'Login failed' }));
-                }
-            });
-        });
-    } else if (req.url === '/data') {
-        // Database query
-        conn.query('SELECT * FROM Listener', (err, results) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-                return;
+                sessionData['role'] = role;
+                sessionData['logged_in'] = true;
+                sessionData['username'] = fields['username'];
+
+                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: 'Login successful' }));
+            } else {
+                // No matching user found
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, message: 'Login failed' }));
             }
-  
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(results));
-        });
+        } catch (error) {
+            console.error('Error handling login:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
     } else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
+        // logout redirect does not work for some reason
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-        res.end();
         // res.writeHead(302, { Location: '/' });
+        res.end();
     } 
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
         serveStaticFile(res, './templates/listener_edit.html', "");
@@ -401,218 +395,203 @@ const server = http.createServer((req, res) => {
     // Serve Edit Profile Page
     else if (matchUrl(req.url, '/ajax/edit') && req.method =='GET') {
         if (getRole(sessionData) === 'listener') {
-
-            getListenerBaseData(sessionData.id)
-            .then((data) => {
+            try {
+                const data = await getListenerBaseData(sessionData.id);
                 
-                const userProfileQuery = 'SELECT Username,Email,Fname,Lname FROM Listener WHERE UserID=?'
-                let vals = [sessionData['id']];
+                const userProfileQuery = 'SELECT Username, Email, Fname, Lname FROM Listener WHERE UserID=?';
+                const vals = [sessionData['id']];
                 
-                const userProfileQueryPromise = new Promise((resolve, reject) => {
-                    conn.query(userProfileQuery, vals, (err, results) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        else if (results.length === 0) {
-                            reject('Album not found');
-                        } 
-                        else {
-                            // Store Query Results
-                            data.email= results[0]['Email'];
-                            data.Fname = results[0]['Fname'];
-                            data.Lname = results[0]['Lname'];
-                            console.log(data.email);
-                            resolve(data);
-                        }
-                    });
-                });
+                const results = await executeQuery(userProfileQuery, vals);
 
-                Promise.all([userProfileQueryPromise])
-                .then(() => {
-                    data.username = sessionData.username;
-                    res.writeHead(200);
-                    res.end(JSON.stringify(data));
-                })
-                .catch((error) => {
-                    console.error('Error fetching data:', error);
-                    res.writeHead(500, { 'Content-Type': 'text/html' });
-                    res.end('<h1>Internal Server Error</h1>');
-                });
-            });
-            } 
-        else {
-            res.writeHead(404);
-            res.end('Not Found');
-        }}
-    
-    else if(matchUrl(req.url, '/listenhistory') && req.method === "GET"){
-        if(getRole(sessionData) !== 'listener') {
-            res.writeHead(401);
-            res.end('<h1>Unauthorized</h1>');
-        }
+                if (results.length === 0) {
+                    throw new Error('User not found');
+                }
 
-        else {
-            getListenerBaseData(sessionData.id)
+                // Store Query Results
+                data.email = results[0]['Email'];
+                data.Fname = results[0]['Fname'];
+                data.Lname = results[0]['Lname'];
+                console.log(data.email);
 
-            .then((data) => {
                 data.username = sessionData.username;
-                res.writeHead(200)
-                serveStaticFile(res, './templates/listener_history.html', "");
-            })
-            .catch((error) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(data));
+            } catch (error) {
                 console.error('Error fetching data:', error);
                 res.writeHead(500, { 'Content-Type': 'text/html' });
                 res.end('<h1>Internal Server Error</h1>');
-            });
+            }
+        } else {
+            res.writeHead(404, { 'Content-Type': 'text/html' });
+            res.end('Not found');
+        }
+    } else if(matchUrl(req.url, '/history') && req.method === "GET"){
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            } else {
+                const data = await getListenerBaseData(sessionData.id);
+                data.username = sessionData.username;
+
+                serveStaticFile(res, './templates/listener_history.html', '');
+            }
+        } catch (error) {
+            console.error('Error processing listener data:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
         }
     }
-
-    else if (matchUrl(req.url, '/listenhistory') && req.method === 'POST') {
-        if (getRole(sessionData) !== 'listener') {
-          res.writeHead(401);
-          res.end('<h1>Unauthorized</h1>');
-        } else {
-          // Assuming getListenerBaseData returns a Promise
-          getListenerBaseData(sessionData.id)
-            .then(() => {
+    else if (matchUrl(req.url, '/history') && req.method === 'POST') {
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            } else {
+                const data = await getListenerBaseData(sessionData.id);
+                
                 const form = new Types.IncomingForm();
-      
-              form.parse(req, (err, fields) => {
-                if (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ error: 'Internal Server Error' }));
-                  return;
-                }
+                const fields = await new Promise((resolve, reject) => {
+                    form.parse(req, (err, fields) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(fields);
+                        }
+                    });
+                });
 
                 let selectClause = 'SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName ';
                 let conditions = [];
 
                 selectClause = selectClause.replace(/,\s*$/, '');
-                
-      
+
                 // Build the SQL query based on the form fields
                 let query = selectClause + 'FROM ListenedToHistory, Artist, Song, Album, Genre WHERE ';
-      
+
                 if (fields.beginDate) {
-                  conditions.push(`DateAccessed >= '${fields.beginDate} 00:00:00'`);
+                    conditions.push(`DateAccessed >= ?`);
                 }
-      
+
                 if (fields.endDate) {
-                  conditions.push(`DateAccessed <= '${fields.endDate} 23:59:59'`);
+                    conditions.push(`DateAccessed <= ?`);
                 }
-      
+
                 if (fields.artist) {
-                  conditions.push(`ArtistName LIKE '%${fields.artist}%'`);
+                    conditions.push(`ArtistName LIKE ?`);
                 }
-      
+
                 if (fields.album) {
-                  conditions.push(`AlbumName LIKE '%${fields.album}%'`);
+                    conditions.push(`AlbumName LIKE ?`);
                 }
-      
+
                 if (fields.genre) {
-                  conditions.push(`Song.GenreCode = ${fields.genre}`);
+                    conditions.push(`Song.GenreCode = ?`);
                 }
-      
+
                 // Join the conditions with 'AND' and complete the query
                 if (conditions.length === 0) {
                     query = 'SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName FROM ListenedToHistory, Artist, Song, Album, Genre WHERE UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
-                } 
-                else {
+                } else {
                     query += conditions.join(' AND ');
                     query += ' AND UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
                 }
 
-                let vals = [sessionData['id']];
+                // Prepare values array
+                let vals = [];
 
-                console.log(query);
-      
+                if (fields.beginDate) {
+                    vals.push(`${fields.beginDate} 00:00:00`);
+                }
+
+                if (fields.endDate) {
+                    vals.push(`${fields.endDate} 23:59:59`);
+                }
+
+                if (fields.artist) {
+                    vals.push(`%${fields.artist}%`);
+                }
+
+                if (fields.album) {
+                    vals.push(`%${fields.album}%`);
+                }
+
+                if (fields.genre) {
+                    vals.push(fields.genre);
+                }
+
+                // Add UserID to the values array
+                vals.push(sessionData['id']);
+
                 // Execute the query
-                conn.query(query, vals, (error, results) => {
-                  if (error) {
-                    res.statusCode = 500;
-                    console.log('query error')
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
-                    return;
-                  }
+                const results = await executeQuery(query, vals);
 
-                  // Change the column name and format the date
-                  for (let i=0; i<results.length; i++){
-                    results[i]['Song Name'] = results[i].SongName;
-                    delete results[i].SongName;
-                    results[i]['Genre Name'] = results[i].GenreName;
-                    delete results[i].GenreName;
-                    results[i]['Artist Name'] = results[i].ArtistName;
-                    delete results[i].ArtistName;
-                    results[i]['Album Name'] = results[i].AlbumName;
-                    delete results[i].AlbumName;
-                    const date = new Date(results[i].DateAccessed);
+                // Change the column name and format the date
+                results.forEach((result) => {
+                    result['Song Name'] = result.SongName;
+                    delete result.SongName;
+                    result['Genre Name'] = result.GenreName;
+                    delete result.GenreName;
+                    result['Artist Name'] = result.ArtistName;
+                    delete result.ArtistName;
+                    result['Album Name'] = result.AlbumName;
+                    delete result.AlbumName;
+                    const date = new Date(result.DateAccessed);
                     const formattedDate = date.toISOString().split('T')[0];
-                    results[i]['Date Accessed'] = formattedDate;
-                    delete results[i].DateAccessed;
-                  }
-
-                  // Send the results as JSON to the client
-                  console.log(results);
-                  res.writeHead(200, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify(results));
+                    result['Date Accessed'] = formattedDate;
+                    delete result.DateAccessed;
                 });
-              });
-            })
-            .catch((error) => {
-              console.error('Error in getListenerBaseData:', error);
-              res.statusCode = 500;
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ error: 'Internal Server Error' }));
-            });
-        }
-      }
-      
-    else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
-        if(getRole(sessionData) !== 'listener') {
-            res.writeHead(401);
-            res.end('<h1>Unauthorized</h1>');
-        }
 
-        let query = 'select ProfilePic from Listener where UserID=?';
-        let vals = [sessionData['id']];
-
-        conn.query(query, vals, (err, results) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-                return;
+                // Send the results as JSON to the client
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(results));
             }
+        } catch (error) {
+            console.error('Error processing listener history:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    } else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            } else {
+                const query = 'SELECT ProfilePic FROM Listener WHERE UserID=?';
+                const vals = [sessionData['id']];
 
-            const profilePic = results[0]['ProfilePic'];
-            if(profilePic === null) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
-                return;
+                const results = await executeQuery(query, vals);
+
+                if (!results[0] || results[0]['ProfilePic'] === null) {
+                    res.writeHead(404, { 'Content-Type': 'text/html' });
+                    res.end('Not found');
+                    return;
+                }
+
+                const profilePic = results[0]['ProfilePic'];
+                const type = fileTypeFromBuffer(profilePic);
+
+                res.writeHead(200, { 'Content-Type': type });
+                res.end(profilePic);
             }
-            const { file, mimetype } = getFile(profilePic);
-
-            res.writeHead(200, { 'Content-Type': mimetype });
-            res.end(file);
-        });
+        } catch (error) {
+            console.error('Error processing profile picture:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
     } else if(matchUrl(req.url, '/artist/([0-9]+)/follow') && req.method === 'GET') {
-        if(getRole(sessionData) !== 'listener') {
-            res.writeHead(401, { 'Content-Type': 'text/plain' });
-            res.end("You are not authorized to do that");
-            return;
-        }
-
-        let artistId = req.url.split('/')[2];
-
-        const followQuery = 'SELECT * FROM Follow WHERE ArtistID=? AND UserID=?';
-        conn.query(followQuery, [artistId, sessionData.id], (followError, followResult) => {
-            if (followError) {
-                console.error(followError);
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end("Internal Server Error");
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401, { 'Content-Type': 'text/plain' });
+                res.end("You are not authorized to do that");
                 return;
             }
+
+            const artistId = req.url.split('/')[2];
+
+            // Check if the user is already following the artist
+            const followQuery = 'SELECT * FROM Follow WHERE ArtistID=? AND UserID=?';
+            const followResult = await executeQuery(followQuery, [artistId, sessionData.id]);
 
             if (followResult.length > 0) {
                 res.writeHead(400, { 'Content-Type': 'text/plain' });
@@ -620,33 +599,34 @@ const server = http.createServer((req, res) => {
                 return;
             }
 
+            // Follow the artist
             const insertQuery = 'INSERT INTO Follow (UserID, ArtistID) VALUES (?, ?)';
-            conn.query(insertQuery, [sessionData.id, artistId], (insertError) => {
-                if (insertError) {
-                    console.error(insertError);
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end("Internal Server Error");
-                    return;
-                }
+            await executeQuery(insertQuery, [sessionData.id, artistId]);
 
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end("Successfully followed");
-            });
-        });
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end("Successfully followed");
+        } catch (error) {
+            console.error('Error processing follow request:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
     } else if(matchUrl(req.url, '/song/([0-9]+)/rate') && req.method === 'POST') {
-        let songId = req.url.split('/')[2];
+        try {
+            const songId = req.url.split('/')[2];
 
-        // Create a new formidable form
-        const form = new Types.IncomingForm();
+            // Create a new formidable form
+            const form = new Types.IncomingForm();
 
-        // Parse form data
-        form.parse(req, (err, fields) => {
-            if (err) {
-                console.error(err);
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end("Internal Server Error");
-                return;
-            }
+            // Parse form data
+            const fields = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(fields);
+                    }
+                });
+            });
 
             // Check if 'rating' is in the form data
             if (!('rating' in fields)) {
@@ -657,62 +637,38 @@ const server = http.createServer((req, res) => {
 
             // Check if the user has already rated the song
             const selectQuery = 'SELECT * FROM Rating WHERE SongID=? AND UserID=?';
-            conn.query(selectQuery, [songId, sessionData.id], (selectError, selectResult) => {
-                if (selectError) {
-                    console.error(selectError);
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end("Internal Server Error");
-                    return;
-                }
+            const selectResult = await executeQuery(selectQuery, [songId, sessionData.id]);
 
-                if (selectResult.length > 0) {
-                    // Update the existing rating
-                    const updateQuery = 'UPDATE Rating SET Value=? WHERE SongID=? AND UserID=?';
-                    conn.query(updateQuery, [fields.rating, songId, sessionData.id], (updateError) => {
-                        if (updateError) {
-                            console.error(updateError);
-                            res.writeHead(500, { 'Content-Type': 'text/plain' });
-                            res.end("Internal Server Error");
-                            return;
-                        }
+            if (selectResult.length > 0) {
+                // Update the existing rating
+                const updateQuery = 'UPDATE Rating SET Value=? WHERE SongID=? AND UserID=?';
+                await executeQuery(updateQuery, [fields.rating, songId, sessionData.id]);
+            } else {
+                // Insert a new rating
+                const insertQuery = 'INSERT INTO Rating (UserID, SongID, Value) VALUES (?, ?, ?)';
+                await executeQuery(insertQuery, [sessionData.id, songId, fields.rating]);
+            }
 
-                        res.writeHead(200, { 'Content-Type': 'text/plain' });
-                        res.end("Successfully rated song");
-                    });
-                } else {
-                    // Insert a new rating
-                    const insertQuery = 'INSERT INTO Rating (UserID, SongID, Value) VALUES (?, ?, ?)';
-                    conn.query(insertQuery, [sessionData.id, songId, fields.rating], (insertError) => {
-                        if (insertError) {
-                            console.error(insertError);
-                            res.writeHead(500, { 'Content-Type': 'text/plain' });
-                            res.end("Internal Server Error");
-                            return;
-                        }
-
-                        res.writeHead(200, { 'Content-Type': 'text/plain' });
-                        res.end("Successfully rated song");
-                    });
-                }
-            });
-        });
-    } else if(matchUrl(req.url, '/artist/([0-9]+)/unfollow') && req.method === 'GET') {
-        if(getRole(sessionData) !== 'listener') {
-            res.writeHead(401, { 'Content-Type': 'text/plain' });
-            res.end("You are not authorized to do that");
-            return;
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end("Successfully rated song");
+        } catch (error) {
+            console.error('Error rating song:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
         }
-
-        let artistId = req.url.split('/')[2];
-
-        const followQuery = 'SELECT * FROM Follow WHERE ArtistID=? AND UserID=?';
-        conn.query(followQuery, [artistId, sessionData.id], (followError, followResult) => {
-            if (followError) {
-                console.error(followError);
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end("Internal Server Error");
+    } else if(matchUrl(req.url, '/artist/([0-9]+)/unfollow') && req.method === 'GET') {
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401, { 'Content-Type': 'text/plain' });
+                res.end("You are not authorized to do that");
                 return;
             }
+
+            const artistId = req.url.split('/')[2];
+
+            // Check if the user is following the artist
+            const followQuery = 'SELECT * FROM Follow WHERE ArtistID=? AND UserID=?';
+            const followResult = await executeQuery(followQuery, [artistId, sessionData.id]);
 
             if (followResult.length === 0) {
                 res.writeHead(400, { 'Content-Type': 'text/plain' });
@@ -720,43 +676,48 @@ const server = http.createServer((req, res) => {
                 return;
             }
 
-            const insertQuery = 'DELETE FROM Follow WHERE ArtistID=? AND UserID=?';
-            conn.query(insertQuery, [artistId, sessionData.id], (insertError) => {
-                if (insertError) {
-                    console.error(insertError);
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end("Internal Server Error");
-                    return;
-                }
+            // Unfollow the artist
+            const deleteQuery = 'DELETE FROM Follow WHERE ArtistID=? AND UserID=?';
+            await executeQuery(deleteQuery, [artistId, sessionData.id]);
 
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end("Successfully unfollowed");
-            });
-        });
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end("Successfully unfollowed");
+        } catch (error) {
+            console.error('Error unfollowing artist:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
     } else if(matchUrl(req.url, '/artist/([0-9]+)/pic') && req.method === 'GET') {
-        let artistId = req.url.split('/')[2];
+        try {
+            const artistId = req.url.split('/')[2];
+            const query = 'SELECT ProfilePic FROM Artist WHERE ArtistID=?';
+            const vals = [artistId];
+            
+            const results = await executeQuery(query, vals);
 
-        let query = 'select ProfilePic from Artist where ArtistID=?';
-        let vals = [artistId];
-
-        conn.query(query, vals, (err, results) => {
-            if (err || results.length === 0) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-                return;
-            }
-
-            const profilePic = results[0]['ProfilePic'];
-            if(profilePic === null || profilePic === undefined) {
+            if (results.length === 0) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
                 res.end('Not found');
                 return;
             }
+
+            const profilePic = results[0]['ProfilePic'];
+
+            if (profilePic === null || profilePic === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+
             const type = fileTypeFromBuffer(profilePic);
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(profilePic);
-        });
+        } catch (error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
     }
     else if (matchUrl(req.url, '/album/([0-9]+)') && req.method === 'GET'){
         if (getRole(sessionData) === 'listener') {
@@ -765,146 +726,102 @@ const server = http.createServer((req, res) => {
     }
     // Serve Page for an Album 
     else if (matchUrl(req.url, '/ajax/album/([0-9]+)') && req.method === 'GET') {
-        if (getRole(sessionData) === 'listener') {
-            getListenerBaseData(sessionData.id)
-            .then((data) => {
-            let albumId = req.url.split('/')[3];
-    
-            const albumQuery = 'SELECT AlbumID, AlbumName, Album.ArtistID, AlbumDuration, ReleaseDate, ArtistName FROM Album, Artist WHERE AlbumID=? AND Album.ArtistID=Artist.ArtistID';
-            let vals = [albumId];
-
-            const albumQueryPromise = new Promise((resolve, reject) => {
-                conn.query(albumQuery, vals, (err, results) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else if (results.length === 0) {
-                        reject('Album not found');
-                    } 
-                    else {
-                        // Store Query Results
-                        data.albumData = results[0];
-
-                        // Calculate Album Duration in Minutes and Seconds
-                        const duration_min = Math.floor(data.albumData['AlbumDuration']/60);
-                        const duration_sec = Math.floor(data.albumData['AlbumDuration']%60);
-
-                        data.album_duration = `${duration_min} min ${duration_sec} sec`;
-
-                        // Format Release Date to MM/DD/YYYY
-                        const releaseDate = new Date(data.albumData['ReleaseDate']);
-                        const formattedDate = releaseDate.toLocaleDateString();
-                        data.formattedReleaseDate = formattedDate;
-                        
-                        resolve(data);
-                    }
-                });
-            });
-
-            const songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num,Song.Name,Duration,ArtistName,Artist.ArtistID,Song.SongID FROM Song,Artist,Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?'
-
-            const songQueryPromise = new Promise((resolve, reject) => {
-                conn.query(songQuery, vals, (err, results) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else if (results.length === 0) {
-                        reject('No songs in album');
-                    }
-                    else {
-                        data.songData = [];
-
-                        for (const song of results) {
-                            const duration_min = Math.floor(song.Duration/60);
-                            const duration_sec = Math.floor(song.Duration%60);
-                            const duration_str = `${duration_min}:${duration_sec}`;
-
-                            data.songData.push({
-                                count: song.row_num,
-                                songName: song.Name,
-                                Duration: duration_str,
-                                artistName: song.ArtistName,
-                                artistID: song.ArtistID,
-                                songID: song.SongID
-                            });
-                        }
-
-                        resolve(data);
-                    }
-                });
-            });
-
-            // Queries have completed
-            Promise.all([albumQueryPromise, songQueryPromise])
-
-            // Can now get AristID from previous query, use that to do another query for more albums by the artist.
-            .then(() => {
-                const artistID = data.albumData['ArtistID'];
-
-                const moreByQuery = 'SELECT Artist.ArtistID, ArtistName, AlbumID, AlbumName FROM Album, Artist WHERE Album.ArtistID = Artist.ArtistID AND Album.ArtistID = ? AND Album.AlbumID != ? ORDER BY ReleaseDate DESC LIMIT 10';
-                let moreByValues = [artistID, albumId];
-                console.log(moreByValues)
-            
-                const moreByQueryPromise = new Promise((resolve, reject) => {
-                  conn.query(moreByQuery, moreByValues, (err, results) => {
-                    if (err) {
-                      reject(err);
-                    } 
-                    else {
-                      data.more_by = results;
-                      resolve(data);
-                    }
-                  });
-                });
-            
-                return moreByQueryPromise;
-            })
-
-            // Get the username and display the page
-            .then(() => {
-                data.username = sessionData.username;
-                res.writeHead(200);
-                res.end(JSON.stringify(data));
-                // res.end(nunjucks.render('album.html', { data, templateParent: 'base_listener.html', role: getRole(sessionData) }));
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-            });
-        });
-        } 
-        else {
-            res.writeHead(404);
-            res.end('Not Found');
-        }
-    }
-
-    else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method === 'GET') {
-
-        let albumId = req.url.split('/')[2];
-
-        let query = 'select AlbumPic from Album where AlbumID=?';
-        let vals = [albumId];
-
-        conn.query(query, vals, (err, results) => {
-            if (err || results.length === 0) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(404);
+                res.end('Not Found');
                 return;
             }
 
-            const albumPic = results[0]['AlbumPic'];
-            if(albumPic === null || albumPic === undefined) {
+            const data = await getListenerBaseData(sessionData.id);
+
+            const albumId = req.url.split('/')[3];
+
+            const albumQuery = 'SELECT AlbumID, AlbumName, Album.ArtistID, AlbumDuration, ReleaseDate, ArtistName FROM Album, Artist WHERE AlbumID=? AND Album.ArtistID=Artist.ArtistID';
+            const albumResults = await executeQuery(albumQuery, [albumId]);
+
+            if (albumResults.length === 0) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Album not found');
+                return;
+            }
+
+            data.albumData = albumResults[0];
+
+            // Calculate Album Duration in Minutes and Seconds
+            const duration_min = Math.floor(data.albumData['AlbumDuration'] / 60);
+            const duration_sec = Math.floor(data.albumData['AlbumDuration'] % 60);
+
+            data.album_duration = `${duration_min} min ${duration_sec} sec`;
+
+            // Format Release Date to MM/DD/YYYY
+            const releaseDate = new Date(data.albumData['ReleaseDate']);
+            data.formattedReleaseDate = releaseDate.toLocaleDateString();
+
+            const songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
+            const songResults = await executeQuery(songQuery, [albumId]);
+
+            if (songResults.length === 0) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('No songs in album');
+                return;
+            }
+
+            data.songData = songResults.map((song) => {
+                const duration_min = Math.floor(song.Duration / 60);
+                const duration_sec = Math.floor(song.Duration % 60);
+                const duration_str = `${duration_min}:${duration_sec}`;
+
+                return {
+                    count: song.row_num,
+                    songName: song.Name,
+                    Duration: duration_str,
+                    artistName: song.ArtistName,
+                    artistID: song.ArtistID,
+                    songID: song.SongID
+                };
+            });
+
+            // Get AristID from previous query
+            const artistID = data.albumData['ArtistID'];
+
+            const moreByQuery = 'SELECT Artist.ArtistID, ArtistName, AlbumID, AlbumName FROM Album, Artist WHERE Album.ArtistID = Artist.ArtistID AND Album.ArtistID = ? AND Album.AlbumID != ? ORDER BY ReleaseDate DESC LIMIT 10';
+            const moreByValues = [artistID, albumId];
+
+            const moreByResults = await executeQuery(moreByQuery, moreByValues);
+            data.more_by = moreByResults;
+
+            data.username = sessionData.username;
+            res.writeHead(200);
+            res.end(JSON.stringify(data));
+        } catch (error) {
+            console.error('Error fetching album data:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
+    } else if(matchUrl(req.url, '/album/([0-9]+)/pic') && req.method === 'GET') {
+        try {
+            const albumId = req.url.split('/')[2];
+
+            const query = 'SELECT AlbumPic FROM Album WHERE AlbumID=?';
+            const results = await executeQuery(query, [albumId]);
+
+            if (results.length === 0 || results[0]['AlbumPic'] === null || results[0]['AlbumPic'] === undefined) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
                 res.end('Not found');
                 return;
             }
+
+            const albumPic = results[0]['AlbumPic'];
             const type = fileTypeFromBuffer(albumPic);
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(albumPic);
-        });
+        } catch (error) {
+            console.error('Error fetching album pic:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
     } else if(matchUrl(req.url, '/playlist/([0-9]+)') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/playlist.html', "");
@@ -919,102 +836,72 @@ const server = http.createServer((req, res) => {
             return;
         }
 
-        // Get playlist data
-        getListenerBaseData(sessionData.id).then((data) => {
-            
+        try {
+            const data = await getListenerBaseData(sessionData.id);
 
-            // Get listener base data
-            const baseDataQuery = 'SELECT Follow.*, ArtistName, Artist.ArtistID FROM Follow LEFT JOIN Artist ON Follow.ArtistID=Artist.ArtistID WHERE UserID=?';
-            conn.query(baseDataQuery, [sessionData.id], (baseDataError, baseDataResult) => {
-                if (baseDataError) {
-                    console.error(baseDataError);
-                    connection.release();
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end("Internal Server Error");
-                    return;
-                }
+            // Get playlist details
+            const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration FROM Playlist WHERE PlaylistID=?';
+            const playlistResult = await executeQuery(playlistQuery, [playlistId]);
 
-                data.following = baseDataResult;
+            data.playlist = playlistResult[0];
+            data.username = sessionData['username'];
 
-                // Get playlist details
-                const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration FROM Playlist WHERE PlaylistID=?';
-                conn.query(playlistQuery, [playlistId], (playlistError, playlistResult) => {
-                    if (playlistError) {
-                        console.error(playlistError);
-                        connection.release();
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end("Internal Server Error");
-                        return;
-                    }
+            // Get songs in the playlist
+            const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
+            const playlistSongsResult = await executeQuery(playlistSongsQuery, [playlistId]);
 
-                    data.playlist = playlistResult[0];
-                    data.username = sessionData['username'];
-
-                    // Get songs in the playlist
-                    const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
-                    conn.query(playlistSongsQuery, [playlistId], (playlistSongsError, playlistSongsResult) => {
-                        if (playlistSongsError) {
-                            console.error(playlistSongsError);
-                            connection.release();
-                            res.writeHead(500, { 'Content-Type': 'text/plain' });
-                            res.end("Internal Server Error");
-                            return;
-                        }
-
-                        data.songs = [];
-                        playlistSongsResult.forEach(song => {
-                            const duration_min = Math.floor(song.Duration / 60);
-                            const duration_sec = song.Duration % 60;
-                            const duration_str = `${duration_min}:${duration_sec}`;
-                            data.songs.push([song.row_num, song.Name, song.ArtistName, song.Duration, duration_str, song.SongID]);
-                        });
-
-                        // Get recommended songs
-                        const recommendedSongsQuery = 'SELECT DISTINCT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT DISTINCT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=? AND Song.SongID=PlaylistSong.SongID) LIMIT 10';
-                        conn.query(recommendedSongsQuery, [playlistId, playlistId], (recommendedSongsError, recommendedSongsResult) => {
-                            if (recommendedSongsError) {
-                                console.error(recommendedSongsError);
-                                connection.release();
-                                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                                res.end("Internal Server Error");
-                                return;
-                            }
-
-                            data.recommended = recommendedSongsResult;
-
-                            res.end(JSON.stringify(data));
-                        });
-                    });
-                });
+            data.songs = playlistSongsResult.map(song => {
+                const duration_min = Math.floor(song.Duration / 60);
+                const duration_sec = song.Duration % 60;
+                const duration_str = `${duration_min}:${duration_sec}`;
+                return [song.row_num, song.Name, song.ArtistName, song.Duration, duration_str, song.SongID];
             });
-        });
+
+            // Get recommended songs
+            const recommendedSongsQuery = 'SELECT DISTINCT Name, ArtistName, Song.SongID, Artist.ArtistID, Album.AlbumID FROM Song, PlaylistSong, Artist, Album WHERE PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND GenreCode IN (SELECT DISTINCT GenreCode FROM Song, PlaylistSong WHERE PlaylistID=? AND Song.SongID=PlaylistSong.SongID) LIMIT 10';
+            const recommendedSongsResult = await executeQuery(recommendedSongsQuery, [playlistId, playlistId]);
+
+            data.recommended = recommendedSongsResult;
+
+            res.end(JSON.stringify(data));
+        } catch (error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
 
     } else if(matchUrl(req.url, '/playlist/([0-9]+)/pic') && req.method === 'GET') {
-        
+        const playlistId = req.url.split('/')[2];
 
-        let playlistId = req.url.split('/')[2];
+        try {
+            const query = 'SELECT AlbumPic FROM Album, PlaylistSong, Song WHERE PlaylistSong.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND PlaylistID=?';
+            const vals = [playlistId];
+            
+            const results = await executeQuery(query, vals);
 
-        let query = 'SELECT AlbumPic FROM Album, PlaylistSong, Song WHERE PlaylistSong.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND PlaylistID=?';
-        let vals = [playlistId];
-
-        conn.query(query, vals, (err, results) => {
-            if (err || results.length === 0) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-                return;
-            }
-
-            const albumPic = results[0]['AlbumPic'];
-            if(albumPic === null || albumPic === undefined) {
+            if (results.length === 0) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
                 res.end('Not found');
                 return;
             }
+
+            const albumPic = results[0]['AlbumPic'];
+
+            if (albumPic === null || albumPic === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+
             const type = fileTypeFromBuffer(albumPic);
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(albumPic);
-        });
+        } catch (error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
     } else if(matchUrl(req.url, '/playlist/create') && req.method === 'GET') {
         if(getRole(sessionData) !== 'listener') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });
@@ -1024,25 +911,31 @@ const server = http.createServer((req, res) => {
 
         serveStaticFile(res, './templates/create_playlist.html', "");
     } else if(matchUrl(req.url, '/playlist/create') && req.method === 'POST') {
-        if(getRole(sessionData) !== 'listener') {
-            res.writeHead(401, { 'Content-Type': 'text/plain' });
-            res.end("You are not authorized to do that");
-            return;
-        }
-        
-
-        const form = new Types.IncomingForm();
-
-        // Parse form data
-        form.parse(req, (err, fields) => {
-            if (err) {
-                console.error(err);
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end("Internal Server Error");
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401, { 'Content-Type': 'text/plain' });
+                res.end("You are not authorized to do that");
                 return;
             }
 
-            // Check if 'rating' is in the form data
+            const form = new Types.IncomingForm();
+
+            // Promisify form parsing
+            const parseFormAsync = () => {
+                return new Promise((resolve, reject) => {
+                    form.parse(req, (err, fields) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(fields);
+                        }
+                    });
+                });
+            };
+
+            const fields = await parseFormAsync();
+
+            // Check if 'playlistname' is in the form data
             if (!('playlistname' in fields)) {
                 res.writeHead(400, { 'Content-Type': 'text/plain' });
                 res.end("Specify the playlist name in the form please");
@@ -1050,69 +943,69 @@ const server = http.createServer((req, res) => {
             }
 
             const insertQuery = 'INSERT INTO Playlist (UserID, PlaylistName) VALUES (?, ?)';
-            conn.query(insertQuery, [sessionData.id, fields['playlistname']], (insertError) => {
-                if (insertError) {
-                    console.error(insertError);
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end("Internal Server Error");
-                    return;
-                }
+            await executeQuery(insertQuery, [sessionData.id, fields['playlistname']]);
 
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end("Successfully created playlist");
-            });
-        });
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end("Successfully created playlist");
+        } catch (error) {
+            console.error('Error creating playlist:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
     } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method === 'GET') {
+        try {
+            const songId = req.url.split('/')[2];
+            const query = 'SELECT SongID, Song.AlbumID, Name, AlbumName FROM Song, Album WHERE SongID=? AND Album.AlbumID=Song.AlbumID';
+            const vals = [songId];
 
-        
+            const results = await executeQuery(query, vals);
 
-        let songId = req.url.split('/')[2];
-
-        let query = 'select SongID,Song.AlbumID,Name,AlbumName from Song,Album where SongID=? AND Album.AlbumID=Song.AlbumID';
-        let vals = [songId];
-
-        conn.query(query, vals, (err, results) => {
-            if (err || results.length === 0) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-                return;
-            }
-
-            results = results[0];
-
-            res.writeHead(200);
-            res.end(JSON.stringify({ "albumid":results['AlbumID'],"songname":results['Name'],"artistname":results['AlbumName'] }));
-        });
-    } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method === 'GET') {
-
-        let songId = req.url.split('/')[2];
-
-        let query = 'select SongFile from Song where SongID=?';
-        let vals = [songId];
-
-        
-
-        conn.query(query, vals, (err, results) => {
-            if (err || results.length === 0) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('<h1>Internal Server Error</h1>');
-                return;
-            }
-
-            const songFile = results[0]['SongFile'];
-            if(songFile === null || songFile === undefined) {
+            if (results.length === 0) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
                 res.end('Not found');
                 return;
             }
+
+            const songInfo = results[0];
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ "albumid": songInfo['AlbumID'], "songname": songInfo['Name'], "artistname": songInfo['AlbumName'] }));
+        } catch (error) {
+            console.error('Error getting song information:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
+    } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method === 'GET') {
+        try {
+            const songId = req.url.split('/')[2];
+            const query = 'SELECT SongFile FROM Song WHERE SongID=?';
+            const vals = [songId];
+
+            const results = await executeQuery(query, vals);
+
+            if (results.length === 0) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+
+            const songFile = results[0]['SongFile'];
+
+            if (songFile === null || songFile === undefined) {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('Not found');
+                return;
+            }
+
             const type = fileTypeFromBuffer(songFile);
 
-            // player doesn't work right. you'll see what i mean.
-            // player works. I think?
-            // duration shows but can't seek
             res.writeHead(200, { 'Content-Type': type });
             res.end(songFile);
-        });
+        } catch (error) {
+            console.error('Error getting song file:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end('<h1>Internal Server Error</h1>');
+        }
     } else if (matchUrl(req.url, '/album/create') && req.method === 'GET') {
         if(getRole(sessionData) !== 'artist') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });
@@ -1122,70 +1015,62 @@ const server = http.createServer((req, res) => {
 
         serveStaticFile(res, './templates/create_al.html', "");
     } else if (matchUrl(req.url, '/genres') && req.method === 'GET') {
-        
-        conn.query('SELECT Name FROM Genre', (err, results) => {
-            let genres = [];
-            for(const genre of results) {
-                genres.push(genre['Name']);
+        try {
+            const results = await executeQuery('SELECT Name FROM Genre');
 
-            }
+            const genres = results.map(genre => genre['Name']);
+            res.writeHead(200);
             res.end(JSON.stringify(genres));
-        });
+        } catch (error) {
+            throw error;
+        }
     } else if (matchUrl(req.url, '/album/create') && req.method === 'POST') {
-        if(getRole(sessionData) !== 'artist') {
+        if (getRole(sessionData) !== 'artist') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });
             res.end("You are not authorized to do that");
             return;
         }
 
-        const form = new Types.IncomingForm({multiples: true});
+        const form = new Types.IncomingForm({ multiples: true });
 
-        form.parse(req, (err,fields,files) => {
-            console.log(fields, files);
+        try {
+            const { fields, files } = await parseFormAsync(form, req);
 
-            readFile(files.albumCover.filepath)
-            .then((albumCover) => {
-                let query = 'INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (?,?,?,?)'
-                conn.query(query, [fields.albumName, albumCover, sessionData.id, fields.releaseDate], (err, results) => {
-                    if (err || results.length === 0) {
-                        res.writeHead(500, { 'Content-Type': 'text/html' });
-                        res.end(`<h1>Internal Server Error: ${err}</h1>`);
-                        return;
-                    }
+            const albumCover = await readFile(files.albumCover.filepath);
 
-                    let albumId = results.insertId;
+            const albumId = await executeQuery('INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (?,?,?,?)',
+                [fields.albumName, albumCover, sessionData.id, fields.releaseDate]);
 
-                    let songPromises = [];
-                    for(let i = 0; i < fields.songNames.length; i++) {
-                        songPromises.push(readFile(files['songs[]'][i].filepath)
-                            .then((songAudio) => {
-                                getAudioDurationInSeconds(files['songs[]'][i].filepath).then((duration) => {
+            const songPromises = [];
+            for (let i = 0; i < fields.songNames.length; i++) {
+                const songAudio = await readFile(files['songs[]'][i].filepath);
+                const duration = await getAudioDurationInSeconds(files['songs[]'][i].filepath);
 
-                                    conn.query('SELECT GenreCode FROM Genre WHERE Name=?', [fields.songGenres[i]], (err,results) => {
-                                        if (results.length === 0) {
-                                                throw new Error(`Genre not found for song ${fields.songNames[i]}`);
-                                            }
+                const genreResults = await executeQuery('SELECT GenreCode FROM Genre WHERE Name=?', [fields.songGenres[i]]);
 
-                                        const genreCode = results[0]['GenreCode'];
+                if (genreResults.length === 0) {
+                    throw new Error(`Genre not found for song ${fields.songNames[i]}`);
+                }
 
-                                        songPromises.push(new Promise((resolve, reject) => { conn.query('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
-                                            [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate])}));
-                                    });
-                                });
-                            }));
+                const genreCode = genreResults[0]['GenreCode'];
 
-                    }
+                songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
+                    [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate]));
+            }
 
-                    // This will happen before all the songs are uploaded.
-                    res.writeHead(200);
-                    res.end("Please wait a moment while your songs are being uploaded. You can close this tab and visit the home page.");
-                });
+            // Wait for all songs to be uploaded before responding
+            await Promise.all(songPromises);
 
-            })
-            .then(() => {
-                removeFile(files.albumCover.filepath);
-            });
-        });
+            res.writeHead(200);
+            res.end("Successfully uploaded album");
+
+            // Remove album cover file after upload
+            await removeFile(files.albumCover.filepath);
+        } catch (error) {
+            console.error('Error uploading album:', error);
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end(`<h1>Internal Server Error: ${error}</h1>`);
+        }
     } else {
         //print those not found and keep going with this slow slow process
         print(req.url)

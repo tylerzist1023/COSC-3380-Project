@@ -142,7 +142,7 @@ addEventListener("DOMContentLoaded", (event) => {
                                 <h4>Released on ${data.formattedReleaseDate}</h4>
                             </li>
                         </ul>
-                        <a href='/artist/${data.albumData["ArtistID"]}}/follow'>Follow</a>
+                        <a href='/artist/${data.albumData["ArtistID"]}/follow'>Follow</a>
                         <a href='/artist/${data.albumData["ArtistID"]}/unfollow'>Unfollow</a>
                     </div>
                 </div>`;
@@ -208,7 +208,7 @@ addEventListener("DOMContentLoaded", (event) => {
             }
             document.getElementById('moreBy').innerHTML = html;
         })
-    .finally(() => {
+    .then(() => {
         const playSongLinks = document.querySelectorAll('#playSong');
         for (var i = 0; i < playSongLinks.length; i++) {
             playSongLinks[i].addEventListener('click', playSong);

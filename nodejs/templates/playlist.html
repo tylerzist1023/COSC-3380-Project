@@ -182,7 +182,7 @@ addEventListener("DOMContentLoaded", (event) => {
             }
             document.getElementById('recommended').innerHTML = html;
         })
-    .finally(() => {
+    .then(() => {
         const playSongLinks = document.querySelectorAll('#playSong');
         for (var i = 0; i < playSongLinks.length; i++) {
             playSongLinks[i].addEventListener('click', playSong);

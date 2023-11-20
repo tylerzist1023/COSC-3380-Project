@@ -17,7 +17,7 @@ function getTopbar(data) {
                 </a>
             </li>
             <li>
-                <a href="/listenhistory">
+                <a href="/history">
                     <span>Listen History</span>
                 </a>
             </li>
@@ -92,7 +92,7 @@ function getSidebar(data) {
                         for(const follow of data.following) {
                             html += `<li>
                                 <img src="/artist/${follow['ArtistID'] }/pic">
-                                <a href='/artist/${follow['ArtistID']}'><span>${follow['ArtistName']}</span></a>
+                                <a href='/artist/${follow['ArtistID']}'>${follow['ArtistName']}</a>
                             </li>`;
                         }
                             html += `
