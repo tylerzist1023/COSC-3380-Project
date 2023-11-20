@@ -17,7 +17,7 @@ function getTopbar(data) {
                 </a>
             </li>
             <li>
-                <a href="">
+                <a href="/listenhistory">
                     <span>Listen History</span>
                 </a>
             </li>

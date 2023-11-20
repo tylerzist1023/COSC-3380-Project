@@ -444,6 +444,131 @@ const server = http.createServer((req, res) => {
             res.writeHead(404);
             res.end('Not Found');
         }}
+    
+    else if(matchUrl(req.url, '/listenhistory') && req.method === "GET"){
+        if(getRole(sessionData) !== 'listener') {
+            res.writeHead(401);
+            res.end('<h1>Unauthorized</h1>');
+        }
+
+        else {
+            getListenerBaseData(sessionData.id)
+
+            .then((data) => {
+                data.username = sessionData.username;
+                res.writeHead(200)
+                serveStaticFile(res, './templates/listener_history.html', "");
+            })
+            .catch((error) => {
+                console.error('Error fetching data:', error);
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+            });
+        }
+    }
+
+    else if (matchUrl(req.url, '/listenhistory') && req.method === 'POST') {
+        if (getRole(sessionData) !== 'listener') {
+          res.writeHead(401);
+          res.end('<h1>Unauthorized</h1>');
+        } else {
+          // Assuming getListenerBaseData returns a Promise
+          getListenerBaseData(sessionData.id)
+            .then(() => {
+                const form = new Types.IncomingForm();
+      
+              form.parse(req, (err, fields) => {
+                if (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ error: 'Internal Server Error' }));
+                  return;
+                }
+
+                let selectClause = 'SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName ';
+                let conditions = [];
+
+                selectClause = selectClause.replace(/,\s*$/, '');
+                
+      
+                // Build the SQL query based on the form fields
+                let query = selectClause + 'FROM ListenedToHistory, Artist, Song, Album, Genre WHERE ';
+      
+                if (fields.beginDate) {
+                  conditions.push(`DateAccessed >= '${fields.beginDate} 00:00:00'`);
+                }
+      
+                if (fields.endDate) {
+                  conditions.push(`DateAccessed <= '${fields.endDate} 23:59:59'`);
+                }
+      
+                if (fields.artist) {
+                  conditions.push(`ArtistName LIKE '%${fields.artist}%'`);
+                }
+      
+                if (fields.album) {
+                  conditions.push(`AlbumName LIKE '%${fields.album}%'`);
+                }
+      
+                if (fields.genre) {
+                  conditions.push(`Song.GenreCode = ${fields.genre}`);
+                }
+      
+                // Join the conditions with 'AND' and complete the query
+                if (conditions.length === 0) {
+                    query = 'SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName FROM ListenedToHistory, Artist, Song, Album, Genre WHERE UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
+                } 
+                else {
+                    query += conditions.join(' AND ');
+                    query += ' AND UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
+                }
+
+                let vals = [sessionData['id']];
+
+                console.log(query);
+      
+                // Execute the query
+                conn.query(query, vals, (error, results) => {
+                  if (error) {
+                    res.statusCode = 500;
+                    console.log('query error')
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
+                    return;
+                  }
+
+                  // Change the column name and format the date
+                  for (let i=0; i<results.length; i++){
+                    results[i]['Song Name'] = results[i].SongName;
+                    delete results[i].SongName;
+                    results[i]['Genre Name'] = results[i].GenreName;
+                    delete results[i].GenreName;
+                    results[i]['Artist Name'] = results[i].ArtistName;
+                    delete results[i].ArtistName;
+                    results[i]['Album Name'] = results[i].AlbumName;
+                    delete results[i].AlbumName;
+                    const date = new Date(results[i].DateAccessed);
+                    const formattedDate = date.toISOString().split('T')[0];
+                    results[i]['Date Accessed'] = formattedDate;
+                    delete results[i].DateAccessed;
+                  }
+
+                  // Send the results as JSON to the client
+                  console.log(results);
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify(results));
+                });
+              });
+            })
+            .catch((error) => {
+              console.error('Error in getListenerBaseData:', error);
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Internal Server Error' }));
+            });
+        }
+      }
+      
     else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
         if(getRole(sessionData) !== 'listener') {
             res.writeHead(401);

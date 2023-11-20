@@ -1135,3 +1135,33 @@ button.login_btn:hover {
 .dropdown:hover .dropdown_menu {
     display: block;
 }
+
+/* Report Form Style */
+.report_form_container {
+    color: #859ad3;
+    /* border: white solid; */
+    margin: 15px;
+    align-items: center;
+}
+
+.report_form_container header {
+    margin: 15px;
+}
+
+.report_form_container .historyForm div {
+    display: flex;
+    /* border: solid white ; */
+    flex-direction: row;
+    margin: 15px;
+}
+
+.report_form_container .historyForm div label {
+    display: flex;
+    /* border: solid white ; */
+    flex-direction: row;
+    padding: 0px 5px 0px 50px;
+}
+
+.report_form_container .historyForm div button {
+    float: right;
+}
