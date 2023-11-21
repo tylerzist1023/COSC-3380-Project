@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Search</title>
+</head>
+
+<body>
+    <!-- Main Container To Display The Album Details and Songs-->
+    <header id='topBar'>
+    </header>
+    
+    <div class="main_container">
+            <div class="search_form_container">
+                <header>
+                    <h1>Search</h1>
+                </header>
+
+                <form method='POST' action="/search">
+                    <div class="searchForm">
+                        <div class="search_form_bar">
+                            <input type="text" name="username" id="username" placeholder="Search..." required>
+
+                            <select id="saerchBy" name="genre">
+                                <option value="">Any</option>
+                                <option value="Song">Song</option>
+                                <option value="2">Artist</option>
+                                <option value="3">Album</option>
+                            </select>
+                            <button type="submit">Search</button>
+                        </div>
+                </form>
+                <br>
+            </div>
+    
+    <div class="left_sidebar" id='leftBar'>
+</div>
+
+<div id='playerDiv' style='display:none;' class="song_player">
+    <!-- Replace image, song name, artist name with actual database information -->
+    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <h5>
+    <div id='playerSong'>Song Name</div>
+    <div id='playerArtist' class="artist_name">Artist Name</div>
+</h5>
+    <audio id='playerAudio' controls>
+        <!-- Provide the actual source path for the song -->
+        <source id='playerSource' src="" type="">
+    </audio>
+    </div>
+</div>
+
+<script src='/base.js'></script>
+
+<script>
+addEventListener("DOMContentLoaded", (event) => {
+    fetch('/ajax')
+        .then(response => response.json())
+        .then(data => {
+
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            let html = '';
+            for(const album of data['new_releases']) {
+                html += `<div class="item">
+                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
+                    <h4>${album.AlbumName}</h4>
+                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
+                </div>`;
+            }
+            document.getElementById('newReleases').innerHTML = html;
+
+            html = '';
+            for(const album of data.for_you) {
+                html += `<div class="item">
+                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
+                    <h4>${album.AlbumName}</h4>
+                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
+                </div>`;
+            }
+            document.getElementById('forYou').innerHTML = html;
+        })
+});
+</script>
+
+</body>
+</html>
