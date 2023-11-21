@@ -384,6 +384,7 @@ const server = http.createServer(async (req, res) => {
         }
     } 
 
+    // Registration Form Insert
     else if(matchUrl(req.url, '/register') && req.method === 'POST') {
 
         const form = new Types.IncomingForm();
@@ -411,7 +412,6 @@ const server = http.createServer(async (req, res) => {
             result_query = "SELECT * FROM Artist WHERE ArtistID = LAST_INSERT_ID()"
         }
         else {
-            console.log("If statement failed")
             res.writeHead(404);
             res.end('Not found');
             return;
@@ -452,10 +452,80 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(302, { Location: '/' });
         res.end();
     } 
+
+     // Serve Edit Profile Page
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
         serveStaticFile(res, './templates/listener_edit.html', "");
     }
-    // Serve Edit Profile Page
+
+    else if (matchUrl(req.url, '/edit') && req.method =='POST') {
+        if (getRole(sessionData) === 'listener') {
+
+            const data = await getListenerBaseData(sessionData.id);
+                
+            const form = new Types.IncomingForm();
+            const fields = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(fields);
+                    }
+                });
+            });
+
+
+            let query = "UPDATE Listener SET ";
+            let conditions = [];
+
+            if (fields.username) {
+                conditions.push(`Username = ?`);
+            }
+            if (fields.email) {
+                conditions.push(`Email = ?`);
+            }
+            if (fields.newpassword) {
+                let currentPassQuery = 'SELECT Password FROM Listener WHERE UserID=?';
+                const currentPass = await executeQuery(currentPassQuery, sessionData['id'])
+                if (fields.newpassword === fields.confirmpassword && currentPass === fields.password) {
+                    conditions.push(`Password = ?`)
+                }
+            }
+
+            if (conditions.length > 0) {
+                query += conditions.join(", ")
+                query += ' WHERE UserID = ?'
+            }
+
+            // Prepare values array
+            let vals = [];
+
+            if (fields.username) {
+                vals.push(`${fields.username}`);
+            }
+
+            if (fields.email) {
+                vals.push(`${fields.email}`);
+            }
+
+            if (fields.newpassword) {
+                vals.push(`%${fields.newpassword}%`);
+            }
+
+            // Add UserID to the values array
+            vals.push(sessionData['id']);
+
+            // Execute the query
+            console.log(query)
+            const results = await executeQuery(query, vals);
+            sessionData.username = fields.username;
+            console.log(results)
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(results));
+        }
+    }
+
     else if (matchUrl(req.url, '/ajax/edit') && req.method =='GET') {
         if (getRole(sessionData) === 'listener') {
             try {
@@ -488,29 +558,39 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(404, { 'Content-Type': 'text/html' });
             res.end('Not found');
         }
-    } else if(matchUrl(req.url, '/history') && req.method === "GET"){
+    } 
+    
+    // Serve Listen History Page
+    else if(matchUrl(req.url, '/history') && req.method === "GET"){
         try {
             if (getRole(sessionData) !== 'listener') {
                 res.writeHead(401);
                 res.end('<h1>Unauthorized</h1>');
-            } else {
+            } 
+            
+            else {
                 const data = await getListenerBaseData(sessionData.id);
                 data.username = sessionData.username;
 
                 serveStaticFile(res, './templates/listener_history.html', '');
             }
-        } catch (error) {
+        } 
+        
+        catch (error) {
             console.error('Error processing listener data:', error);
             res.writeHead(500, { 'Content-Type': 'text/html' });
             res.end('<h1>Internal Server Error</h1>');
         }
     }
+
+    // Listen History Report
     else if (matchUrl(req.url, '/history') && req.method === 'POST') {
         try {
             if (getRole(sessionData) !== 'listener') {
                 res.writeHead(401);
                 res.end('<h1>Unauthorized</h1>');
-            } else {
+            }
+            else {
                 const data = await getListenerBaseData(sessionData.id);
                 
                 const form = new Types.IncomingForm();
@@ -524,13 +604,10 @@ const server = http.createServer(async (req, res) => {
                     });
                 });
 
-                let selectClause = 'SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName ';
                 let conditions = [];
 
-                selectClause = selectClause.replace(/,\s*$/, '');
-
                 // Build the SQL query based on the form fields
-                let query = selectClause + 'FROM ListenedToHistory, Artist, Song, Album, Genre WHERE ';
+                let query ='SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName FROM ListenedToHistory, Artist, Song, Album, Genre WHERE ';
 
                 if (fields.beginDate) {
                     conditions.push(`DateAccessed >= ?`);
@@ -555,7 +632,8 @@ const server = http.createServer(async (req, res) => {
                 // Join the conditions with 'AND' and complete the query
                 if (conditions.length === 0) {
                     query = 'SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName, DateAccessed, Genre.Name AS GenreName FROM ListenedToHistory, Artist, Song, Album, Genre WHERE UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
-                } else {
+                }
+                else {
                     query += conditions.join(' AND ');
                     query += ' AND UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
                 }
@@ -609,12 +687,15 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Error processing listener history:', error);
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
-    } else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
+    } 
+    
+    else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
         try {
             if (getRole(sessionData) !== 'listener') {
                 res.writeHead(401);

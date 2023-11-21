@@ -73,7 +73,7 @@ addEventListener("DOMContentLoaded", (event) => {
             let html = '';
             for(const playlist of data['playlists']) {
                 html += `<div class="item">
-                    <a><img src="/playlist/${playlist['PlaylistID']}/pic"></a>
+                    <a href="/playlist/${playlist['PlaylistID']}"><img src="/playlist/${playlist['PlaylistID']}/pic"></a>
                     <h4>${playlist['PlaylistName']}</h4>
                     <p>by ${playlist['Fname']} ${playlist['Lname']}</p>
                 </div>`;
