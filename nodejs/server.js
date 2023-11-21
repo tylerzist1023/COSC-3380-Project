@@ -1093,7 +1093,7 @@ const server = http.createServer(async (req, res) => {
         }
     } 
 
-    else if(matchUrl(req.url, '/search') && req.method === 'GET') {
+        else if(matchUrl(req.url, '/search') && req.method === 'GET') {
         if (getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/search_form.html', "");
         }
