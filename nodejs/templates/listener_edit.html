@@ -26,7 +26,7 @@
                 <h1>Edit Profile</h1>
             </header>
             <!-- May need to query database to retrieve the current username and email for the user -->
-            <form action="/edit" method='POST' class="form">
+            <form action="/edit" method='POST' class="form" id="editProfile">
                 <div class="input_box">
                     <label for="username">Username</label>
                     <input type="text" name="username" id="username" class="edit_box" value='' placeholder="Enter your new username">
@@ -83,6 +83,37 @@ addEventListener("DOMContentLoaded", (event) => {
             document.getElementById('email').setAttribute('value', data.email);
             document.getElementById('profileName').innerHTML = `${data.Fname} ${data.Lname}`;
         });
+});
+</script>
+
+<script>
+document.getElementById('editProfile').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const formData = new FormData(event.target);
+
+  try {
+    const response = await fetch(window.location.href, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Display a notification if login is successful
+      alert('Profile Succesfully Updated');
+
+      // Redirect to the index page
+      window.location.href = '/edit';
+    } else {
+      console.error('Update Fail');
+      // Display a notification if login failed.
+      alert('Please enter a field to update');
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
 });
 </script>
 </body>
