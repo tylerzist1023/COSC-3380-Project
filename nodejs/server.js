@@ -673,11 +673,74 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'text/html' });
             res.end('<h1>Internal Server Error</h1>');
         }
-    } else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
+    } 
+
+    else if(matchUrl(req.url, '/register') && req.method === 'POST') {
+
+        const form = new Types.IncomingForm();
+        const fields = await new Promise((resolve, reject) => {
+            form.parse(req, (err, fields) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(fields);
+                }
+            });
+        });
+
+        let query, vals, result_query;
+        let role = params['role']
+
+        if (role === 'listener') {
+            query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            vals = [fields.first, fields.last, fields.email, fields.DOB, fields.username, fields.password, fields.pnum]
+            result_query = "SELECT * FROM Listener WHERE UserID = LAST_INSERT_ID()"
+        } 
+        else if(role === 'artist') {
+            query = 'INSERT INTO Artist (ArtistName, Email, DOB, UserName, Password, Pnumber) VALUES (?, ?, ?, ?, ?, ?)';
+            vals = [fields.name, fields.email, fields.DOB, fields.username, fields.password, fields.pnum]
+            result_query = "SELECT * FROM Artist WHERE ArtistID = LAST_INSERT_ID()"
+        }
+        else {
+            console.log("If statement failed")
+            res.writeHead(404);
+            res.end('Not found');
+            return;
+        }
+
+        await executeQuery(query, vals);
+        const results = await executeQuery(result_query);
+
+
+        if (results.length > 0) {
+            const sessionData = {};
+            if (role === 'listener') {
+                sessionData['id'] = results[0]['UserID'];
+            } 
+            else if (role === 'artist') {
+                sessionData['id'] = results[0]['ArtistID'];
+            }
+
+            sessionData['role'] = role;
+            sessionData['logged_in'] = true;
+            sessionData['username'] = fields['username'];
+
+            res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Registration successful' }));
+        } else {
+            // No matching user found
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Registration failed' }));
+        }
+    }
+
+    else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
-        // logout redirect does not work for some reason
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-        // res.writeHead(302, { Location: '/' });
+        // logout redirect does not work for some reason
+        // below line was commented out, it works I think?
+        res.writeHead(302, { Location: '/' });
         res.end();
     } 
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
