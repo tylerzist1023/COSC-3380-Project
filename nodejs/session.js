@@ -37,6 +37,7 @@ export const parseToken = function(token) {
         return JSON.parse(b64DecodeUnicode(fmt[0]));
     } else {
         console.log("Invalid session");
+        return {};
     }
 }
 

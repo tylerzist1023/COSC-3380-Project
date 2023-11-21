@@ -11,7 +11,6 @@
 <body>
 <style>
     body {
-        font-family: Arial, sans-serif;
         margin: 20px;
         color: #859ad3;
     }
@@ -20,6 +19,9 @@
         margin-bottom: 10px;
     }
 </style>
+
+<header id='topBar'>
+</header>
 
 <div class="main_container">
 
@@ -49,6 +51,10 @@
         
     </div>
 
+<div class="left_sidebar" id='leftBar'>
+</div>
+
+<script src='/base.js'></script>
 <script>
     var songCounter = 1;
     var genres = [];
@@ -110,6 +116,12 @@
     }
 
     addEventListener("DOMContentLoaded", () => {
+        fetch('/ajax')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+        });
         var genresPromise = fetch('/genres')
         .then(response => response.json())
         .then(data => {
