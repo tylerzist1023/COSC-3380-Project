@@ -15,8 +15,8 @@
         --background-color: #121212;
         --primary-text-color: #ffffff;
         --secondary-text-color: #bbbbbb;
-        --accent-color: #859ad3;
-        --divider-color: #222222;
+        --accent-color: #e71c0e;
+        --divider-color: #ca1515;
     }
 
     body {
@@ -38,6 +38,40 @@
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
+    .artist-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
+    width: 400px; /* Longer width */
+    height: 80px; /* Smaller height */
+}
+
+.artist-box:hover {
+    background-color: var(--accent-color);
+}
+
+.artist-image {
+    width: 60px; /* Adjust the width of the image */
+    height: 60px; /* Adjust the height of the image */
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 10px;
+}
+
+.artist-name {
+    color: var(--primary-text-color);
+    text-align: left;
+    font-size: 1em;
+    flex-grow: 1;
+}
+
 
     .side-panel {
         flex: 1 1 30%;
@@ -98,25 +132,28 @@
     }
 
     input[type="submit"]:hover {
-        background-color: #3a070e;
+        background-color: #e90725;
     }
     .logout-button {
-    background-color: #859ad3; /* Background color */
+    background-color: #d38585; /* Background color */
     border: none;
     color: #000000; /* Black text color */
-    padding: 15px 32px;
+    padding: 10px 16px; /* Adjust padding to make it smaller */
     text-align: left; /* Align text to the left */
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
+    font-size: 14px; /* Adjust font size to make it smaller */
     cursor: pointer;
     border-radius: 8px; /* Rounded corners */
+    margin: 4px; /* Add margin for spacing */
+    position: absolute; /* Position absolute for top-left corner */
+    top: 10px; /* Adjust top position for spacing from top */
+    left: 10px; /* Adjust left position for spacing from left */
 }
 
 .logout-button:hover {
     color: red; /* Text color turns red on hover */
-    background-color: #859ad3; /* Optional: Change background color on hover */
+    background-color: #d1120c; /* Optional: Change background color on hover */
 }
 
 
@@ -145,33 +182,39 @@
             flex: 1 1 auto;
         }
     }
+    /* Style for the header */
+/* CSS for the "View" buttons */
+.view-button {
+    float: right;
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-left: 10px; /* Add some margin between the value and button */
+}
+
+.view-button:hover {
+    background-color: darkred; /* Change color on hover */
+}
+
 </style>
 
 
 <div class="admin-header">
+
     <h1>Admin Dashboard</h1>
 </div>
 
-
 <div class="logout-button">
-<a href='/logout'>Logout</a>
+    <a href='/logout'>Logout</a>
 </div>
-
-
 
 <div class="container">
     <div class="side-panel">
-            <h2>Recently Made Artist</h2>
-            <ul id="artists-list">
-                <!-- Artists will be added here by JavaScript -->
-            </ul>
-        </ul>
-        
-        <h2>Recently Made Songs</h2>
-        <ul>
-            {% for song in top_songs %}
-            <li>{{ song[0]}}</li>
-            {% endfor %}
+        <h2>Recently Made Artist</h2>
+        <ul id="artists-list">
+            <!-- Your artist list goes here -->
         </ul>
     </div>
 
@@ -179,7 +222,7 @@
         <h2>Search</h2>
         <form action="/search" method="get">
             <input type="text" name="query" placeholder="Search...">
-            
+
             <!-- Checkboxes for filters -->
             <div>
                 <input type="checkbox" name="filters" value="artist"> Artist
@@ -188,45 +231,87 @@
                 <input type="checkbox" name="filters" value="listener"> Listener
                 <input type="checkbox" name="filters" value="song"> Song
             </div>
-            
+
             <input type="submit" value="Search">
         </form>
-    
-        <h2>Inactive Users </h2>
-        <div class="scroll-box">
-            {% for user in inactive_users %}
-                <p>ID: {{ user[0] }} Username: {{user[1]}}</p>  <!-- assuming the user object has a 'name' attribute -->
-            {% endfor %}
+
+        <!-- Insights Section -->
+        <div class="insights-section">
+            <h2>Insights</h2>
+            <div class="insight-boxes">
+                <div class="insight-box">
+                    <h3>Total Listeners</h3>
+                    <div class="insight-details">
+                        <p id="totalListenersCount">0 <a href="/admin/insights/listeners" class="view-button">View</a></p>
+                        
+                    </div>
+                </div>
+                <div class="insight-box">
+                    <h3>Total Songs</h3>
+                    <div class="insight-details">
+                        <p id="totalSongsCount">0 <a href="/admin/insights/songs" class="view-button">View</a></p>
+                    </div>
+                </div>
+                <div class="insight-box">
+                    <h3>Total Artists</h3>
+                    <div class="insight-details">
+                        <p id="totalArtistsCount">0  <a href="/admin/insights/artists" class="view-button">View</a> </p>
+                       
+                    </div>
+                </div>
+                <div class="insight-box">
+                    <h3>Total Playlists</h3>
+                    <div class="insight-details">
+                        <p id="totalPlaylistsCount">0 <a href="/admin/insights/playlists" class="view-button">View</a></p>
+            
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- ... Rest of your code ... -->
         
-
-    <div class="side-panel">
-        <h2>ActivityLog </h2>
-        <div class="scroll-box">
-            {% for user in logs%}
-                <p>Log#: {{ user[0] }} Time: {{user[1]}} Admin: {{user[2]}} Action: {{user[3]}} </p>  <!-- assuming the user object has a 'name' attribute -->
-            {% endfor %}
-        </div>
-
+        
+        
 </div>
-    </div>
-
 <script> 
-// document.addEventListener('DOMContentLoaded', async function() {
-//     try {
-//         const response = await fetch('/baseadmin');
-//         const data = await response.json();
-//         const artistsList = document.getElementById('artists-list');
-//         data.forEach(artist => {
-//             let listItem = document.createElement('li');
-//             listItem.textContent = artist.name; // Assuming 'name' is a property of the artist object
-//             artistsList.appendChild(listItem);
-//         });
-//     } catch (error) {
-//         console.error('Error:', error);
-//     }
-// });
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch('/ajax');
+        const data = await response.json();
+        console.log(data);
+
+        const artistsList = document.getElementById('artists-list');
+        if (data.NewArtist && Array.isArray(data.NewArtist)) {
+            data.NewArtist.forEach(artist => {
+                let artistLink = document.createElement('a');
+                artistLink.href = `/artist/admin/${artist.ArtistID}`; // Link to artist's admin page
+                artistLink.classList.add('artist-box');
+
+                let name = document.createElement('div');
+                name.textContent = artist.ArtistName;
+                name.classList.add('artist-name');
+                artistLink.appendChild(name);
+
+                let img = document.createElement('img');
+                img.classList.add('artist-image');
+
+                if (artist.ProfilePic) {
+                    // If the artist has a profile picture, set the src to the Base64 data
+                    img.src = `data:image/png;base64,${artist.ProfilePic}`;
+                } else {
+                    // If the artist doesn't have a profile picture, set a placeholder image
+                    img.src = '/npc/picture'; // Replace with the path to your placeholder image
+                    img.alt = 'Default Profile Picture';
+                }
+
+                artistLink.appendChild(img);
+
+                artistsList.appendChild(artistLink);
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
 
 
 
