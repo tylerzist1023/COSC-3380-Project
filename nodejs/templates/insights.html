@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info {{profile}}s</title>
+    <style>
+/* Reset default margin and padding */
+body, h1, a {
+    margin: 0;
+    padding: 0;
+    text-decoration: none; /* Removes underline from all links */
+}
+
+/* Apply black background to the entire page */
+body {
+    background-color: black;
+    color: white; /* Default text color */
+    font-family: Arial, sans-serif;
+}
+
+/* Style the header */
+header {
+    background-color: #333;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Grid layout for artists and songs */
+#Artist, #Song {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); /* Five items per row */
+    gap: 20px;
+    padding: 20px;
+}
+
+.artist-box, .song-box {
+    border: 1px solid #444;
+    padding: 10px;
+    text-align: center;
+    background-color: #222;
+    border-radius: 10px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden; /* Ensures content does not overflow the box */
+}
+
+.artist-id, .artist-name, .song-name {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+/* Consistent styling for both artist and album images */
+.artist-image, .album-image {
+    max-width: 100%; /* Limits the width of the image to the container's width */
+    max-height: 200px; /* Limits the height of the image */
+    height: auto; /* Maintains aspect ratio */
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+
+    </style>
+</head>
+<body>
+    <!-- Header section -->
+    <header>
+        <h1>Info for All {{profile}}s</h1>
+    </header>
+
+    <!-- Content section -->
+    <div class="content">
+        <p id="{{profile}}" > </p>
+    </div>
+</body>
+</html>
+<script> 
+
+if(document.getElementById('Artist')){
+
+    const u = '/admin/insights/typeArtist';
+
+
+    document.addEventListener('DOMContentLoaded', async function () {
+    
+
+    try {
+        const response = await fetch(u);
+        const data = await response.json();
+
+        const artistsList = document.getElementById('Artist');
+        if (data.NewArtist && Array.isArray(data.NewArtist)) {
+            data.NewArtist.forEach(artist => {
+                let artistDiv = document.createElement('div');
+                artistDiv.classList.add('artist-box');
+
+                // Artist ID
+                let id = document.createElement('div');
+                id.textContent = `ID: ${artist.ArtistID}`;
+                id.classList.add('artist-id');
+                artistDiv.appendChild(id);
+
+                // Artist Name
+                let name = document.createElement('div');
+                name.textContent = artist.ArtistName;
+                name.classList.add('artist-name');
+                artistDiv.appendChild(name);
+
+                // Artist Image within an anchor tag
+                let imgLink = document.createElement('a');
+                imgLink.href = `/artist/admin/${artist.ArtistID}`;
+                let img = document.createElement('img');
+                img.classList.add('artist-image');
+                if (artist.ProfilePic) {
+                    img.src = `data:image/png;base64,${artist.ProfilePic}`;
+                } else {
+                    img.src = '/npc/picture';
+                    img.alt = 'Default Profile Picture';
+                }
+                imgLink.appendChild(img);
+                artistDiv.appendChild(imgLink);
+
+                artistsList.appendChild(artistDiv);
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching artist data:', error);
+    }
+});
+
+
+
+    
+}
+else if(document.getElementById('Listener')){
+    const u = '/admin/insights/typeListener';
+    document.addEventListener('DOMContentLoaded', async function () {
+        try {
+        const response = await fetch(u);
+        const data = await response.json();
+        
+        const songsList = document.getElementById('Songs');
+        data.NewSong.forEach(song => {
+            let songDiv = document.createElement('div');
+            songDiv.classList.add('song-box');
+
+            // Song Name
+            let name = document.createElement('div');
+            name.textContent = `Song: ${song.SongName}`;
+            name.classList.add('song-name');
+            songDiv.appendChild(name);
+
+            // Artist Name
+            let artist = document.createElement('div');
+            artist.textContent = `Artist: ${song.ArtistName}`;
+            artist.classList.add('artist-name');
+            songDiv.appendChild(artist);
+
+            // Album Image
+            let img = document.createElement('img');
+            img.classList.add('album-image');
+            if (song.AlbumPic) {
+                img.src = `data:image/png;base64,${song.AlbumPic}`;
+            } else {
+                img.src = '/default/album/picture'; // Path to a default album picture
+                img.alt = 'Album Picture';
+            }
+            songDiv.appendChild(img);
+
+            songsList.appendChild(songDiv);
+        });
+    } catch (error) {
+        console.error('Error fetching song data:', error);
+    }
+});
+
+}
+else if(document.getElementById('Playlist')){
+    const u = '/admin/insights/typePlaylist';
+
+}
+else if(document.getElementById('Song')){
+    const u = '/admin/insights/typeSong';
+
+
+    document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch(u); // Replace with actual URL
+        const data = await response.json();
+
+        const songsList = document.getElementById('Song'); // Ensure you have a corresponding container in HTML
+        if (data.NewSong && Array.isArray(data.NewSong)) {
+            data.NewSong.forEach(song => {
+                // Create a container for each song
+                let songDiv = document.createElement('div');
+                songDiv.classList.add('artist-box');
+
+                // Add song name
+                let songName = document.createElement('div');
+                songName.textContent = `Song: ${song.SongName}`;
+                songName.classList.add('artist-id');
+                songDiv.appendChild(songName);
+
+                // Add artist name
+                let artistName = document.createElement('div');
+                artistName.textContent = `Artist: ${song.ArtistName}`;
+                artistName.classList.add('artist-name');
+                songDiv.appendChild(artistName);
+
+                // Add album image inside an anchor tag
+                let imgLink = document.createElement('a');
+                imgLink.href = `/album/admin/${song.AlbumID}`; // Link to the album's admin page
+                let img = document.createElement('img');
+                img.classList.add('artist-image');
+                img.src = song.AlbumPic ? `data:image/png;base64,${song.AlbumPic}` : '/default/album/picture';
+                img.alt = 'Album Picture';
+                imgLink.appendChild(img);
+                songDiv.appendChild(imgLink);
+
+                // Append the song container to the songs list
+                songsList.appendChild(songDiv);
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching song data:', error);
+    }
+});
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>

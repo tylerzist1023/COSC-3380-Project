@@ -1,0 +1,242 @@
+
+body {
+    background-color: var(--background-color);
+    color: var(--primary-text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+
+
+
+h1 {
+    color: var(--accent-color);
+}
+
+h2 {
+    border-bottom: 1px solid var(--divider-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    border-bottom: 1px solid var(--divider-color);
+}
+
+li:hover {
+    background-color: var(--divider-color);
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #ffffff;
+    color: var(--secondary-text-color);
+}
+
+input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    color: black;
+    background-color: var(--accent-color);
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: rgb(255, 255, 255);
+}
+
+
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+
+/* Variables for colors */
+:root {
+    --background-color: #121212;
+    --primary-text-color: #ffffff;
+    --secondary-text-color: #bbbbbb;
+    --accent-color: #e71c0e;
+    --divider-color: #ca1515;
+    --button-bg-color: red; /* Red button background color */
+    --button-text-color: white; /* Button text color */
+}
+
+/* Common styles for header and logout button */
+.admin-header {
+    background-color: var(--background-color);
+    padding: 10px;
+    text-align: center;
+}
+
+.admin-header h1 {
+    color: var(--accent-color);
+    margin: 0;
+}
+
+.logout-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--accent-color);
+    border: none;
+    color: var(--primary-text-color);
+    padding: 10px 16px; /* Adjust padding to make it smaller */
+    text-align: left; /* Align text to the left */
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px; /* Adjust font size to make it smaller */
+    cursor: pointer;
+    border-radius: 8px; /* Rounded corners */
+    margin: 4px; /* Add margin for spacing */
+}
+
+.logout-button:hover {
+    color: red; /* Text color turns red on hover */
+    background-color: darkred; /* Optional: Change background color on hover */
+}
+
+/* Main container layout */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Left panel styles (Unresolved and Resolved Requests) */
+.left-panel {
+    flex: 1;
+}
+
+.request-section {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(231, 4, 4, 0.938)
+}
+
+.request-section h2 {
+    color: var(--accent-color);
+}
+
+/* Right panel styles (Search and Insights) */
+.right-panel {
+    flex: 1;
+}
+
+/* Search section styles */
+.search-section {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.search-section h2 {
+    color: var(--accent-color);
+}
+
+/* Insights section styles */
+.insights-section {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+}
+
+.insights-section h2 {
+    color: var(--accent-color);
+}
+
+/* Insights box styles */
+.insight-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 5px;
+}
+
+.insight-box {
+    flex: 1;
+    background-color: black; /* Change background color to black */
+    color: white; /* Change text color to white */
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.insight-box h3 {
+    color: red;
+}
+
+.insight-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: red;
+}
+.insight-box:hover {
+    background-color: rgb(255, 255, 255);
+}
+
+
+
+.view-button {
+    background-color: rgb(255, 0, 0);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-left: 20px;
+    margin-top: 20px;
+}
+
+
+
+.view-button:hover {
+    background-color: rgb(0, 0, 0); /* Change color on hover */
+}
+/* CSS for the "Reports" box */
+.reports-box {
+    background-color: rgb(255, 255, 255);
+    color: rgb(255, 255, 255); /* Change text color to white for better visibility */
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer; /* Add cursor pointer for hover effect */
+    transition: background-color 0.2s; /* Smooth transition on hover */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Use a common sans-serif font */
+    font-size: 14px; /* Adjust font size for readability */
+}
+
+/* Change background color on hover */
+.reports-box:hover {
+    background-color: rgb(0, 255, 106); /* You can use your desired hover color here */
+}
+/* CSS for the scroll box container */
+.scroll-box {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}

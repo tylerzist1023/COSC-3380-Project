@@ -13,6 +13,7 @@ import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
+import { getAdminArtist ,getAdminSong} from './insights.js';
 
 // import nodemon from 'nodemon';
 
@@ -51,7 +52,13 @@ function captureUrl(userUrl, url) {
     let match = userUrl.match(new RegExp(`^${url}(\\?.*)?\\/?$`, 'g')); 
     return match;
 }
+function ReplaceMatchUrl(InBound,match){
+    if(InBound.replace(match,"").length!=InBound.length){
+        return true
+    }
+return false
 
+}
 function matchUrl(userUrl, url) {
     return captureUrl(userUrl, url) !== null;
 }
@@ -118,6 +125,7 @@ function serveStatic_Plus(res, filePath, contentType, replacements, responseCode
                 });
             }
             let conditionalContent = '';
+            if('role' in replacements){
             if (replacements['role'] === 'listener') {
                 conditionalContent = `
                     <div class="input_box">
@@ -140,9 +148,11 @@ function serveStatic_Plus(res, filePath, contentType, replacements, responseCode
             data = data.replace('{{conditionalContent}}', conditionalContent);
 
 
-            res.writeHead(responseCode, { 'Content-Type': contentType });
-            res.end(data);
+            
         }
+        res.writeHead(responseCode, { 'Content-Type': contentType });
+            res.end(data);
+    }
     });
 }
 function serveStaticFile(res, filePath, contentType, responseCode = 200) {
@@ -159,30 +169,39 @@ function serveStaticFile(res, filePath, contentType, responseCode = 200) {
 
 
 
-const getAdminBaseData= async (userId) => {
+const getAdminBaseData= async () => {
     try {
         const data = {};
+        const NumArtist = await executeQuery('SELECT COUNT(*) FROM Artist');
+        const NumUsers =await executeQuery('SELECT COUNT(*) FROM Listener');
+        const NumSongs = await executeQuery('SELECT COUNT(*) FROM Song');
+        const NumPlaylist = await executeQuery('SELECT COUNT(*) FROM Playlist')
 
+
+        data['NumArtist']=NumArtist
+        data['NumUsers'] = NumUsers
+        data['NumSongs'] = NumSongs
+        data['NumPlaylist'] = NumPlaylist
         // Get all the new songs added
-        const NewSongQuery = 'SELECT SongID,Song.Name AS SongName, Artist.ArtistName, Artist.ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp DESC LIMIT 5';
-        const NewSongResults = await executeQuery(NewSongQuery);
-        data['NewSongs'] = NewSongResults;
+        // const NewSongQuery = 'SELECT SongID,Song.Name AS SongName, Artist.ArtistName as ArtistName, Artist.ProfilePic as ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp';
+        // const NewSongResults = await executeQuery(NewSongQuery);
+        // data['NewSongs'] = NewSongResults;
 
 
         // Get All the new Artist 
-        const NewArtistQuery = 'SELECT ArtistName, ProfilePic,ArtistID FROM Artist ORDER BY CreationStamp DESC LIMIT 5';
-        const NewArtistResults = await executeQuery(NewArtistQuery);
+        // const NewArtistQuery = 'SELECT ArtistName, ProfilePic,ArtistID FROM Artist ORDER BY CreationStamp DESC';
+        // const NewArtistResults = await executeQuery(NewArtistQuery);
 
         //get all the pictures 
 
-        NewArtistResults.forEach(artist => {
-            if (artist.ProfilePic && Buffer.isBuffer(artist.ProfilePic)) {
-                // Convert the Buffer to a Base64 string
-                artist.ProfilePic = artist.ProfilePic.toString('base64');
-            }
-        });
+        // NewArtistResults.forEach(artist => {
+        //     if (artist.ProfilePic && Buffer.isBuffer(artist.ProfilePic)) {
+        //         // Convert the Buffer to a Base64 string
+        //         artist.ProfilePic = artist.ProfilePic.toString('base64');
+        //     }
+        // });
 
-        data['NewArtist'] = NewArtistResults;
+        // data['NewArtist'] = NewArtistResults;
         return data;
     } catch (err) {
         throw new Error(`Error in getListenerBaseData: ${err.message}`);
@@ -222,6 +241,8 @@ async function getAdmin(sessionData) {
         return {error: "Error"};
     }
 }
+//get all the insight data
+
 
 
 async function getListener(sessionData, res) {
@@ -395,9 +416,10 @@ const server = http.createServer(async (req, res) => {
 
         }
 
-        res.writeHead(404);
-        res.end('Not Found');
-
+        // res.writeHead(404);
+        // res.end('Not Found');
+        serveStaticFile(res, "./templates/redirect_error.html", "");
+        
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/profile_listener.html", "");
@@ -407,8 +429,10 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        res.writeHead(404);
-        res.end('Not Found');
+        // res.writeHead(404);
+        // res.end('Not Found');
+        serveStaticFile(res, "./templates/redirect_error.html", "");
+
     } else if (matchUrl(req.url, '/ajax/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             res.end(JSON.stringify(await getListenerProfile(sessionData, res)));
@@ -418,13 +442,53 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        res.writeHead(404);
-        res.end('Not Found');
+        // res.writeHead(404);
+        // res.end('Not Found');
+        serveStaticFile(res, "./templates/redirect_error.html", "");
+        
+
+    }
+    //get the data 
+    else if(ReplaceMatchUrl(req.url,'/admin/insights/type') && req.method==='GET'){
+
+       const request_to_serve = req.url.replace('/admin/insights/type',"");
+
+        if(request_to_serve=='Artist'){
+            res.end(JSON.stringify(await getAdminArtist()));
+        }
+        else if(request_to_serve=='Song'){
+            res.end(JSON.stringify(await getAdminSong()));
+        }
+
+        
+
+
+
+    }
+    else if(ReplaceMatchUrl(req.url,'/admin/insights/')){
+
+        if(getRole(sessionData)!="admin"){
+            serveStaticFile(res, "./templates/redirect_error.html", "");
+            return
+        }
+        
+
+        else{
+
+            const profile = (req.url.replace('/admin/insights/',""));
+            serveStatic_Plus(res,"./templates/insights.html","", {'profile':profile})
+
+        }
     }
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
     }
+    else if (req.url === '/style_admin.css'){
+        serveStaticFile(res, './public/style_admin.css', 'text/css');
+    } 
+
+    //if you need a picture of an album that does not exist
     else if (req.url === '/npc/picture' ) {
       serveStaticFile(res, './public/cartoon-mysterious.png', 'image/png')
     } 
@@ -448,7 +512,11 @@ const server = http.createServer(async (req, res) => {
     else if(req.url === "/getstarted"){
         serveStaticFile(res, './templates/login_options.html', 'text/html');
     }
+
     else if(req.url === "/topbar"){
+
+
+  
         if(getRole(sessionData) === 'listener') {
             let html = `<div class="topbar">
             <ul class="topbar_navigation">

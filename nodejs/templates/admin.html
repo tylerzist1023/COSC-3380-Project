@@ -1,317 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <title>Admin</title>
+    <link rel="stylesheet" href="/style_admin.css"> <!-- Link to your CSS file -->
+    <title>Admin Dashboard</title>
 </head>
-
-<style>
-    :root {
-        --background-color: #121212;
-        --primary-text-color: #ffffff;
-        --secondary-text-color: #bbbbbb;
-        --accent-color: #e71c0e;
-        --divider-color: #ca1515;
-    }
-
-    body {
-        background-color: var(--background-color);
-        color: var(--primary-text-color);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        padding: 20px;
-    }
-
-    .side-panel, .middle-panel {
-        background: #1e1e1e;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .artist-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #1e1e1e;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    margin-bottom: 20px;
-    transition: background-color 0.2s;
-    width: 400px; /* Longer width */
-    height: 80px; /* Smaller height */
-}
-
-.artist-box:hover {
-    background-color: var(--accent-color);
-}
-
-.artist-image {
-    width: 60px; /* Adjust the width of the image */
-    height: 60px; /* Adjust the height of the image */
-    border-radius: 50%;
-    object-fit: cover;
-    margin-left: 10px;
-}
-
-.artist-name {
-    color: var(--primary-text-color);
-    text-align: left;
-    font-size: 1em;
-    flex-grow: 1;
-}
-
-
-    .side-panel {
-        flex: 1 1 30%;
-    }
-
-    .middle-panel {
-        flex: 1 1 40%;
-    }
-
-    .admin-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    h1 {
-        color: var(--accent-color);
-    }
-
-    h2 {
-        border-bottom: 1px solid var(--divider-color);
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-        color: var(--accent-color);
-    }
-
-    ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    li {
-        padding: 10px;
-        border-bottom: 1px solid var(--divider-color);
-    }
-
-    li:hover {
-        background-color: var(--divider-color);
-    }
-
-    input[type="text"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        border: none;
-        background-color: #ffffff;
-        color: var(--secondary-text-color);
-    }
-
-    input[type="submit"] {
-        width: 100%;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        color: var(--primary-text-color);
-        background-color: var(--accent-color);
-        cursor: pointer;
-    }
-
-    input[type="submit"]:hover {
-        background-color: #e90725;
-    }
-    .logout-button {
-    background-color: #d38585; /* Background color */
-    border: none;
-    color: #000000; /* Black text color */
-    padding: 10px 16px; /* Adjust padding to make it smaller */
-    text-align: left; /* Align text to the left */
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px; /* Adjust font size to make it smaller */
-    cursor: pointer;
-    border-radius: 8px; /* Rounded corners */
-    margin: 4px; /* Add margin for spacing */
-    position: absolute; /* Position absolute for top-left corner */
-    top: 10px; /* Adjust top position for spacing from top */
-    left: 10px; /* Adjust left position for spacing from left */
-}
-
-.logout-button:hover {
-    color: red; /* Text color turns red on hover */
-    background-color: #d1120c; /* Optional: Change background color on hover */
-}
-
-
-    .scroll-box {
-        max-height: 200px;
-        overflow-y: auto;
-        padding-right: 10px;
-    }
-
-    .scroll-box p {
-        padding: 10px;
-        border-bottom: 1px solid var(--divider-color);
-    }
-
-    input[type="checkbox"] {
-        margin-right: 5px;
-    }
-
-    /* Media query for responsiveness */
-    @media (max-width: 768px) {
-        .container {
-            flex-direction: column;
-        }
-
-        .side-panel, .middle-panel {
-            flex: 1 1 auto;
-        }
-    }
-    /* Style for the header */
-/* CSS for the "View" buttons */
-.view-button {
-    float: right;
-    background-color: red;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    text-decoration: none;
-    margin-left: 10px; /* Add some margin between the value and button */
-}
-
-.view-button:hover {
-    background-color: darkred; /* Change color on hover */
-}
-
-</style>
-
-
-<div class="admin-header">
-
-    <h1>Admin Dashboard</h1>
-</div>
-
-<div class="logout-button">
-    <a href='/logout'>Logout</a>
-</div>
-
-<div class="container">
-    <div class="side-panel">
-        <h2>Recently Made Artist</h2>
-        <ul id="artists-list">
-            <!-- Your artist list goes here -->
-        </ul>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
     </div>
 
-    <div class="middle-panel">
-        <h2>Search</h2>
-        <form action="/search" method="get">
-            <input type="text" name="query" placeholder="Search...">
+    <!-- Reports Box (Top) -->
+    <div class="reports-box">
+        <a href="/admin/reports">Reports</a>
+    </div>
 
-            <!-- Checkboxes for filters -->
-            <div>
-                <input type="checkbox" name="filters" value="artist"> Artist
-                <input type="checkbox" name="filters" value="album"> Album
-                <input type="checkbox" name="filters" value="playlist"> Playlist
-                <input type="checkbox" name="filters" value="listener"> Listener
-                <input type="checkbox" name="filters" value="song"> Song
+    <!-- Logout Button (Top Left) -->
+    <div class="logout-button">
+        <a href='/logout'>Logout</a>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Left Panel (Unresolved and Resolved Requests) -->
+        <div class="left-panel">
+            <!-- Unresolved Requests Section -->
+            <div class="scroll-box unresolved-requests-section">
+                <h2>Unresolved Requests</h2>
+                <ul id="unresolved-requests-list">
+                    <!-- Your unresolved requests list goes here -->
+                </ul>
             </div>
 
-            <input type="submit" value="Search">
-        </form>
+            <!-- Resolved Requests Section -->
+            <div class="scroll-box resolved-requests-section">
+                <h2>Resolved Requests</h2>
+                <ul id="resolved-requests-list">
+                    <!-- Your resolved requests list goes here -->
+                </ul>
+            </div>
+        </div>
 
-        <!-- Insights Section -->
-        <div class="insights-section">
-            <h2>Insights</h2>
-            <div class="insight-boxes">
-                <div class="insight-box">
-                    <h3>Total Listeners</h3>
-                    <div class="insight-details">
-                        <p id="totalListenersCount">0 <a href="/admin/insights/listeners" class="view-button">View</a></p>
-                        
+        <!-- Right Panel (Search and Insights) -->
+        <div class="right-panel">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2>Search</h2>
+                <form action="/search" method="get">
+                    <input type="text" name="query" placeholder="Search...">
+                    <!-- Checkboxes for filters -->
+                    <div>
+                        <input type="checkbox" name="filters" value="artist"> Artist
+                        <input type="checkbox" name="filters" value="album"> Album
+                        <input type="checkbox" name="filters" value="playlist"> Playlist
+                        <input type="checkbox" name="filters" value="listener"> Listener
+                        <input type="checkbox" name="filters" value="song"> Song
                     </div>
-                </div>
-                <div class="insight-box">
-                    <h3>Total Songs</h3>
-                    <div class="insight-details">
-                        <p id="totalSongsCount">0 <a href="/admin/insights/songs" class="view-button">View</a></p>
+                    <input type="submit" value="Search">
+                </form>
+            </div>
+
+            <!-- Insights Section -->
+            <div class="insights-section">
+                <h2>Insights</h2>
+                <div class="insight-boxes">
+                    <div class="insight-box">
+                        <h3>Total Listeners</h3>
+                        <div class="insight-details">
+                            <p id="totalListenersCount">0 <a href="/admin/insights/Listener" class="view-button">View</a></p>
+                        </div>
                     </div>
-                </div>
-                <div class="insight-box">
-                    <h3>Total Artists</h3>
-                    <div class="insight-details">
-                        <p id="totalArtistsCount">0  <a href="/admin/insights/artists" class="view-button">View</a> </p>
-                       
+                    <div class="insight-box">
+                        <h3>Total Songs</h3>
+                        <div class="insight-details">
+                            <p id="totalSongsCount">0 <a href="/admin/insights/Song" class="view-button">View</a></p>
+                        </div>
                     </div>
-                </div>
-                <div class="insight-box">
-                    <h3>Total Playlists</h3>
-                    <div class="insight-details">
-                        <p id="totalPlaylistsCount">0 <a href="/admin/insights/playlists" class="view-button">View</a></p>
-            
+                    <div class="insight-box">
+                        <h3>Total Artists</h3>
+                        <div class="insight-details">
+                            <p id="totalArtistsCount">0 <a href="/admin/insights/Artist" class="view-button">View</a></p>
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <h3>Total Playlists</h3>
+                        <div class="insight-details">
+                            <p id="totalPlaylistsCount">0 <a href="/admin/insights/Playlist" class="view-button">View</a></p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        
-        
-</div>
-<script> 
+    </div>
+
+    
+</body>
+</html>
+<script>
 document.addEventListener('DOMContentLoaded', async function () {
     try {
         const response = await fetch('/ajax');
         const data = await response.json();
-        console.log(data);
 
-        const artistsList = document.getElementById('artists-list');
-        if (data.NewArtist && Array.isArray(data.NewArtist)) {
-            data.NewArtist.forEach(artist => {
-                let artistLink = document.createElement('a');
-                artistLink.href = `/artist/admin/${artist.ArtistID}`; // Link to artist's admin page
-                artistLink.classList.add('artist-box');
+        const numberOfLis= data.NumUsers[0]['COUNT(*)'];
+        const totalListenersCount = document.getElementById('totalListenersCount');
+        totalListenersCount.innerHTML = numberOfLis +' <a href="/admin/insights/Listener" class="view-button">View</a>';
 
-                let name = document.createElement('div');
-                name.textContent = artist.ArtistName;
-                name.classList.add('artist-name');
-                artistLink.appendChild(name);
-
-                let img = document.createElement('img');
-                img.classList.add('artist-image');
-
-                if (artist.ProfilePic) {
-                    // If the artist has a profile picture, set the src to the Base64 data
-                    img.src = `data:image/png;base64,${artist.ProfilePic}`;
-                } else {
-                    // If the artist doesn't have a profile picture, set a placeholder image
-                    img.src = '/npc/picture'; // Replace with the path to your placeholder image
-                    img.alt = 'Default Profile Picture';
-                }
-
-                artistLink.appendChild(img);
-
-                artistsList.appendChild(artistLink);
-            });
-        }
     } catch (error) {
         console.error('Error:', error);
     }
 });
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch('/ajax');
+        const data = await response.json();
+
+        const numberOfSong= data.NumSongs[0]['COUNT(*)'];
+        const totalListenersCount = document.getElementById('totalSongsCount');
+        totalListenersCount.innerHTML = numberOfSong +' <a href="/admin/insights/Song" class="view-button">View</a>';
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch('/ajax');
+        const data = await response.json();
+
+        const numberOfPlay= data.NumPlaylist[0]['COUNT(*)'];
+        const totalListenersCount = document.getElementById('totalPlaylistsCount');
+        totalListenersCount.innerHTML = numberOfPlay +' <a href="/admin/insights/Playlist" class="view-button">View</a>';
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch('/ajax');
+        const data = await response.json();
+
+        const numberOfArtists = data.NumArtist[0]['COUNT(*)'];
+        const totalListenersCount = document.getElementById('totalArtistsCount');
+        totalListenersCount.innerHTML = numberOfArtists +' <a href="/admin/insights/Artist" class="view-button">View</a>';
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+       
+
+
+
+
+
+
+
+
+
+
 
 
 
