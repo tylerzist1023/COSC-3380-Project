@@ -194,11 +194,10 @@ async function getListener(sessionData, res) {
         data.for_you = forYouResults;
         data.username = sessionData['username'];
 
-        res.end(JSON.stringify(data));
+        return data;
     } catch (error) {
         console.error(error);
-        res.writeHead(500, { 'Content-Type': 'text/html' });
-        res.end('<h1>Internal Server Error</h1>');
+        return {error: "Error"};
     }
 }
 
@@ -219,16 +218,70 @@ async function getListenerProfile(sessionData, res) {
         data.playlists = playlistsResults;
         data.username = sessionData.username;
 
-        res.writeHead(200);
-        // serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
-        res.end(JSON.stringify(data));
+        return data;
     } catch (error) {
         console.error(error);
-        res.writeHead(500, { 'Content-Type': 'text/html' });
-        res.end('<h1>Internal Server Error</h1>');
+        return {error: "Error"};
     }
 }
 
+async function getArtistBaseData(artistId) {
+    try {
+        const data = {};
+
+        // Get followed artists
+        const albumsQuery = 'SELECT AlbumID,AlbumName FROM Album WHERE ArtistID=?';
+        const albumsResults = await executeQuery(albumsQuery, [artistId]);
+        data['albums'] = albumsResults;
+
+        // Get playlists
+        const followersQuery = 'SELECT Follow.UserID,Username FROM Follow,Listener WHERE Follow.ArtistID=? AND Follow.UserID=Listener.UserID';
+        const followersResults = await executeQuery(followersQuery, [artistId]);
+        data['followers'] = followersResults;
+
+        return data;
+    } catch(error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+
+async function getArtist(sessionData) {
+    try {
+        if (getRole(sessionData) !== 'artist') {
+            return;
+        }
+
+        const data = await getArtistBaseData(sessionData.id);
+
+        const myMusicQuery = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=? ORDER BY ReleaseDate DESC';
+        const myMusicResults = await executeQuery(myMusicQuery, [sessionData.id]);
+        data.my_music = myMusicResults;
+
+        const highestRatedAlbumsQuery = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=? ORDER BY Album.AverageRating DESC LIMIT 10';
+        const highestRatedAlbumsResults = await executeQuery(highestRatedAlbumsQuery, [sessionData.id]);
+        data.highest_rated_albums = highestRatedAlbumsResults;
+
+        const highestRatedSongsQuery = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    Song.AverageRating, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID WHERE     Album.ArtistID = ? ORDER BY     Song.AverageRating DESC LIMIT 10';
+        const highestRatedSongsResults = await executeQuery(highestRatedSongsQuery, [sessionData.id]);
+        data.highest_rated_songs = highestRatedSongsResults;
+
+        const mostPlayedAlbumsQuery = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = ? GROUP BY      Album.AlbumID, AlbumName, ArtistName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 10';
+        const mostPlayedAlbumsResults = await executeQuery(mostPlayedAlbumsQuery, [sessionData.id]);
+        data.most_played_albums = mostPlayedAlbumsResults;
+
+        const mostPlayedSongsQuery = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount, Song.Name AS SongName FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = ? GROUP BY      Album.AlbumID, AlbumName, ArtistName, SongName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 10';
+        const mostPlayedSongsResults = await executeQuery(mostPlayedSongsQuery, [sessionData.id]);
+        data.most_played_songs = mostPlayedSongsResults;
+
+        data.username = sessionData.username;
+
+        return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -251,12 +304,23 @@ const server = http.createServer(async (req, res) => {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/listener.html", "");
             return;
+        } else if(getRole(sessionData) === 'artist') {
+            serveStaticFile(res, "./templates/artist.html", "");
+            return;
         }
 
         serveStaticFile(res, './templates/index.html', 'text/html');
     } else if(req.url === '/ajax') {
-        await getListener(sessionData, res);
+        if(getRole(sessionData) === 'listener') {
+            res.end(JSON.stringify(await getListener(sessionData, res)));
+            return;
+        } else if(getRole(sessionData) === 'artist') {
+            res.end(JSON.stringify(await getArtist(sessionData, res)));
+            return;
+        }
 
+        res.writeHead(404);
+        res.end('Not Found');
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/profile_listener.html", "");
@@ -267,7 +331,7 @@ const server = http.createServer(async (req, res) => {
         res.end('Not Found');
     } else if (matchUrl(req.url, '/ajax/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
-            getListenerProfile(sessionData, res);
+            res.end(JSON.stringify(await getListenerProfile(sessionData, res)));
             return;
         }
 
@@ -297,10 +361,237 @@ const server = http.createServer(async (req, res) => {
     else if(req.url === "/getstarted"){
         serveStaticFile(res, './templates/login_options.html', 'text/html');
     }
+    else if(req.url === "/topbar"){
+        if(getRole(sessionData) === 'listener') {
+            let html = `<div class="topbar">
+            <ul class="topbar_navigation">
+                <li>
+                    <a href="/">
+                        <span>Hello ${sessionData.username}!</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/profile">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="">
+                        <span>Recommendations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/history">
+                        <span>Listen History</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="search">
+                <form action='/search'>
+                    <input type="text" class="search_bar" name='query' placeholder="Search Music...">
+                    <button type="submit" class="search_btn">Search</button>
+                </form>
+            </div>
+            <ul class="topbar_navigation">
+                <li>
+                    <a href="/logout">
+                        <span>Log Out</span>
+                    </a>
+                </li>
+            </ul>`;
+            res.end(html);
+        } else if(getRole(sessionData) === 'artist') {
+            let html = `<div class="topbar">
+                <ul class="topbar_navigation">
+                    <li>
+                        <a href="/">
+                            <span>Hello ${sessionData.username}!</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/profile">
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <span>My Music</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <span>Artist Insights</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/album/create">
+                            <span>Publish Album</span>
+                        </a>
+                    </li>
+
+                </ul>
+                <div class="search">
+                    <form action='/search'>
+                        <input type="text" class="search_bar" name='query' placeholder="Search Music...">
+                        <button type="submit" class="search_btn">Search</button>
+                    </form>
+                </div>
+                <ul class="topbar_navigation">
+                <li>
+                    <a href="/logout">
+                        <span>Log Out</span>
+                    </a>
+                </li>
+            </ul>`;
+            res.end(html);
+        } else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    }
+    else if(req.url === "/sidebar"){
+        if(getRole(sessionData) === 'listener') {
+            const data = await getListener(sessionData, res);
+            let html = '';
+            html += `<div class="logo">
+                        <a href="/">
+                            <img src="/logo.png" alt="Logo">
+                        </a>
+                    </div>
+                    <div class="navigation">
+                        <ul>
+                            <li>
+                                <a href="/">
+                                    <span class="link_icon"></span>
+                                    <span>Home</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <span class="link_icon"></span>
+                                    <span>Search</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="navigation">
+                        <ul>
+                            <li>
+                                <a href="">
+                                    <span class="link_icon"></span>
+                                    <span>My Playlists</span>
+                                </a>
+                                <a href="/playlist/create" class="add_playlist">+</a>
+                                <ul class="list_container">`;
+                                for(const playlist of data.playlists) {
+                                    html += `<li>
+                                        <img src="/playlist/${playlist['PlaylistID']}/pic" alt="${playlist['PlaylistName']}">
+                                        <a href="/playlist/${playlist['PlaylistID']}">${playlist['PlaylistName']}</a>
+                                    </li>`;
+                                }
+                                html += `</ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="navigation">
+                        <ul>
+                            <li>
+                                <a href="">
+                                    <span class="link_icon"></span>
+                                    <span>Followed Artists</span>
+                                </a>
+                                <ul class="list_container">`;
+                                for(const follow of data.following) {
+                                    html += `<li>
+                                        <img src="/artist/${follow['ArtistID'] }/pic">
+                                        <a href='/artist/${follow['ArtistID']}'>${follow['ArtistName']}</a>
+                                    </li>`;
+                                }
+                                    html += `
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>`;
+            res.end(html);
+        } else if(getRole(sessionData) === 'artist') {
+            const data = await getArtist(sessionData, res);
+            let html = '';
+            html += `<div class="logo">
+                    <a href="">
+                        <img src="/logo.png" alt="Logo">
+                    </a>
+                </div>
+                <div class="navigation">
+                    <ul>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Search</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="navigation">
+                    <ul>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>My Music</span>
+                            </a>
+                            <a href="/album/create" class="add_album">+</a>
+                            <ul class="list_container">`;
+                            for(const album of data.albums) {
+                                html += `<li>
+                                    <img src="/album/${album['AlbumID']}/pic" alt="${album['AlbumName']}">
+                                    <a href='/album/${album['AlbumID']}'>${album['AlbumName']}</a>
+                                </li>`;
+                            }
+                            html += `</ul>
+                        </li>
+                        <!-- <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Publish Album</span>
+                            </a>
+                        </li> -->
+                    </ul>
+                </div>
+
+                <div class="navigation">
+                    <ul>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Followers</span>
+                            </a>
+                            <ul class="list_container">`;
+                            for(const follow of data.followers) {
+                                html += `<li>
+                                    <!-- <img src="/artist/{{ follow[1] }}/pic"> -->
+                                    <span>${follow['Username']}</span>
+                                </li>`;
+                            }
+                            html += `</ul>
+                        </li>
+                    </ul>
+                </div>`;
+            res.end(html);
+        } else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    }
     //cd Desktop/TRA/COSC-3380-Project/nodejs nodemon server.js
     else if((matchUrl(req.url, '/login') ) &&  req.method === 'GET'){
-
-
         if(params['role'] === 'listener' || params['role'] === 'artist' || params['role'] === 'admin') {
             serveStatic_Plus(res, './templates/login.html', 'text/html',{ 'role': params['role'] }); //basically doing nujucks 
         } else {
@@ -720,20 +1011,17 @@ const server = http.createServer(async (req, res) => {
         }
     }
     else if (matchUrl(req.url, '/album/([0-9]+)') && req.method === 'GET'){
-        if (getRole(sessionData) === 'listener') {
-            serveStaticFile(res, './templates/album.html', "");
-        }
+        serveStaticFile(res, './templates/album.html', "");
     }
     // Serve Page for an Album 
     else if (matchUrl(req.url, '/ajax/album/([0-9]+)') && req.method === 'GET') {
         try {
-            if (getRole(sessionData) !== 'listener') {
-                res.writeHead(404);
-                res.end('Not Found');
-                return;
+            let data = {};
+            if (getRole(sessionData) === 'listener') {
+                data = await getListenerBaseData(sessionData.id);
+            } else if (getRole(sessionData) === 'artist') {
+                data = await getArtistBaseData(sessionData.id);
             }
-
-            const data = await getListenerBaseData(sessionData.id);
 
             const albumId = req.url.split('/')[3];
 
@@ -763,7 +1051,7 @@ const server = http.createServer(async (req, res) => {
 
             if (songResults.length === 0) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('No songs in album');
+                res.end(JSON.stringify(data));
                 return;
             }
 
@@ -790,6 +1078,8 @@ const server = http.createServer(async (req, res) => {
 
             const moreByResults = await executeQuery(moreByQuery, moreByValues);
             data.more_by = moreByResults;
+
+            data.playlists = [];
 
             data.username = sessionData.username;
             res.writeHead(200);
@@ -1080,6 +1370,6 @@ const server = http.createServer(async (req, res) => {
     }
   });
   
-  server.listen(5000, () => {
-    console.log('Server running on http://localhost:5000');
+  server.listen(80, () => {
+    console.log('Server started');
   });
