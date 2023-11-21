@@ -128,7 +128,7 @@ addEventListener("DOMContentLoaded", (event) => {
                                 <h4>${data.username}</h4>
                             </li>
                             <li>
-                                <h4>${data.playlist.PlaylistDuration}</h4>
+                                <h4>${data.playlist_duration}</h4>
                             </li>
                         </ul>
                     </div>
@@ -154,7 +154,7 @@ addEventListener("DOMContentLoaded", (event) => {
                                         <h4>${song[4]}</h4>
                                     </li>
                                     <li>
-                                        <a href=""><h4>-</h4></a>
+                                        <a href="/playlist/${data.playlist['PlaylistID']}/remove/${song[5]}"><h4>-</h4></a>
                                     </li>
                                     <li>
                                         <form method='POST' action="/song/${song[5]}/rate">

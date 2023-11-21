@@ -231,11 +231,10 @@ async function getListener(sessionData, res) {
         data.for_you = forYouResults;
         data.username = sessionData['username'];
 
-        res.end(JSON.stringify(data));
+        return data;
     } catch (error) {
         console.error(error);
-        res.writeHead(500, { 'Content-Type': 'text/html' });
-        res.end('<h1>Internal Server Error</h1>');
+        return {error: "Error"};
     }
 }
 
@@ -256,16 +255,70 @@ async function getListenerProfile(sessionData, res) {
         data.playlists = playlistsResults;
         data.username = sessionData.username;
 
-        res.writeHead(200);
-        // serveStatic_Plus(res, './templates/base_listener.html', 'text/html',{ 'role': params['role'] });
-        res.end(JSON.stringify(data));
+        return data;
     } catch (error) {
         console.error(error);
-        res.writeHead(500, { 'Content-Type': 'text/html' });
-        res.end('<h1>Internal Server Error</h1>');
+        return {error: "Error"};
     }
 }
 
+async function getArtistBaseData(artistId) {
+    try {
+        const data = {};
+
+        // Get followed artists
+        const albumsQuery = 'SELECT AlbumID,AlbumName FROM Album WHERE ArtistID=?';
+        const albumsResults = await executeQuery(albumsQuery, [artistId]);
+        data['albums'] = albumsResults;
+
+        // Get playlists
+        const followersQuery = 'SELECT Follow.UserID,Username FROM Follow,Listener WHERE Follow.ArtistID=? AND Follow.UserID=Listener.UserID';
+        const followersResults = await executeQuery(followersQuery, [artistId]);
+        data['followers'] = followersResults;
+
+        return data;
+    } catch(error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+
+async function getArtist(sessionData) {
+    try {
+        if (getRole(sessionData) !== 'artist') {
+            return;
+        }
+
+        const data = await getArtistBaseData(sessionData.id);
+
+        const myMusicQuery = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=? ORDER BY ReleaseDate DESC';
+        const myMusicResults = await executeQuery(myMusicQuery, [sessionData.id]);
+        data.my_music = myMusicResults;
+
+        const highestRatedAlbumsQuery = 'SELECT AlbumID,AlbumName,ArtistName,Album.ArtistID FROM Album LEFT JOIN Artist ON Album.ArtistID=Artist.ArtistID WHERE Album.ArtistID=? ORDER BY Album.AverageRating DESC LIMIT 10';
+        const highestRatedAlbumsResults = await executeQuery(highestRatedAlbumsQuery, [sessionData.id]);
+        data.highest_rated_albums = highestRatedAlbumsResults;
+
+        const highestRatedSongsQuery = 'SELECT     Album.AlbumID,    Song.Name AS SongName,    Album.AlbumName,    Artist.ArtistName,    Album.ArtistID,    Song.AverageRating, Song.SongID FROM     Song JOIN     Album ON Song.AlbumID = Album.AlbumID JOIN     Artist ON Album.ArtistID = Artist.ArtistID WHERE     Album.ArtistID = ? ORDER BY     Song.AverageRating DESC LIMIT 10';
+        const highestRatedSongsResults = await executeQuery(highestRatedSongsQuery, [sessionData.id]);
+        data.highest_rated_songs = highestRatedSongsResults;
+
+        const mostPlayedAlbumsQuery = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = ? GROUP BY      Album.AlbumID, AlbumName, ArtistName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 10';
+        const mostPlayedAlbumsResults = await executeQuery(mostPlayedAlbumsQuery, [sessionData.id]);
+        data.most_played_albums = mostPlayedAlbumsResults;
+
+        const mostPlayedSongsQuery = 'SELECT      Album.AlbumID,     AlbumName,     ArtistName,     Album.ArtistID,     COUNT(ListenedToHistory.UserID) AS PlayCount, Song.Name AS SongName FROM      Album JOIN      Song ON Album.AlbumID = Song.AlbumID JOIN      Artist ON Album.ArtistID = Artist.ArtistID LEFT JOIN      ListenedToHistory ON Song.SongID = ListenedToHistory.SongID WHERE      Album.ArtistID = ? GROUP BY      Album.AlbumID, AlbumName, ArtistName, SongName, Album.ArtistID ORDER BY      PlayCount DESC  LIMIT 10';
+        const mostPlayedSongsResults = await executeQuery(mostPlayedSongsQuery, [sessionData.id]);
+        data.most_played_songs = mostPlayedSongsResults;
+
+        data.username = sessionData.username;
+
+        return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -288,6 +341,9 @@ const server = http.createServer(async (req, res) => {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/listener.html", "");
             return;
+        } else if(getRole(sessionData) === 'artist') {
+            serveStaticFile(res, "./templates/artist.html", "");
+            return;
         }
         else if(getRole(sessionData) === 'admin'){
             serveStaticFile(res, "./templates/admin.html", "");
@@ -298,16 +354,7 @@ const server = http.createServer(async (req, res) => {
     } else if(req.url === '/ajax') {
         await getListener(sessionData, res);
 
-    } 
-    else if(req.url === '/baseadmin') {
-        await getAdmin(sessionData, res);
-
-    } 
-    
-    
-    
-    
-    else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
+    } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/profile_listener.html", "");
             return;
@@ -317,7 +364,7 @@ const server = http.createServer(async (req, res) => {
         res.end('Not Found');
     } else if (matchUrl(req.url, '/ajax/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
-            getListenerProfile(sessionData, res);
+            res.end(JSON.stringify(await getListenerProfile(sessionData, res)));
             return;
         }
 
@@ -347,10 +394,237 @@ const server = http.createServer(async (req, res) => {
     else if(req.url === "/getstarted"){
         serveStaticFile(res, './templates/login_options.html', 'text/html');
     }
+    else if(req.url === "/topbar"){
+        if(getRole(sessionData) === 'listener') {
+            let html = `<div class="topbar">
+            <ul class="topbar_navigation">
+                <li>
+                    <a href="/">
+                        <span>Hello ${sessionData.username}!</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/profile">
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="">
+                        <span>Recommendations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/history">
+                        <span>Listen History</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="search">
+                <form action='/search'>
+                    <input type="text" class="search_bar" name='query' placeholder="Search Music...">
+                    <button type="submit" class="search_btn">Search</button>
+                </form>
+            </div>
+            <ul class="topbar_navigation">
+                <li>
+                    <a href="/logout">
+                        <span>Log Out</span>
+                    </a>
+                </li>
+            </ul>`;
+            res.end(html);
+        } else if(getRole(sessionData) === 'artist') {
+            let html = `<div class="topbar">
+                <ul class="topbar_navigation">
+                    <li>
+                        <a href="/">
+                            <span>Hello ${sessionData.username}!</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/profile">
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <span>My Music</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <span>Artist Insights</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/album/create">
+                            <span>Publish Album</span>
+                        </a>
+                    </li>
+
+                </ul>
+                <div class="search">
+                    <form action='/search'>
+                        <input type="text" class="search_bar" name='query' placeholder="Search Music...">
+                        <button type="submit" class="search_btn">Search</button>
+                    </form>
+                </div>
+                <ul class="topbar_navigation">
+                <li>
+                    <a href="/logout">
+                        <span>Log Out</span>
+                    </a>
+                </li>
+            </ul>`;
+            res.end(html);
+        } else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    }
+    else if(req.url === "/sidebar"){
+        if(getRole(sessionData) === 'listener') {
+            const data = await getListener(sessionData, res);
+            let html = '';
+            html += `<div class="logo">
+                        <a href="/">
+                            <img src="/logo.png" alt="Logo">
+                        </a>
+                    </div>
+                    <div class="navigation">
+                        <ul>
+                            <li>
+                                <a href="/">
+                                    <span class="link_icon"></span>
+                                    <span>Home</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <span class="link_icon"></span>
+                                    <span>Search</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="navigation">
+                        <ul>
+                            <li>
+                                <a href="">
+                                    <span class="link_icon"></span>
+                                    <span>My Playlists</span>
+                                </a>
+                                <a href="/playlist/create" class="add_playlist">+</a>
+                                <ul class="list_container">`;
+                                for(const playlist of data.playlists) {
+                                    html += `<li>
+                                        <img src="/playlist/${playlist['PlaylistID']}/pic" alt="${playlist['PlaylistName']}">
+                                        <a href="/playlist/${playlist['PlaylistID']}">${playlist['PlaylistName']}</a>
+                                    </li>`;
+                                }
+                                html += `</ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="navigation">
+                        <ul>
+                            <li>
+                                <a href="">
+                                    <span class="link_icon"></span>
+                                    <span>Followed Artists</span>
+                                </a>
+                                <ul class="list_container">`;
+                                for(const follow of data.following) {
+                                    html += `<li>
+                                        <img src="/artist/${follow['ArtistID'] }/pic">
+                                        <a href='/artist/${follow['ArtistID']}'>${follow['ArtistName']}</a>
+                                    </li>`;
+                                }
+                                    html += `
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>`;
+            res.end(html);
+        } else if(getRole(sessionData) === 'artist') {
+            const data = await getArtist(sessionData, res);
+            let html = '';
+            html += `<div class="logo">
+                    <a href="">
+                        <img src="/logo.png" alt="Logo">
+                    </a>
+                </div>
+                <div class="navigation">
+                    <ul>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Search</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="navigation">
+                    <ul>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>My Music</span>
+                            </a>
+                            <a href="/album/create" class="add_album">+</a>
+                            <ul class="list_container">`;
+                            for(const album of data.albums) {
+                                html += `<li>
+                                    <img src="/album/${album['AlbumID']}/pic" alt="${album['AlbumName']}">
+                                    <a href='/album/${album['AlbumID']}'>${album['AlbumName']}</a>
+                                </li>`;
+                            }
+                            html += `</ul>
+                        </li>
+                        <!-- <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Publish Album</span>
+                            </a>
+                        </li> -->
+                    </ul>
+                </div>
+
+                <div class="navigation">
+                    <ul>
+                        <li>
+                            <a href="">
+                                <span class="link_icon"></span>
+                                <span>Followers</span>
+                            </a>
+                            <ul class="list_container">`;
+                            for(const follow of data.followers) {
+                                html += `<li>
+                                    <!-- <img src="/artist/{{ follow[1] }}/pic"> -->
+                                    <span>${follow['Username']}</span>
+                                </li>`;
+                            }
+                            html += `</ul>
+                        </li>
+                    </ul>
+                </div>`;
+            res.end(html);
+        } else {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    }
     //cd Desktop/TRA/COSC-3380-Project/nodejs nodemon server.js
     else if((matchUrl(req.url, '/login') ) &&  req.method === 'GET'){
-
-
         if(params['role'] === 'listener' || params['role'] === 'artist' || params['role'] === 'admin') {
             serveStatic_Plus(res, './templates/login.html', 'text/html',{ 'role': params['role'] }); //basically doing nujucks 
         } else {
@@ -432,13 +706,73 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'text/html' });
             res.end('<h1>Internal Server Error</h1>');
         }
-    } else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
+    } 
+
+    else if(matchUrl(req.url, '/register') && req.method === 'POST') {
+
+        const form = new Types.IncomingForm();
+        const fields = await new Promise((resolve, reject) => {
+            form.parse(req, (err, fields) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(fields);
+                }
+            });
+        });
+
+        let query, vals, result_query;
+        let role = params['role']
+
+        if (role === 'listener') {
+            query = 'INSERT INTO Listener (Fname, Lname, Email, DOB, Username, Password, Pnumber) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            vals = [fields.first, fields.last, fields.email, fields.DOB, fields.username, fields.password, fields.pnum]
+            result_query = "SELECT * FROM Listener WHERE UserID = LAST_INSERT_ID()"
+        } 
+        else if(role === 'artist') {
+            query = 'INSERT INTO Artist (ArtistName, Email, DOB, UserName, Password, Pnumber) VALUES (?, ?, ?, ?, ?, ?)';
+            vals = [fields.name, fields.email, fields.DOB, fields.username, fields.password, fields.pnum]
+            result_query = "SELECT * FROM Artist WHERE ArtistID = LAST_INSERT_ID()"
+        }
+        else {
+            console.log("If statement failed")
+            res.writeHead(404);
+            res.end('Not found');
+            return;
+        }
+
+        await executeQuery(query, vals);
+        const results = await executeQuery(result_query);
+
+
+        if (results.length > 0) {
+            const sessionData = {};
+            if (role === 'listener') {
+                sessionData['id'] = results[0]['UserID'];
+            } 
+            else if (role === 'artist') {
+                sessionData['id'] = results[0]['ArtistID'];
+            }
+
+            sessionData['role'] = role;
+            sessionData['logged_in'] = true;
+            sessionData['username'] = fields['username'];
+
+            res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Registration successful' }));
+        } else {
+            // No matching user found
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Registration failed' }));
+        }
+    }
+
+    else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
-        // logout redirect does not work for some reason
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
         // res.writeHead(302, { Location: '/' });
-        //hmm maybe this?
-        serveStaticFile(res, './templates/index.html', 'text/html');
+        res.end();
     } 
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
         serveStaticFile(res, './templates/listener_edit.html', "");
@@ -520,24 +854,30 @@ const server = http.createServer(async (req, res) => {
                 // Build the SQL query based on the form fields
                 let query = selectClause + 'FROM ListenedToHistory, Artist, Song, Album, Genre WHERE ';
 
+                let vals = [];
                 if (fields.beginDate) {
                     conditions.push(`DateAccessed >= ?`);
+                    vals.push(`${fields.beginDate} 00:00:00`);
                 }
 
                 if (fields.endDate) {
                     conditions.push(`DateAccessed <= ?`);
+                    vals.push(`${fields.endDate} 23:59:59`);
                 }
 
                 if (fields.artist) {
                     conditions.push(`ArtistName LIKE ?`);
+                    vals.push(`%${fields.artist}%`);
                 }
 
                 if (fields.album) {
                     conditions.push(`AlbumName LIKE ?`);
+                    vals.push(`%${fields.album}%`);
                 }
 
                 if (fields.genre) {
                     conditions.push(`Song.GenreCode = ?`);
+                    vals.push(fields.genre);
                 }
 
                 // Join the conditions with 'AND' and complete the query
@@ -546,29 +886,6 @@ const server = http.createServer(async (req, res) => {
                 } else {
                     query += conditions.join(' AND ');
                     query += ' AND UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
-                }
-
-                // Prepare values array
-                let vals = [];
-
-                if (fields.beginDate) {
-                    vals.push(`${fields.beginDate} 00:00:00`);
-                }
-
-                if (fields.endDate) {
-                    vals.push(`${fields.endDate} 23:59:59`);
-                }
-
-                if (fields.artist) {
-                    vals.push(`%${fields.artist}%`);
-                }
-
-                if (fields.album) {
-                    vals.push(`%${fields.album}%`);
-                }
-
-                if (fields.genre) {
-                    vals.push(fields.genre);
                 }
 
                 // Add UserID to the values array
@@ -602,7 +919,7 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
-    } else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
+    } else if(req.url === '/pic' && req.method === 'GET') {
         try {
             if (getRole(sessionData) !== 'listener') {
                 res.writeHead(401);
@@ -614,8 +931,8 @@ const server = http.createServer(async (req, res) => {
                 const results = await executeQuery(query, vals);
 
                 if (!results[0] || results[0]['ProfilePic'] === null) {
-                    res.writeHead(404, { 'Content-Type': 'text/html' });
-                    res.end('Not found');
+                    res.writeHead(302, { Location: '/logo.png' });
+                    res.end();
                     return;
                 }
 
@@ -747,16 +1064,16 @@ const server = http.createServer(async (req, res) => {
             const results = await executeQuery(query, vals);
 
             if (results.length === 0) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { Location: '/logo.png' });
+                res.end();
                 return;
             }
 
             const profilePic = results[0]['ProfilePic'];
 
             if (profilePic === null || profilePic === undefined) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { Location: '/logo.png' });
+                res.end();
                 return;
             }
 
@@ -771,20 +1088,17 @@ const server = http.createServer(async (req, res) => {
         }
     }
     else if (matchUrl(req.url, '/album/([0-9]+)') && req.method === 'GET'){
-        if (getRole(sessionData) === 'listener') {
-            serveStaticFile(res, './templates/album.html', "");
-        }
+        serveStaticFile(res, './templates/album.html', "");
     }
     // Serve Page for an Album 
     else if (matchUrl(req.url, '/ajax/album/([0-9]+)') && req.method === 'GET') {
         try {
-            if (getRole(sessionData) !== 'listener') {
-                res.writeHead(404);
-                res.end('Not Found');
-                return;
+            let data = {};
+            if (getRole(sessionData) === 'listener') {
+                data = await getListenerBaseData(sessionData.id);
+            } else if (getRole(sessionData) === 'artist') {
+                data = await getArtistBaseData(sessionData.id);
             }
-
-            const data = await getListenerBaseData(sessionData.id);
 
             const albumId = req.url.split('/')[3];
 
@@ -814,7 +1128,7 @@ const server = http.createServer(async (req, res) => {
 
             if (songResults.length === 0) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('No songs in album');
+                res.end(JSON.stringify(data));
                 return;
             }
 
@@ -842,6 +1156,10 @@ const server = http.createServer(async (req, res) => {
             const moreByResults = await executeQuery(moreByQuery, moreByValues);
             data.more_by = moreByResults;
 
+            if(getRole(sessionData) === 'artist') {
+                data.playlists = [];
+            }
+
             data.username = sessionData.username;
             res.writeHead(200);
             res.end(JSON.stringify(data));
@@ -858,8 +1176,8 @@ const server = http.createServer(async (req, res) => {
             const results = await executeQuery(query, [albumId]);
 
             if (results.length === 0 || results[0]['AlbumPic'] === null || results[0]['AlbumPic'] === undefined) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { Location: '/logo.png' });
+                res.end();
                 return;
             }
 
@@ -877,10 +1195,60 @@ const server = http.createServer(async (req, res) => {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/playlist.html', "");
         }
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/add/([0-9]+)') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[2];
+        const songId = req.url.split('/')[4];
+        if (getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        try {
+            const result = await executeQuery('SELECT SongID, PlaylistID FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+            if(result.length > 0) {
+                res.end("Song has already been added to this playlist");
+                return;
+            }
+
+            await executeQuery('INSERT INTO PlaylistSong (PlaylistID, SongID) VALUES (?,?)', [playlistId, songId]);
+
+            res.end("Song successfully added to playlist");
+
+        } catch(error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/remove/([0-9]+)') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[2];
+        const songId = req.url.split('/')[4];
+        if (getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        try {
+            const result = await executeQuery('SELECT SongID, PlaylistID FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+            if(result.length === 0) {
+                res.end("Song is not in this playlist");
+                return;
+            }
+
+            await executeQuery('DELETE FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+
+            res.end("Song successfully removed from playlist");
+
+        } catch(error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
+
     } else if(matchUrl(req.url, '/ajax/playlist/([0-9]+)') && req.method === 'GET') {
         const playlistId = req.url.split('/')[3];
 
-        // Check user role (you'll need to implement get_role function)
         if (getRole(sessionData) !== 'listener') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });
             res.end("You are not authorized to do that");
@@ -896,6 +1264,11 @@ const server = http.createServer(async (req, res) => {
 
             data.playlist = playlistResult[0];
             data.username = sessionData['username'];
+
+            const duration_min = Math.floor(data.playlist['PlaylistDuration'] / 60);
+            const duration_sec = Math.floor(data.playlist['PlaylistDuration'] % 60);
+
+            data.playlist_duration = `${duration_min} min ${duration_sec} sec`;
 
             // Get songs in the playlist
             const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
@@ -914,6 +1287,8 @@ const server = http.createServer(async (req, res) => {
 
             data.recommended = recommendedSongsResult;
 
+
+
             res.end(JSON.stringify(data));
         } catch (error) {
             console.error(error);
@@ -931,16 +1306,16 @@ const server = http.createServer(async (req, res) => {
             const results = await executeQuery(query, vals);
 
             if (results.length === 0) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { location: '/logo.png' });
+                res.end();
                 return;
             }
 
             const albumPic = results[0]['AlbumPic'];
 
             if (albumPic === null || albumPic === undefined) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { location: '/logo.png' });
+                res.end();
                 return;
             }
 
@@ -1029,7 +1404,7 @@ const server = http.createServer(async (req, res) => {
     } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method === 'GET') {
         try {
             const songId = req.url.split('/')[2];
-            const query = 'SELECT SongFile FROM Song WHERE SongID=?';
+            const query = 'SELECT SongFile,Duration FROM Song WHERE SongID=?';
             const vals = [songId];
 
             const results = await executeQuery(query, vals);
@@ -1049,6 +1424,11 @@ const server = http.createServer(async (req, res) => {
             }
 
             const type = fileTypeFromBuffer(songFile);
+
+            // add to the listen history. full duration of the song for now
+            if(getRole(sessionData) === 'listener') {
+                await executeQuery('INSERT INTO ListenedToHistory (SongID,UserID,Duration) VALUES (?,?,?)', [songId, sessionData.id, results[0]['Duration']]);
+            }
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(songFile);
@@ -1131,6 +1511,6 @@ const server = http.createServer(async (req, res) => {
     }
   });
   
-  server.listen(5000, () => {
-    console.log('Server running on http://localhost:5000');
+  server.listen(80, () => {
+    console.log('Server started');
   });

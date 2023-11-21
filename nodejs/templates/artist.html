@@ -1,77 +1,122 @@
-{% extends 'base_artist.html' %}
-{% block page %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Artist</title>
+</head>
+<body>
+<!-- Top Navigation Bar -->
+<header id='topBar'>
+</header>
 <!-- Main Container To Display The Songs -->
     <div class="main_container">
         <div class="song_list">
             <h2>My Music</h2>
             <!-- Container to hold the song image, name, and artist name. Replace direct paths with actual database information. 
                 Need to make a loop to create for however many we want to display. Instead of making each ourselves.-->
-            <div class="list">
-                {% for album in data.my_music %}
-                <div class="item">
-                    <a href='/album/{{ album['AlbumID'] }}'><img src="/album/{{ album['AlbumID'] }}/pic"></a>
-                    <h4>{{ album['AlbumName'] }}</h4>
-                    <a href='/artist/{{ album['ArtistID'] }}'>{{ album['ArtistName'] }}</a>
-                </div>
-                {% endfor %}
+            <div class="list" id='myMusic'>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
             <h2>Most Played Albums</h2>
-            <div class="list">
-                {% for album in data.most_played_albums %}
-                <div class="item">
-                    <a href='/album/{{ album['AlbumID'] }}'><img src="/album/{{ album['AlbumID'] }}/pic"></a>
-                    <h4>{{ album['AlbumName'] }}</h4>
-                    <a href='/artist/{{ album['ArtistID'] }}'>{{ album['ArtistName'] }}</a>
-                </div>
-                {% endfor %}
+            <div class="list" id='mostPlayedAlbums'>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
             <h2>Highest Rated Albums</h2>
-            <div class="list">
-                {% for album in data.highest_rated_albums %}
-                <div class="item">
-                    <a href='/album/{{ album['AlbumID'] }}'><img src="/album/{{ album['AlbumID'] }}/pic"></a>
-                    <h4>{{ album['AlbumName'] }}</h4>
-                    <a href='/artist/{{ album['ArtistID'] }}'>{{ album['ArtistName'] }}</a>
-                </div>
-                {% endfor %}
+            <div class="list" id='highestRatedAlbums'>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
             <h2>Most Played Songs</h2>
-            <div class="list">
-                {% for song in data.most_played_songs %}
-                <div class="item">
-                    <a href='/album/{{ song['AlbumID'] }}'><img src="/album/{{ song['AlbumID'] }}/pic"></a>
-                    <h4>{{ song['Name'] }}</h4>
-                    <a href='/album/{{ song['AlbumID'] }}'>{{ song['AlbumName'] }}</a>
-                </div>
-                {% endfor %}
+            <div class="list" id='mostPlayedSongs'>
             </div>
             <hr>
         </div>
 
         <div class="song_list">
             <h2>Highest Rated Songs</h2>
-            <div class="list">
-                {% for song in data.highest_rated_songs %}
-                <div class="item">
-                    <a href='/album/{{ song['AlbumID'] }}'><img src="/album/{{ song['AlbumID'] }}/pic"></a>
-                    <h4>{{ song['Name'] }}</h4>
-                    <a href='/album/{{ song['AlbumID'] }}'>{{ song['AlbumName'] }}</a>
-                </div>
-                {% endfor %}
+            <div class="list" id='highestRatedSongs'>
             </div>
             <hr>
         </div>
     </div>
-{% endblock %}
+
+<div class="left_sidebar" id='leftBar'>
+    
+</div>
+<script src='/base.js'></script>
+<script>
+addEventListener("DOMContentLoaded", (event) => {
+    fetch('/ajax')
+        .then(response => response.json())
+        .then(data => {
+
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            let html = '';
+            for(const album of data['my_music']) {
+                html += `<div class="item">
+                    <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
+                    <h4>${album['AlbumName']}</h4>
+                    <a href='/artist/${album['ArtistID']}'>${album['ArtistName']}</a>
+                </div>`;
+            }
+            document.getElementById('myMusic').innerHTML = html;
+
+            html = '';
+            for(const album of data.most_played_albums) {
+                html += `<div class="item">
+                    <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
+                    <h4>${album['AlbumName']}</h4>
+                    <a href='/artist/${album['ArtistID']}'>${album['ArtistName']}</a>
+                </div>`;
+            }
+            document.getElementById('mostPlayedAlbums').innerHTML = html;
+
+            html = '';
+            for(const album of data.highest_rated_albums) {
+                html += `<div class="item">
+                    <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
+                    <h4>${album['AlbumName']}</h4>
+                    <a href='/artist/${album['ArtistID']}'>${album['ArtistName']}</a>
+                </div>`;
+            }
+            document.getElementById('highestRatedAlbums').innerHTML = html;
+
+            html = '';
+            for(const song of data.most_played_songs) {
+                html += `<div class="item">
+                    <a href='/album/${song['AlbumID']}'><img src="/album/${song['AlbumID']}/pic"></a>
+                    <h4>${song['SongName']}</h4>
+                    <a href='/album/${song['AlbumID']}'>${song['AlbumName']}</a>
+                </div>`;
+            }
+            document.getElementById('mostPlayedSongs').innerHTML = html;
+
+            html = '';
+            for(const song of data.highest_rated_songs) {
+                html += `<div class="item">
+                    <a href='/album/${song['AlbumID']}'><img src="/album/${song['AlbumID']}/pic"></a>
+                    <h4>${song['SongName']}</h4>
+                    <a href='/album/${song['AlbumID']}'>${song['AlbumName']}</a>
+                </div>`;
+            }
+            document.getElementById('highestRatedSongs').innerHTML = html;
+        })
+});
+</script>
+</body>
+</html>
