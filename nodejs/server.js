@@ -811,7 +811,9 @@ const server = http.createServer(async (req, res) => {
 
      // Serve Edit Profile Page
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
-        serveStaticFile(res, './templates/listener_edit.html', "");
+        if (getRole(sessionData) === 'listener') {
+            serveStaticFile(res, './templates/listener_edit.html', "");
+        }
     }
 
     else if (matchUrl(req.url, '/edit') && req.method =='POST') {
@@ -1493,12 +1495,12 @@ const server = http.createServer(async (req, res) => {
             const insertQuery = 'INSERT INTO Playlist (UserID, PlaylistName) VALUES (?, ?)';
             await executeQuery(insertQuery, [sessionData.id, fields['playlistname']]);
 
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end("Successfully created playlist");
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Playlist Succesfully Created' }));
         } catch (error) {
             console.error('Error creating playlist:', error);
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.end("Internal Server Error");
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, message: 'Playlist Creation Failed' }));
         }
     } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method === 'GET') {
         try {
