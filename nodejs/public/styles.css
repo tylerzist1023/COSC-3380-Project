@@ -172,6 +172,7 @@ a.add_album {
 
 .topbar .search .search_btn {
     background: rgb(184, 184, 184, .1);
+    margin-left: 5px;
     outline: none;
     padding: 0px 10px;
     color: white;
@@ -1139,7 +1140,6 @@ button.login_btn:hover {
 /* Report Form Style */
 .report_form_container {
     color: #859ad3;
-    /* border: white solid; */
     margin: 15px auto;
     align-items: center;
     position: relative;
@@ -1172,7 +1172,6 @@ button.login_btn:hover {
     margin-top: 8px;
     padding: 0 15px;
     font-size: large;
-
 }
 
 .report_form_container .historyForm div input {
@@ -1182,24 +1181,6 @@ button.login_btn:hover {
     border: 1px solid #ddd;
     border-radius: 6px;
     padding: 0 15px;
-}
-
-.report_form_container .historyForm div button {
-    height: 55px;
-    width: 100%;
-    color: #ffffff;
-    font-size: 1rem;
-    border: none;
-    margin-top: 30px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: 400;
-    transition: all 0.2s ease;
-    background-color: #2b4ba1;
-}
-
-.report_form_container .historyForm div button:hover {
-    background-color: rgb(43, 45, 161);
 }
 
 .report_form_container table {
@@ -1233,4 +1214,51 @@ button.login_btn:hover {
 
 .report_form_container tbody tr:nth-of-type(even) {
     background-color: #1e2844;
+}
+
+/* Search Form Styling */
+.search_form_container {
+    color: #859ad3;
+    margin: 15px auto;
+    width: 60%;
+    /* background: #1e2844; */
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    /* border: white solid; */
+    float: left;
+    margin-left: 50px;
+}
+
+.search_form_container .searchForm .search_form_bar input {
+    height: 50px;
+    width: 75%;
+    outline: none;
+    font-size: 1rem;
+    color: #707070;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 0 15px;
+}
+
+.search_form_container .searchForm .search_form_bar select {
+    height: 40px;
+    font-size: 1rem;
+    margin-left: 15px;
+    font-weight: 400;
+}
+
+.search_form_container .searchForm .search_form_bar button {
+    height: 40px;
+    width: 10%;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-left: 15px;
+    cursor: pointer;
+    border-radius: 25px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
 }

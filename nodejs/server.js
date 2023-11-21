@@ -11,6 +11,7 @@ import  Types  from 'formidable';
 import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
+import { match } from 'assert';
 
 // import nodemon from 'nodemon';
 
@@ -534,7 +535,7 @@ const server = http.createServer(async (req, res) => {
                                 </a>
                             </li>
                             <li>
-                                <a href="">
+                                <a href="/search">
                                     <span class="link_icon"></span>
                                     <span>Search</span>
                                 </a>
@@ -1070,7 +1071,17 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'text/html' });
             res.end('<h1>Internal Server Error</h1>');
         }
-    } else if(matchUrl(req.url, '/artist/([0-9]+)/follow') && req.method === 'GET') {
+    } 
+
+    else if(matchUrl(req.url, '/search') && req.method === 'GET') {
+        if (getRole(sessionData) === 'listener') {
+            serveStaticFile(res, './templates/search_form.html', "");
+        }
+    }
+    
+    
+    
+    else if(matchUrl(req.url, '/artist/([0-9]+)/follow') && req.method === 'GET') {
         try {
             if (getRole(sessionData) !== 'listener') {
                 res.writeHead(401, { 'Content-Type': 'text/plain' });
