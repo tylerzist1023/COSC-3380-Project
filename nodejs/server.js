@@ -780,7 +780,7 @@ const server = http.createServer(async (req, res) => {
     else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-        // res.writeHead(302, { Location: '/' });
+        res.writeHead(302, { Location: '/' });
         res.end();
     } 
 
@@ -852,6 +852,7 @@ const server = http.createServer(async (req, res) => {
             sessionData.username = fields.username;
             console.log(results)
 
+            res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(results));
         }
@@ -1007,13 +1008,8 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
-<<<<<<< HEAD
     } 
-    
     else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
-=======
-    } else if(req.url === '/pic' && req.method === 'GET') {
->>>>>>> d76fd2a655043cf54e53ba8c03dc07ea64c955cc
         try {
             if (getRole(sessionData) !== 'listener') {
                 res.writeHead(401);
