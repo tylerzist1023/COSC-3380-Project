@@ -1,13 +1,21 @@
-{% extends 'base 1.html' %}
-{% block title %}Admin Page{% endblock %}
-{% block head %}
-{{ super() }}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>Admin</title>
+</head>
+
 <style>
     :root {
         --background-color: #121212;
         --primary-text-color: #ffffff;
         --secondary-text-color: #bbbbbb;
-        --accent-color: #d82020;
+        --accent-color: #859ad3;
         --divider-color: #222222;
     }
 
@@ -92,6 +100,25 @@
     input[type="submit"]:hover {
         background-color: #3a070e;
     }
+    .logout-button {
+    background-color: #859ad3; /* Background color */
+    border: none;
+    color: #000000; /* Black text color */
+    padding: 15px 32px;
+    text-align: left; /* Align text to the left */
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px; /* Rounded corners */
+}
+
+.logout-button:hover {
+    color: red; /* Text color turns red on hover */
+    background-color: #859ad3; /* Optional: Change background color on hover */
+}
+
 
     .scroll-box {
         max-height: 200px;
@@ -119,23 +146,25 @@
         }
     }
 </style>
-{% endblock %}
-{% block body %}
+
 
 <div class="admin-header">
     <h1>Admin Dashboard</h1>
 </div>
 
 
-<div class="container">
+<div class="logout-button">
 <a href='/logout'>Logout</a>
+</div>
 
+
+
+<div class="container">
     <div class="side-panel">
-        <h2>Recently Made Artist</h2>
-        <ul>
-            {% for artist in top_artists %}
-            <li>{{ artist[0]}}</li>
-            {% endfor %}
+            <h2>Recently Made Artist</h2>
+            <ul id="artists-list">
+                <!-- Artists will be added here by JavaScript -->
+            </ul>
         </ul>
         
         <h2>Recently Made Songs</h2>
@@ -181,5 +210,24 @@
         </div>
 
 </div>
+    </div>
 
-{% endblock %}
+<script> 
+// document.addEventListener('DOMContentLoaded', async function() {
+//     try {
+//         const response = await fetch('/baseadmin');
+//         const data = await response.json();
+//         const artistsList = document.getElementById('artists-list');
+//         data.forEach(artist => {
+//             let listItem = document.createElement('li');
+//             listItem.textContent = artist.name; // Assuming 'name' is a property of the artist object
+//             artistsList.appendChild(listItem);
+//         });
+//     } catch (error) {
+//         console.error('Error:', error);
+//     }
+// });
+
+
+
+</script>

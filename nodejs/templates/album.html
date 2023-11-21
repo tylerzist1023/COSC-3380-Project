@@ -73,7 +73,7 @@
 
 <div id='playerDiv' style='display:none;' class="song_player">
     <!-- Replace image, song name, artist name with actual database information -->
-    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <img id='playerImage' src="" alt="song name">
     <h5>
     <div id='playerSong'>Song Name</div>
     <div id='playerArtist' class="artist_name">Artist Name</div>
@@ -148,13 +148,16 @@ addEventListener("DOMContentLoaded", (event) => {
                 </div>`;
             document.getElementById('albumData').innerHTML = html;
 
-
-            let playlistsDropdownHtml = '';
-            for(const playlist of data['playlists']) {
-                playlistsDropdownHtml += `<div class="dropdown_item">
-                    <a href="">${playlist['PlaylistName']}</a>
-                </div>`;
+            const playlistsDropdownHtml = function(songId) {
+                let html = '';
+                for(const playlist of data['playlists']) {
+                    html += `<div class="dropdown_item">
+                        <a href="/playlist/${playlist['PlaylistID']}/add/${songId}">${playlist['PlaylistName']}</a>
+                    </div>`;
+                }
+                return html;
             }
+            
 
             html = '';
             for(const song of data['songData']) {
@@ -178,7 +181,7 @@ addEventListener("DOMContentLoaded", (event) => {
                                         <div class="dropdown">
                                             <h4>+</h4>
                                             <div class="dropdown_menu">
-                                                ${playlistsDropdownHtml}
+                                                ${playlistsDropdownHtml(song['songID'])}
                                             </div>
                                         </div>
                                     </li>
