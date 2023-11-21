@@ -13,7 +13,7 @@ import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
-import { getAdminArtist } from './insights.js';
+import { getAdminArtist ,getAdminSong} from './insights.js';
 
 // import nodemon from 'nodemon';
 
@@ -455,6 +455,9 @@ const server = http.createServer(async (req, res) => {
 
         if(request_to_serve=='Artist'){
             res.end(JSON.stringify(await getAdminArtist()));
+        }
+        else if(request_to_serve=='Song'){
+            res.end(JSON.stringify(await getAdminSong()));
         }
 
         

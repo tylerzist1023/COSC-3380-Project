@@ -61,8 +61,49 @@ async function getAdminArtist() {
         return {error: "Error"};
     }
 }
+async function getAdminSong() {
+    try {
+        const data = {};
+
+
+        const sqlQuery = `
+SELECT 
+    Song.SongID AS SongID,
+    Song.Name AS SongName,
+    Artist.ArtistID AS ArtistID,
+    Artist.ArtistName AS ArtistName,
+    Song.AlbumID AS AlbumID,
+    Album.AlbumPic AS AlbumPic
+FROM 
+    Song
+INNER JOIN Artist ON Song.ArtistID = Artist.ArtistID
+INNER JOIN Album ON Song.AlbumID = Album.AlbumID
+ORDER BY Artist.ArtistID;
+`;
+        const NewSongResults = await executeQuery(sqlQuery);
+        
+
+        NewSongResults.forEach(artist => {
+            if (artist.AlbumPic&& Buffer.isBuffer(artist.AlbumPic)) {
+                // Convert the Buffer to a Base64 string
+                artist.AlbumPic = artist.AlbumPic.toString('base64');
+            }
+        });
+
+        data['NewSong'] = NewSongResults;
+        return data;
+
+
+
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 
 
 
-export { getAdminArtist};
+
+
+export { getAdminArtist,getAdminSong};
