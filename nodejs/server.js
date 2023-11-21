@@ -440,9 +440,10 @@ const server = http.createServer(async (req, res) => {
 
         }
 
-        res.writeHead(404);
-        res.end('Not Found');
-
+        // res.writeHead(404);
+        // res.end('Not Found');
+        serveStaticFile(res, "./templates/redirect_error.html", "");
+        
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/profile_listener.html", "");
@@ -452,8 +453,10 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        res.writeHead(404);
-        res.end('Not Found');
+        // res.writeHead(404);
+        // res.end('Not Found');
+        serveStaticFile(res, "./templates/redirect_error.html", "");
+
     } else if (matchUrl(req.url, '/ajax/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             res.end(JSON.stringify(await getListenerProfile(sessionData, res)));
@@ -463,10 +466,18 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        res.writeHead(404);
-        res.end('Not Found');
+        // res.writeHead(404);
+        // res.end('Not Found');
+        serveStaticFile(res, "./templates/redirect_error.html", "");
+        
+
     }
     else if(joshieboymatch(req.url,'/admin/insights/')){
+
+        if(getRole(sessionData)!="admin"){
+            serveStaticFile(res, "./templates/redirect_error.html", "");
+            return
+        }
 
 
         const profile = (req.url.replace('/admin/insights/',""));
