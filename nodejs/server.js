@@ -154,6 +154,26 @@ function serveStaticFile(res, filePath, contentType, responseCode = 200) {
         }
     });
 }
+const getAdminBaseData= async (userId) => {
+    try {
+        const data = {};
+
+        // Get all the new songs added
+        const NewSongQuery = 'SELECT Song.Name AS SongName, Artist.ArtistName, Artist.ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp DESC LIMIT 5';
+        const NewSongResults = await executeQuery(NewSongQuery);
+        data['NewSongs'] = NewSongResults;
+
+        // Get playlists
+        const NewArtistQuery = 'SELECT ArtistName, ProfilePic FROM Artist ORDER BY CreationStamp DESC LIMIT 5';
+        const NewArtistResults = await executeQuery(NewArtistQuery);
+        data['NewArtist'] = NewArtistResults;
+
+        return data;
+    } catch (err) {
+        throw new Error(`Error in getListenerBaseData: ${err.message}`);
+    }
+};
+
 
 const getListenerBaseData = async (userId) => {
     try {
@@ -174,6 +194,23 @@ const getListenerBaseData = async (userId) => {
         throw new Error(`Error in getListenerBaseData: ${err.message}`);
     }
 };
+async function getAdmin(sessionData, res) {
+    try {
+        if (getRole(sessionData) !== 'admin') {
+            return;
+        }
+
+        const data = await getAdminBaseData();
+        data.newartist = data['NewArtist'];
+        data.newsongs = data['NewSongs'];
+
+        res.end(JSON.stringify(data));
+    } catch (error) {
+        console.error(error);
+        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.end('<h1>Internal Server Error</h1>');
+    }
+}
 
 
 async function getListener(sessionData, res) {
@@ -244,7 +281,7 @@ const server = http.createServer(async (req, res) => {
     const parsedUrl = url.parse(req.url);
     const params = querystring.parse(parsedUrl.query);
 
-    print(sessionData);
+    // print(sessionData);
 
     // html of the homepage
     if (req.url === '/') {
@@ -252,12 +289,25 @@ const server = http.createServer(async (req, res) => {
             serveStaticFile(res, "./templates/listener.html", "");
             return;
         }
+        else if(getRole(sessionData) === 'admin'){
+            serveStaticFile(res, "./templates/admin.html", "");
+            return;
+        }
 
         serveStaticFile(res, './templates/index.html', 'text/html');
     } else if(req.url === '/ajax') {
         await getListener(sessionData, res);
 
-    } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
+    } 
+    else if(req.url === '/baseadmin') {
+        await getAdmin(sessionData, res);
+
+    } 
+    
+    
+    
+    
+    else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/profile_listener.html", "");
             return;
@@ -387,7 +437,8 @@ const server = http.createServer(async (req, res) => {
         // logout redirect does not work for some reason
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
         // res.writeHead(302, { Location: '/' });
-        res.end();
+        //hmm maybe this?
+        serveStaticFile(res, './templates/index.html', 'text/html');
     } 
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
         serveStaticFile(res, './templates/listener_edit.html', "");
