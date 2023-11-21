@@ -160,7 +160,7 @@ addEventListener("DOMContentLoaded", (event) => {
                                         <form method='POST' action="/song/${song[5]}/rate">
 
                                             <div>
-                                                <input style='width:32px;' type="number" name="rating" id="rating" placeholder="5">
+                                                <input style='width:32px;' type="number" name="rating" id="rating" min="0" placeholder="5">
                                             <button type="submit">Rate</button>
                                             </div>
                                         </form>
