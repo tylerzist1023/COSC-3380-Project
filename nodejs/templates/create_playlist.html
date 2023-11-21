@@ -23,7 +23,7 @@
                     <h1>Create New Playlist</h1>
                 </header>
                 
-                <form method='POST' action="/playlist/create" class="form">
+                <form method='POST' action="/playlist/create" class="form" id="createPlaylist">
                     <div class="input_box">
                         <label for="playlistname">Playlist Name</label>
                         <input type="text" name="playlistname" id="username" placeholder="Enter a name for the playlist" required>
@@ -49,6 +49,36 @@ addEventListener("DOMContentLoaded", (event) => {
             document.getElementById('leftBar').innerHTML = getSidebar(data);
         });
 });
+
+document.getElementById('createPlaylist').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const formData = new FormData(event.target);
+
+  try {
+    const response = await fetch(window.location.href, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Display a notification if login is successful
+      alert('Playlist Created Successfully');
+
+      // Redirect to the index page
+      window.location.href = '/';
+    } else {
+      console.error('Playlist Creation Failed');
+      // Display a notification if login failed.
+      alert('Username or Password is incorrect');
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+});
+
 </script>
 </body>
 </html>

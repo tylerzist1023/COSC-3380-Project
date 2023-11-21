@@ -1140,18 +1140,28 @@ button.login_btn:hover {
 .report_form_container {
     color: #859ad3;
     /* border: white solid; */
-    margin: 15px;
+    margin: 15px auto;
     align-items: center;
+    position: relative;
+    width: fit-content;
+    background: #1e2844;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    justify-content: center;
 }
 
 .report_form_container header {
+    font-size: 1.5rem;
+    font-weight: 500;
+    text-align: center;
     margin: 15px;
 }
 
 .report_form_container .historyForm div {
     display: flex;
     /* border: solid white ; */
-    flex-direction: row;
+    /* flex-direction: row; */
     margin: 15px;
 }
 
@@ -1159,9 +1169,68 @@ button.login_btn:hover {
     display: flex;
     /* border: solid white ; */
     flex-direction: row;
-    padding: 0px 5px 0px 50px;
+    margin-top: 8px;
+    padding: 0 15px;
+    font-size: large;
+
+}
+
+.report_form_container .historyForm div input {
+    font-size: 1rem;
+    color: #707070;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0 15px;
 }
 
 .report_form_container .historyForm div button {
-    float: right;
+    height: 55px;
+    width: 100%;
+    color: #ffffff;
+    font-size: 1rem;
+    border: none;
+    margin-top: 30px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    background-color: #2b4ba1;
+}
+
+.report_form_container .historyForm div button:hover {
+    background-color: rgb(43, 45, 161);
+}
+
+.report_form_container table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 30px;
+    font-size: 1em;
+    font-family: sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    border-color: black;
+}
+
+.report_form_container th {
+    background-color: #13192b;
+    color: #859ad3;
+    text-align: center;
+    padding: 12px 15px;
+}
+
+.report_form_container th,
+.report_form_container td {
+    padding: 12px 15px;
+}
+
+.report_form_container tbody tr {
+    background-color: #283457;
+    border-bottom: 1px solid #dddddd;
+    border-color: black;
+}
+
+.report_form_container tbody tr:nth-of-type(even) {
+    background-color: #1e2844;
 }
