@@ -1,0 +1,395 @@
+:root {
+    --background-color: #121212;
+    --primary-text-color: #ffffff;
+    --secondary-text-color: #bbbbbb;
+    --accent-color: #e71c0e;
+    --divider-color: #ca1515;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--primary-text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.side-panel, .middle-panel {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.artist-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
+    width: 100vw; /* Match the entire width of the viewport */
+    height: 10; /* Match the entire height of the viewport */
+}
+
+
+.artist-box:hover {
+background-color: var(--accent-color);
+}
+
+.artist-image {
+width: 100px; /* Adjust the width of the image */
+height: 100px; /* Adjust the height of the image */
+border-radius: 50%;
+object-fit: cover;
+margin-left: 10px;
+}
+
+.artist-name {
+color: var(--primary-text-color);
+text-align: left;
+font-size: 1em;
+flex-grow: 1;
+}
+
+
+.side-panel {
+    flex: 1 1 30%;
+}
+
+.middle-panel {
+    flex: 1 1 40%;
+}
+
+.admin-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: var(--accent-color);
+}
+
+h2 {
+    border-bottom: 1px solid var(--divider-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    border-bottom: 1px solid var(--divider-color);
+}
+
+li:hover {
+    background-color: var(--divider-color);
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #ffffff;
+    color: var(--secondary-text-color);
+}
+
+input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    color: var(--primary-text-color);
+    background-color: var(--accent-color);
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: #e90725;
+}
+.logout-button {
+background-color: #d38585; /* Background color */
+border: none;
+color: #000000; /* Black text color */
+padding: 10px 16px; /* Adjust padding to make it smaller */
+text-align: left; /* Align text to the left */
+text-decoration: none;
+display: inline-block;
+font-size: 14px; /* Adjust font size to make it smaller */
+cursor: pointer;
+border-radius: 8px; /* Rounded corners */
+margin: 4px; /* Add margin for spacing */
+position: absolute; /* Position absolute for top-left corner */
+top: 10px; /* Adjust top position for spacing from top */
+left: 10px; /* Adjust left position for spacing from left */
+}
+
+.logout-button:hover {
+color: red; /* Text color turns red on hover */
+background-color: #d1120c; /* Optional: Change background color on hover */
+}
+
+
+.scroll-box {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.scroll-box p {
+    padding: 10px;
+    border-bottom: 1px solid var(--divider-color);
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+/* Media query for responsiveness */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .side-panel, .middle-panel {
+        flex: 1 1 auto;
+    }
+}
+/* Style for the header */
+/* CSS for the "View" buttons */
+.view-button {
+float: right;
+background-color: red;
+color: white;
+padding: 5px 10px;
+border-radius: 5px;
+text-decoration: none;
+margin-left: 10px; /* Add some margin between the value and button */
+}
+
+.view-button:hover {
+background-color: darkred; /* Change color on hover */
+}
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Variables for colors */
+:root {
+    --background-color: #121212;
+    --primary-text-color: #ffffff;
+    --secondary-text-color: #bbbbbb;
+    --accent-color: #e71c0e;
+    --divider-color: #ca1515;
+    --button-bg-color: red; /* Red button background color */
+    --button-text-color: white; /* Button text color */
+}
+
+/* Common styles for header and logout button */
+.admin-header {
+    background-color: var(--background-color);
+    padding: 10px;
+    text-align: center;
+}
+
+.admin-header h1 {
+    color: var(--accent-color);
+    margin: 0;
+}
+
+.logout-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--accent-color);
+    border: none;
+    color: var(--primary-text-color);
+    padding: 10px 16px; /* Adjust padding to make it smaller */
+    text-align: left; /* Align text to the left */
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px; /* Adjust font size to make it smaller */
+    cursor: pointer;
+    border-radius: 8px; /* Rounded corners */
+    margin: 4px; /* Add margin for spacing */
+}
+
+.logout-button:hover {
+    color: red; /* Text color turns red on hover */
+    background-color: darkred; /* Optional: Change background color on hover */
+}
+
+/* Main container layout */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Left panel styles (Unresolved and Resolved Requests) */
+.left-panel {
+    flex: 1;
+}
+
+.request-section {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.request-section h2 {
+    color: var(--accent-color);
+}
+
+/* Right panel styles (Search and Insights) */
+.right-panel {
+    flex: 1;
+}
+
+/* Search section styles */
+.search-section {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.search-section h2 {
+    color: var(--accent-color);
+}
+
+/* Insights section styles */
+.insights-section {
+    background-color: var(--background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+}
+
+.insights-section h2 {
+    color: var(--accent-color);
+}
+
+/* Insights box styles */
+.insight-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+    color: blue
+}
+
+.insight-box {
+    flex: 1;
+    background-color: black; /* Change background color to black */
+    color: white; /* Change text color to white */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.insight-box h3 {
+    color: var(--accent-color);
+}
+
+.insight-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-button {
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-left: auto; /* Push the button to the right */
+}
+
+
+.view-button:hover {
+    background-color: var(--button-hover-bg-color); /* Change background color on hover */
+    color: var(--button-hover-text-color); /* Change text color on hover */
+}
+
+
+.view-button:hover {
+    background-color: green; /* Change color on hover */
+}
+/* CSS for the "Reports" box */
+.reports-box {
+    background-color: rgb(255, 255, 255);
+    color: rgb(255, 255, 255); /* Change text color to white for better visibility */
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer; /* Add cursor pointer for hover effect */
+    transition: background-color 0.2s; /* Smooth transition on hover */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Use a common sans-serif font */
+    font-size: 14px; /* Adjust font size for readability */
+}
+
+/* Change background color on hover */
+.reports-box:hover {
+    background-color: rgb(0, 255, 106); /* You can use your desired hover color here */
+}
+/* CSS for the scroll box container */
+.scroll-box {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* Add the following styles to your existing CSS for the insight boxes */
+.insight-box {
+    background-color: black;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.insight-box:hover {
+    background-color: rgb(0, 123, 139);
+}
+
+.view-button {
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.view-button:hover {
+    background-color: darkred;
+}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style_admin.css"> <!-- Link to your CSS file -->
+    <title>Info {{profile}}s</title>
+    <style>
+        /* Reset default margin and padding */
+        body, h1 {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Apply black background to the entire page */
+        body {
+            background-color: black;
+            color: white; /* Set text color to white */
+            font-family: Arial, sans-serif; /* Choose a professional font */
+        }
+
+        /* Style the header */
+        header {
+            background-color: #333; /* Dark gray background color for the header */
+            padding: 20px; /* Add some padding for spacing */
+            text-align: center; /* Center-align the text */
+        }
+
+        h1 {
+            font-size: 24px; /* Adjust the font size as needed */
+            font-weight: bold; /* Make the header text bold */
+        }
+
+        /* Add additional styles for content here */
+
+    </style>
+</head>
+<body>
+    <!-- Header section -->
+    <header>
+        <h1>Info for All {{profile}}s</h1>
+    </header>
+
+    <!-- Content section -->
+    <div class="content">
+        <p id="{{profile}}"> </p>
+    </div>
+</body>
+</html>
+<script> 
+
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch('/admin/insights/type');
+        const data = await response.json();
+        console.log(data);
+
+        const artistsList = document.getElementById('Artist');
+        if (data.NewArtist && Array.isArray(data.NewArtist)) {
+            data.NewArtist.forEach(artist => {
+                let artistLink = document.createElement('a');
+                artistLink.href = `/artist/admin/${artist.ArtistID}`; // Link to artist's admin page
+                artistLink.classList.add('artist-box');
+
+                let name = document.createElement('div');
+                name.textContent = artist.ArtistName;
+                name.classList.add('artist-name');
+                artistLink.appendChild(name);
+
+                let img = document.createElement('img');
+                img.classList.add('artist-image');
+
+                if (artist.ProfilePic) {
+                    // If the artist has a profile picture, set the src to the Base64 data
+                    img.src = `data:image/png;base64,${artist.ProfilePic}`;
+                } else {
+                    // If the artist doesn't have a profile picture, set a placeholder image
+                    img.src = '/npc/picture'; // Replace with the path to your placeholder image
+                    img.alt = 'Default Profile Picture';
+                }
+
+                artistLink.appendChild(img);
+
+                artistsList.appendChild(artistLink);
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+
+
+
+
+
+
+
+
+
+</script>
