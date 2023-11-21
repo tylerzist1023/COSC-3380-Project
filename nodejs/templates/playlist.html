@@ -15,6 +15,9 @@
 <!-- Main Container To Display The Album Details and Songs-->
 <header id='topBar'>
 </header>
+
+<iframe name="blankframe" id="blankframe" style="display: none;"></iframe>
+
 <!-- Main Container To Display The Album Details and Songs-->
 <div class="main_container">
     <div class="album" id='playlist'>
@@ -157,10 +160,10 @@ addEventListener("DOMContentLoaded", (event) => {
                                         <a href="/playlist/${data.playlist['PlaylistID']}/remove/${song[5]}"><h4>-</h4></a>
                                     </li>
                                     <li>
-                                        <form method='POST' action="/song/${song[5]}/rate">
+                                        <form method='POST' target='blankframe' action="/song/${song[5]}/rate">
 
                                             <div>
-                                                <input style='width:32px;' type="number" name="rating" id="rating" min="0" placeholder="5">
+                                                <input style='width:32px;' type="number" name="rating" id="rating" min='1' max='5'>
                                             <button type="submit">Rate</button>
                                             </div>
                                         </form>
