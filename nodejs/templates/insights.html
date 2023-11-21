@@ -3,35 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style_admin.css"> <!-- Link to your CSS file -->
     <title>Info {{profile}}s</title>
     <style>
-        /* Reset default margin and padding */
-        body, h1 {
-            margin: 0;
-            padding: 0;
-        }
+ /* Reset default margin and padding */
+/* Reset default margin and padding */
+body, h1, a {
+    margin: 0;
+    padding: 0;
+    text-decoration: none; /* Removes underline from all links */
+}
 
-        /* Apply black background to the entire page */
-        body {
-            background-color: black;
-            color: white; /* Set text color to white */
-            font-family: Arial, sans-serif; /* Choose a professional font */
-        }
+/* Apply black background to the entire page */
+body {
+    background-color: black;
+    color: white; /* Default text color */
+    font-family: Arial, sans-serif;
+}
 
-        /* Style the header */
-        header {
-            background-color: #333; /* Dark gray background color for the header */
-            padding: 20px; /* Add some padding for spacing */
-            text-align: center; /* Center-align the text */
-        }
+/* Style the header */
+header {
+    background-color: #333;
+    padding: 20px;
+    text-align: center;
+}
 
-        h1 {
-            font-size: 24px; /* Adjust the font size as needed */
-            font-weight: bold; /* Make the header text bold */
-        }
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
 
-        /* Add additional styles for content here */
+/* Grid layout for artists */
+#Artist {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.artist-box {
+    border: 1px solid #444;
+    padding: 10px;
+    text-align: center;
+    background-color: #222;
+    border-radius: 10px;
+    color: white; /* Ensures text inside artist box is white */
+}
+
+.artist-id, .artist-name {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.artist-image {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
 
     </style>
 </head>
@@ -43,51 +70,79 @@
 
     <!-- Content section -->
     <div class="content">
-        <p id="{{profile}}"> </p>
+        <p id="{{profile}}" > </p>
     </div>
 </body>
 </html>
 <script> 
 
+if(document.getElementById('Artist')){
+
+    const u = '/admin/insights/TypeArtist';
+}
+else if(document.getElementById('Listener')){
+    const u = '/admin/insights/TypeListener';
+
+}
+else if(document.getElementById('Playlist')){
+    const u = '/admin/insights/TypePlaylist';
+
+}
+else if(document.getElementById('Song')){
+    const u = '/admin/insights/TypeSong';
+
+}
+
+
 document.addEventListener('DOMContentLoaded', async function () {
+    
+
     try {
-        const response = await fetch('/admin/insights/type');
+        const response = await fetch('/admin/insights/typeArtist');
         const data = await response.json();
-        console.log(data);
 
         const artistsList = document.getElementById('Artist');
         if (data.NewArtist && Array.isArray(data.NewArtist)) {
             data.NewArtist.forEach(artist => {
-                let artistLink = document.createElement('a');
-                artistLink.href = `/artist/admin/${artist.ArtistID}`; // Link to artist's admin page
-                artistLink.classList.add('artist-box');
+                let artistDiv = document.createElement('div');
+                artistDiv.classList.add('artist-box');
 
+                // Artist ID
+                let id = document.createElement('div');
+                id.textContent = `ID: ${artist.ArtistID}`;
+                id.classList.add('artist-id');
+                artistDiv.appendChild(id);
+
+                // Artist Name
                 let name = document.createElement('div');
                 name.textContent = artist.ArtistName;
                 name.classList.add('artist-name');
-                artistLink.appendChild(name);
+                artistDiv.appendChild(name);
 
+                // Artist Image within an anchor tag
+                let imgLink = document.createElement('a');
+                imgLink.href = `/artist/admin/${artist.ArtistID}`;
                 let img = document.createElement('img');
                 img.classList.add('artist-image');
-
                 if (artist.ProfilePic) {
-                    // If the artist has a profile picture, set the src to the Base64 data
                     img.src = `data:image/png;base64,${artist.ProfilePic}`;
                 } else {
-                    // If the artist doesn't have a profile picture, set a placeholder image
-                    img.src = '/npc/picture'; // Replace with the path to your placeholder image
+                    img.src = '/npc/picture';
                     img.alt = 'Default Profile Picture';
                 }
+                imgLink.appendChild(img);
+                artistDiv.appendChild(imgLink);
 
-                artistLink.appendChild(img);
-
-                artistsList.appendChild(artistLink);
+                artistsList.appendChild(artistDiv);
             });
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching artist data:', error);
     }
 });
+
+
+
 
 
 

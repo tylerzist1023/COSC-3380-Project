@@ -13,6 +13,7 @@ import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
+import { getAdminArtist } from './insights.js';
 
 // import nodemon from 'nodemon';
 
@@ -51,7 +52,7 @@ function captureUrl(userUrl, url) {
     let match = userUrl.match(new RegExp(`^${url}(\\?.*)?\\/?$`, 'g')); 
     return match;
 }
-function joshieboymatch(InBound,match){
+function ReplaceMatchUrl(InBound,match){
     if(InBound.replace(match,"").length!=InBound.length){
         return true
     }
@@ -241,32 +242,7 @@ async function getAdmin(sessionData) {
     }
 }
 //get all the insight data
-async function getAdminAll() {
-    try {
-        const data = {};
 
-        const NewArtistQuery = 'SELECT ArtistName, ProfilePic,ArtistID FROM Artist ORDER BY CreationStamp DESC';
-        const NewArtistResults = await executeQuery(NewArtistQuery);
-
-
-
-        NewArtistResults.forEach(artist => {
-            if (artist.ProfilePic && Buffer.isBuffer(artist.ProfilePic)) {
-                // Convert the Buffer to a Base64 string
-                artist.ProfilePic = artist.ProfilePic.toString('base64');
-            }
-        });
-
-        data['NewArtist'] = NewArtistResults;
-        return data;
-
-
-
-    } catch (error) {
-        console.error(error);
-        return {error: "Error"};
-    }
-}
 
 
 async function getListener(sessionData, res) {
@@ -472,28 +448,34 @@ const server = http.createServer(async (req, res) => {
         
 
     }
-    else if(joshieboymatch(req.url,'/admin/insights/')){
+    //get the data 
+    else if(ReplaceMatchUrl(req.url,'/admin/insights/type') && req.method==='GET'){
+
+       const request_to_serve = req.url.replace('/admin/insights/type',"");
+
+        if(request_to_serve=='Artist'){
+            res.end(JSON.stringify(await getAdminArtist()));
+        }
+
+        
+
+
+
+    }
+    else if(ReplaceMatchUrl(req.url,'/admin/insights/')){
 
         if(getRole(sessionData)!="admin"){
             serveStaticFile(res, "./templates/redirect_error.html", "");
             return
         }
+        
 
-
-        const profile = (req.url.replace('/admin/insights/',""));
-        if(profile==='type'){
-            res.end(JSON.stringify(await getAdminAll(sessionData, res)));
-        }
         else{
+
+            const profile = (req.url.replace('/admin/insights/',""));
             serveStatic_Plus(res,"./templates/insights.html","", {'profile':profile})
 
         }
-    
-
-
-
-        
-
     }
     // css of the homepage
     else if (req.url === '/styles.css') {
