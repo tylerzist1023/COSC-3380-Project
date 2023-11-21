@@ -1142,7 +1142,9 @@ const server = http.createServer(async (req, res) => {
             const moreByResults = await executeQuery(moreByQuery, moreByValues);
             data.more_by = moreByResults;
 
-            data.playlists = [];
+            if(getRole(sessionData) === 'artist') {
+                data.playlists = [];
+            }
 
             data.username = sessionData.username;
             res.writeHead(200);
@@ -1179,10 +1181,60 @@ const server = http.createServer(async (req, res) => {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/playlist.html', "");
         }
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/add/([0-9]+)') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[2];
+        const songId = req.url.split('/')[4];
+        if (getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        try {
+            const result = await executeQuery('SELECT SongID, PlaylistID FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+            if(result.length > 0) {
+                res.end("Song has already been added to this playlist");
+                return;
+            }
+
+            await executeQuery('INSERT INTO PlaylistSong (PlaylistID, SongID) VALUES (?,?)', [playlistId, songId]);
+
+            res.end("Song successfully added to playlist");
+
+        } catch(error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/remove/([0-9]+)') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[2];
+        const songId = req.url.split('/')[4];
+        if (getRole(sessionData) !== 'listener') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        try {
+            const result = await executeQuery('SELECT SongID, PlaylistID FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+            if(result.length === 0) {
+                res.end("Song is not in this playlist");
+                return;
+            }
+
+            await executeQuery('DELETE FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+
+            res.end("Song successfully removed from playlist");
+
+        } catch(error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
+
     } else if(matchUrl(req.url, '/ajax/playlist/([0-9]+)') && req.method === 'GET') {
         const playlistId = req.url.split('/')[3];
 
-        // Check user role (you'll need to implement get_role function)
         if (getRole(sessionData) !== 'listener') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });
             res.end("You are not authorized to do that");
@@ -1198,6 +1250,11 @@ const server = http.createServer(async (req, res) => {
 
             data.playlist = playlistResult[0];
             data.username = sessionData['username'];
+
+            const duration_min = Math.floor(data.playlist['PlaylistDuration'] / 60);
+            const duration_sec = Math.floor(data.playlist['PlaylistDuration'] % 60);
+
+            data.playlist_duration = `${duration_min} min ${duration_sec} sec`;
 
             // Get songs in the playlist
             const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
@@ -1215,6 +1272,8 @@ const server = http.createServer(async (req, res) => {
             const recommendedSongsResult = await executeQuery(recommendedSongsQuery, [playlistId, playlistId]);
 
             data.recommended = recommendedSongsResult;
+
+
 
             res.end(JSON.stringify(data));
         } catch (error) {
