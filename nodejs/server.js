@@ -352,7 +352,16 @@ const server = http.createServer(async (req, res) => {
 
         serveStaticFile(res, './templates/index.html', 'text/html');
     } else if(req.url === '/ajax') {
-        await getListener(sessionData, res);
+        if(getRole(sessionData) === 'listener') {
+            res.end(JSON.stringify(await getListener(sessionData, res)));
+            return;
+        } else if(getRole(sessionData) === 'artist') {
+            res.end(JSON.stringify(await getArtist(sessionData, res)));
+            return;
+        }
+
+        res.writeHead(404);
+        res.end('Not Found');
 
     } else if (matchUrl(req.url, '/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
