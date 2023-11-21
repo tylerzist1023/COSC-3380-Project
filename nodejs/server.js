@@ -320,6 +320,25 @@ async function getArtist(sessionData) {
     }
 }
 
+async function getArtistProfile(sessionData, res) {
+    try {
+        if (getRole(sessionData) !== 'artist') {
+            return;
+        }
+
+        const data = await getArtistBaseData(sessionData.id);
+
+        const userQuery = 'SELECT Artist.ArtistID, ArtistName, COUNT(DISTINCT Follow.ArtistID) FROM Artist LEFT JOIN Follow ON Artist.ArtistID = Follow.ArtistID WHERE Artist.ArtistID=? GROUP BY Artist.ArtistID, ArtistName';
+        const userResults = await executeQuery(userQuery, [sessionData.id]);
+        data.user = userResults[0];
+
+        return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
 
@@ -367,6 +386,9 @@ const server = http.createServer(async (req, res) => {
         if(getRole(sessionData) === 'listener') {
             serveStaticFile(res, "./templates/profile_listener.html", "");
             return;
+        } else if(getRole(sessionData) === 'artist') {
+            serveStaticFile(res, "./templates/profile_artist.html", "");
+            return;
         }
 
         res.writeHead(404);
@@ -374,6 +396,9 @@ const server = http.createServer(async (req, res) => {
     } else if (matchUrl(req.url, '/ajax/profile') && req.method === 'GET') {
         if(getRole(sessionData) === 'listener') {
             res.end(JSON.stringify(await getListenerProfile(sessionData, res)));
+            return;
+        } else if(getRole(sessionData) === 'artist') {
+            res.end(JSON.stringify(await getArtistProfile(sessionData, res)));
             return;
         }
 
