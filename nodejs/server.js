@@ -1,5 +1,6 @@
 import http from 'http';
 import fs from 'fs';
+import fetch from 'node-fetch';
 import path from 'path';
 import mysql from 'mysql2/promise';
 import url from 'url';
@@ -154,20 +155,33 @@ function serveStaticFile(res, filePath, contentType, responseCode = 200) {
         }
     });
 }
+
+
+
 const getAdminBaseData= async (userId) => {
     try {
         const data = {};
 
         // Get all the new songs added
-        const NewSongQuery = 'SELECT Song.Name AS SongName, Artist.ArtistName, Artist.ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp DESC LIMIT 5';
+        const NewSongQuery = 'SELECT SongID,Song.Name AS SongName, Artist.ArtistName, Artist.ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp DESC LIMIT 5';
         const NewSongResults = await executeQuery(NewSongQuery);
         data['NewSongs'] = NewSongResults;
 
-        // Get playlists
-        const NewArtistQuery = 'SELECT ArtistName, ProfilePic FROM Artist ORDER BY CreationStamp DESC LIMIT 5';
-        const NewArtistResults = await executeQuery(NewArtistQuery);
-        data['NewArtist'] = NewArtistResults;
 
+        // Get All the new Artist 
+        const NewArtistQuery = 'SELECT ArtistName, ProfilePic,ArtistID FROM Artist ORDER BY CreationStamp DESC LIMIT 5';
+        const NewArtistResults = await executeQuery(NewArtistQuery);
+
+        //get all the pictures 
+
+        NewArtistResults.forEach(artist => {
+            if (artist.ProfilePic && Buffer.isBuffer(artist.ProfilePic)) {
+                // Convert the Buffer to a Base64 string
+                artist.ProfilePic = artist.ProfilePic.toString('base64');
+            }
+        });
+
+        data['NewArtist'] = NewArtistResults;
         return data;
     } catch (err) {
         throw new Error(`Error in getListenerBaseData: ${err.message}`);
@@ -188,27 +202,23 @@ const getListenerBaseData = async (userId) => {
         const playlistQuery = 'SELECT * FROM Playlist WHERE UserID=?';
         const playlistResults = await executeQuery(playlistQuery, [userId]);
         data['playlists'] = playlistResults;
-
+        
         return data;
     } catch (err) {
         throw new Error(`Error in getListenerBaseData: ${err.message}`);
     }
 };
-async function getAdmin(sessionData, res) {
+async function getAdmin(sessionData) {
     try {
         if (getRole(sessionData) !== 'admin') {
             return;
         }
-
+        //got the data base
         const data = await getAdminBaseData();
-        data.newartist = data['NewArtist'];
-        data.newsongs = data['NewSongs'];
-
-        res.end(JSON.stringify(data));
+        return data
     } catch (error) {
         console.error(error);
-        res.writeHead(500, { 'Content-Type': 'text/html' });
-        res.end('<h1>Internal Server Error</h1>');
+        return {error: "Error"};
     }
 }
 
@@ -322,7 +332,7 @@ async function getArtist(sessionData) {
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
-
+    //print(req.url)
     let rawCookies = req.headers.cookie;
     if(rawCookies === undefined) {
         rawCookies = "";
@@ -359,6 +369,11 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify(await getArtist(sessionData, res)));
             return;
         }
+        else if(getRole(sessionData) === 'admin'){
+            res.end(JSON.stringify(await getAdmin(sessionData, res)));
+            return;
+
+        }
 
         res.writeHead(404);
         res.end('Not Found');
@@ -384,11 +399,15 @@ const server = http.createServer(async (req, res) => {
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
     }
+    else if (req.url === '/npc/picture' ) {
+      serveStaticFile(res, './public/cartoon-mysterious.png', 'image/png')
+    } 
     else if (req.url === '/base.js') {
         serveStaticFile(res, './public/base.js', 'text/css');
     }
     //picture of Coog Music (top left screen)
     else if(req.url === '/logo.png'){
+        
         serveStaticFile(res,'./public/logo.png',"image/png");
     }
     //picture of Lady Playing the Guitar
@@ -780,8 +799,9 @@ const server = http.createServer(async (req, res) => {
     else if(matchUrl(req.url, '/logout') && req.method === 'GET') {
         sessionData = {};
         res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-        // res.writeHead(302, { Location: '/' });
+     res.writeHead(302, { Location: '/' });
         res.end();
+        //hey buddy
     } 
     else if (matchUrl(req.url, '/edit') && req.method =='GET'){
         serveStaticFile(res, './templates/listener_edit.html', "");
