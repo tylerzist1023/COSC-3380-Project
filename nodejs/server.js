@@ -808,18 +808,30 @@ const server = http.createServer(async (req, res) => {
 
             let query = "UPDATE Listener SET ";
             let conditions = [];
+            let vals = [];
 
-            if (fields.username) {
+            if (fields.username && fields.username !== '') {
                 conditions.push(`Username = ?`);
+                vals.push(`${fields.username}`);
+                sessionData.username = fields.username;
             }
-            if (fields.email) {
+            if (fields.email && fields.email !== '') {
                 conditions.push(`Email = ?`);
+                vals.push(`${fields.email}`);
             }
             if (fields.newpassword) {
                 let currentPassQuery = 'SELECT Password FROM Listener WHERE UserID=?';
-                const currentPass = await executeQuery(currentPassQuery, sessionData['id'])
-                if (fields.newpassword === fields.confirmpassword && currentPass === fields.password) {
-                    conditions.push(`Password = ?`)
+                const currentPassResults = await executeQuery(currentPassQuery, [sessionData['id']])
+                console.log(currentPassResults);
+                if (currentPassResults.length > 0) {
+                    const currentPass = currentPassResults[0].Password;
+                    if (fields.newpassword === fields.confirmpassword && currentPass === fields.password) {
+                        conditions.push(`Password = ?`);
+                        vals.push(fields.newpassword);
+                    }
+                    else{
+                        console.log("Password did not update")
+                    }
                 }
             }
 
@@ -828,33 +840,27 @@ const server = http.createServer(async (req, res) => {
                 query += ' WHERE UserID = ?'
             }
 
-            // Prepare values array
-            let vals = [];
-
-            if (fields.username) {
-                vals.push(`${fields.username}`);
-            }
-
-            if (fields.email) {
-                vals.push(`${fields.email}`);
-            }
-
-            if (fields.newpassword) {
-                vals.push(`%${fields.newpassword}%`);
-            }
-
             // Add UserID to the values array
             vals.push(sessionData['id']);
+            console.log(query);
 
             // Execute the query
-            console.log(query)
-            const results = await executeQuery(query, vals);
-            sessionData.username = fields.username;
-            console.log(results)
-
-            res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(results));
+            if (conditions.length > 0) {
+                const results = await executeQuery(query, vals);
+                console.log(results)
+                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
+            }
+            else if (conditions.length === 0) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, message: 'Unable To Update' }));
+            }
+            else {
+                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+                res.writeHead(302, { Location: '/edit' });
+                res.end();
+            }
         }
     }
 
