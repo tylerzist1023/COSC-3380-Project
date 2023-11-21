@@ -823,24 +823,30 @@ const server = http.createServer(async (req, res) => {
                 // Build the SQL query based on the form fields
                 let query = selectClause + 'FROM ListenedToHistory, Artist, Song, Album, Genre WHERE ';
 
+                let vals = [];
                 if (fields.beginDate) {
                     conditions.push(`DateAccessed >= ?`);
+                    vals.push(`${fields.beginDate} 00:00:00`);
                 }
 
                 if (fields.endDate) {
                     conditions.push(`DateAccessed <= ?`);
+                    vals.push(`${fields.endDate} 23:59:59`);
                 }
 
                 if (fields.artist) {
                     conditions.push(`ArtistName LIKE ?`);
+                    vals.push(`%${fields.artist}%`);
                 }
 
                 if (fields.album) {
                     conditions.push(`AlbumName LIKE ?`);
+                    vals.push(`%${fields.album}%`);
                 }
 
                 if (fields.genre) {
                     conditions.push(`Song.GenreCode = ?`);
+                    vals.push(fields.genre);
                 }
 
                 // Join the conditions with 'AND' and complete the query
@@ -849,29 +855,6 @@ const server = http.createServer(async (req, res) => {
                 } else {
                     query += conditions.join(' AND ');
                     query += ' AND UserID=? AND ListenedToHistory.SongID=Song.SongID AND Song.AlbumID=Album.AlbumID AND Artist.ArtistID=Album.ArtistID AND Song.GenreCode=Genre.GenreCode';
-                }
-
-                // Prepare values array
-                let vals = [];
-
-                if (fields.beginDate) {
-                    vals.push(`${fields.beginDate} 00:00:00`);
-                }
-
-                if (fields.endDate) {
-                    vals.push(`${fields.endDate} 23:59:59`);
-                }
-
-                if (fields.artist) {
-                    vals.push(`%${fields.artist}%`);
-                }
-
-                if (fields.album) {
-                    vals.push(`%${fields.album}%`);
-                }
-
-                if (fields.genre) {
-                    vals.push(fields.genre);
                 }
 
                 // Add UserID to the values array
@@ -1390,7 +1373,7 @@ const server = http.createServer(async (req, res) => {
     } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method === 'GET') {
         try {
             const songId = req.url.split('/')[2];
-            const query = 'SELECT SongFile FROM Song WHERE SongID=?';
+            const query = 'SELECT SongFile,Duration FROM Song WHERE SongID=?';
             const vals = [songId];
 
             const results = await executeQuery(query, vals);
@@ -1410,6 +1393,11 @@ const server = http.createServer(async (req, res) => {
             }
 
             const type = fileTypeFromBuffer(songFile);
+
+            // add to the listen history. full duration of the song for now
+            if(getRole(sessionData) === 'listener') {
+                await executeQuery('INSERT INTO ListenedToHistory (SongID,UserID,Duration) VALUES (?,?,?)', [songId, sessionData.id, results[0]['Duration']]);
+            }
 
             res.writeHead(200, { 'Content-Type': type });
             res.end(songFile);
