@@ -888,34 +888,34 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
-    } else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
-        try {
-            if (getRole(sessionData) !== 'listener') {
-                res.writeHead(401);
-                res.end('<h1>Unauthorized</h1>');
-            } else {
-                const query = 'SELECT ProfilePic FROM Listener WHERE UserID=?';
-                const vals = [sessionData['id']];
+    } else if(req.url === '/pic' && req.method === 'GET') {
+        // try {
+        //     if (getRole(sessionData) !== 'listener') {
+        //         res.writeHead(401);
+        //         res.end('<h1>Unauthorized</h1>');
+        //     } else {
+        //         const query = 'SELECT ProfilePic FROM Listener WHERE UserID=?';
+        //         const vals = [sessionData['id']];
 
-                const results = await executeQuery(query, vals);
+        //         const results = await executeQuery(query, vals);
 
-                if (!results[0] || results[0]['ProfilePic'] === null) {
-                    res.writeHead(404, { 'Content-Type': 'text/html' });
-                    res.end('Not found');
-                    return;
-                }
+        //         if (!results[0] || results[0]['ProfilePic'] === null) {
+        //             res.writeHead(302, { Location: '/logo.png' });
+        //             res.end();
+        //             return;
+        //         }
 
-                const profilePic = results[0]['ProfilePic'];
-                const type = fileTypeFromBuffer(profilePic);
+        //         const profilePic = results[0]['ProfilePic'];
+        //         const type = fileTypeFromBuffer(profilePic);
 
-                res.writeHead(200, { 'Content-Type': type });
-                res.end(profilePic);
-            }
-        } catch (error) {
-            console.error('Error processing profile picture:', error);
-            res.writeHead(500, { 'Content-Type': 'text/html' });
-            res.end('<h1>Internal Server Error</h1>');
-        }
+        //         res.writeHead(200, { 'Content-Type': type });
+        //         res.end(profilePic);
+        //     }
+        // } catch (error) {
+        //     console.error('Error processing profile picture:', error);
+        //     res.writeHead(500, { 'Content-Type': 'text/html' });
+        //     res.end('<h1>Internal Server Error</h1>');
+        // }
     } else if(matchUrl(req.url, '/artist/([0-9]+)/follow') && req.method === 'GET') {
         try {
             if (getRole(sessionData) !== 'listener') {
@@ -1033,16 +1033,16 @@ const server = http.createServer(async (req, res) => {
             const results = await executeQuery(query, vals);
 
             if (results.length === 0) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { Location: '/logo.png' });
+                res.end();
                 return;
             }
 
             const profilePic = results[0]['ProfilePic'];
 
             if (profilePic === null || profilePic === undefined) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { Location: '/logo.png' });
+                res.end();
                 return;
             }
 
@@ -1145,8 +1145,8 @@ const server = http.createServer(async (req, res) => {
             const results = await executeQuery(query, [albumId]);
 
             if (results.length === 0 || results[0]['AlbumPic'] === null || results[0]['AlbumPic'] === undefined) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { Location: '/logo.png' });
+                res.end();
                 return;
             }
 
@@ -1275,16 +1275,16 @@ const server = http.createServer(async (req, res) => {
             const results = await executeQuery(query, vals);
 
             if (results.length === 0) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { location: '/logo.png' });
+                res.end();
                 return;
             }
 
             const albumPic = results[0]['AlbumPic'];
 
             if (albumPic === null || albumPic === undefined) {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('Not found');
+                res.writeHead(302, { location: '/logo.png' });
+                res.end();
                 return;
             }
 
