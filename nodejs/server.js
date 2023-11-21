@@ -1092,7 +1092,6 @@ const server = http.createServer(async (req, res) => {
             const insertQuery = 'INSERT INTO Follow (UserID, ArtistID) VALUES (?, ?)';
             await executeQuery(insertQuery, [sessionData.id, artistId]);
 
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end("Successfully followed");
         } catch (error) {
             console.error('Error processing follow request:', error);
@@ -1138,7 +1137,6 @@ const server = http.createServer(async (req, res) => {
                 await executeQuery(insertQuery, [sessionData.id, songId, fields.rating]);
             }
 
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end("Successfully rated song");
         } catch (error) {
             console.error('Error rating song:', error);
@@ -1169,7 +1167,6 @@ const server = http.createServer(async (req, res) => {
             const deleteQuery = 'DELETE FROM Follow WHERE ArtistID=? AND UserID=?';
             await executeQuery(deleteQuery, [artistId, sessionData.id]);
 
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end("Successfully unfollowed");
         } catch (error) {
             console.error('Error unfollowing artist:', error);
@@ -1326,7 +1323,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         try {
-            const result = await executeQuery('SELECT SongID, PlaylistID FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
+            const result = await executeQuery('SELECT PlaylistSong.SongID, PlaylistID FROM PlaylistSong WHERE PlaylistID=? AND PlaylistSong.SongID=?', [playlistId, songId]);
             if(result.length > 0) {
                 res.end("Song has already been added to this playlist");
                 return;
@@ -1334,6 +1331,9 @@ const server = http.createServer(async (req, res) => {
 
             await executeQuery('INSERT INTO PlaylistSong (PlaylistID, SongID) VALUES (?,?)', [playlistId, songId]);
 
+            const albumId = await executeQuery('SELECT AlbumID FROM Song WHERE SongID=?', [songId]);
+
+            res.writeHead(302, { Location: `/album/${albumId[0].AlbumID}` });
             res.end("Song successfully added to playlist");
 
         } catch(error) {
@@ -1359,6 +1359,7 @@ const server = http.createServer(async (req, res) => {
 
             await executeQuery('DELETE FROM PlaylistSong WHERE PlaylistID=? AND SongID=?', [playlistId, songId]);
 
+            res.writeHead(302, { Location: `/playlist/${playlistId}` });
             res.end("Song successfully removed from playlist");
 
         } catch(error) {

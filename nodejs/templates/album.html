@@ -16,6 +16,8 @@
 <header id='topBar'>
 </header>
 
+<iframe name="blankframe" id="blankframe" style="display: none;"></iframe>
+
 <div class="album_container">
     <div class="album" id='albumData'>
         
@@ -115,6 +117,7 @@ function playSong(e) {
         })
         .catch(error => console.error('Error:', error));
 }
+
 addEventListener("DOMContentLoaded", (event) => {
 
     let albumId = window.location.pathname.split('/')[2];
@@ -142,8 +145,8 @@ addEventListener("DOMContentLoaded", (event) => {
                                 <h4>Released on ${data.formattedReleaseDate}</h4>
                             </li>
                         </ul>
-                        <a href='/artist/${data.albumData["ArtistID"]}/follow'>Follow</a>
-                        <a href='/artist/${data.albumData["ArtistID"]}/unfollow'>Unfollow</a>
+                        <a id='followLink' href='/artist/${data.albumData["ArtistID"]}/follow'>Follow</a>
+                        <a id='unfollowLink' href='/artist/${data.albumData["ArtistID"]}/unfollow'>Unfollow</a>
                     </div>
                 </div>`;
             document.getElementById('albumData').innerHTML = html;
@@ -186,10 +189,10 @@ addEventListener("DOMContentLoaded", (event) => {
                                         </div>
                                     </li>
                                     <li>
-                                        <form method='POST' action="/song/${song['songID']}/rate">
+                                        <form method='POST' target='blankframe' action="/song/${song['songID']}/rate">
 
                                             <div>
-                                                <input style='width:32px;' type="number" name="rating" id="rating" placeholder="5">
+                                                <input style='width:32px;' type="number" name="rating" id="rating" min='1' max='5'>
                                             <button type="submit">Rate</button>
                                             </div>
                                         </form>
@@ -216,6 +219,27 @@ addEventListener("DOMContentLoaded", (event) => {
         for (var i = 0; i < playSongLinks.length; i++) {
             playSongLinks[i].addEventListener('click', playSong);
         }
+
+        document.getElementById('followLink').addEventListener('click', function(ev){
+            ev.preventDefault();
+            fetch(this.href)
+            .then((res) => res.text())
+            .then((data) => {
+                alert(data);
+                document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            }); 
+        });
+        document.getElementById('unfollowLink').addEventListener('click', function(ev){
+            ev.preventDefault();
+            fetch(this.href)
+            .then((res) => res.text())
+            .then((data) => {
+                alert(data);
+                document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            });     
+        });
     });
 
 });
