@@ -175,7 +175,7 @@ const getAdminBaseData= async () => {
         const NumArtist = await executeQuery('SELECT COUNT(*) FROM Artist');
         const NumUsers =await executeQuery('SELECT COUNT(*) FROM Listener');
         const NumSongs = await executeQuery('SELECT COUNT(*) FROM Song');
-        const NumPlaylist = await executeQuery('SELECT COUNT(*) FROM Playlist')
+        const NumPlaylist = await executeQuery('SELECT COUNT(*) FROM Playlist'); // show all playlists including deleted ones
 
 
         data['NumArtist']=NumArtist
@@ -219,7 +219,7 @@ const getListenerBaseData = async (userId) => {
         data['following'] = followResults;
 
         // Get playlists
-        const playlistQuery = 'SELECT * FROM Playlist WHERE UserID=?';
+        const playlistQuery = 'SELECT * FROM Playlist WHERE UserID=? AND Deleted=0';
         const playlistResults = await executeQuery(playlistQuery, [userId]);
         data['playlists'] = playlistResults;
         
@@ -282,7 +282,7 @@ async function getListenerProfile(sessionData, res) {
         const userResults = await executeQuery(userQuery, [sessionData.id]);
         data.user = userResults[0];
 
-        const playlistsQuery = 'SELECT PlaylistName, Listener.Fname, Listener.Lname, PlaylistID FROM Playlist LEFT JOIN Listener ON Listener.UserID = Playlist.UserID WHERE Playlist.UserID=?';
+        const playlistsQuery = 'SELECT PlaylistName, Listener.Fname, Listener.Lname, PlaylistID FROM Playlist LEFT JOIN Listener ON Listener.UserID = Playlist.UserID WHERE Playlist.UserID=? AND Playlist.Deleted=0';
         const playlistsResults = await executeQuery(playlistsQuery, [sessionData.id]);
         data.playlists = playlistsResults;
         data.username = sessionData.username;
@@ -1497,6 +1497,27 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end("Internal Server Error");
         }
+    } else if(matchUrl(req.url, '/playlist/([0-9]+)/remove') && req.method === 'GET') {
+        const playlistId = req.url.split('/')[2];
+
+        try {
+            const results = await executeQuery('SELECT PlaylistID FROM Playlist WHERE PlaylistID=? AND UserID=? AND Deleted=0', [playlistId, sessionData.id]);
+            if(results.length > 0) {
+                await executeQuery('UPDATE Playlist SET Deleted=1 WHERE PlaylistID=?', [playlistId]);
+
+                res.writeHead(200);
+                res.end("Playlist successfully removed");
+                return;
+            }
+
+            res.writeHead(401);
+            res.end("Could not remove playlist");
+        } catch(error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
+
     } else if(matchUrl(req.url, '/playlist/([0-9]+)/remove/([0-9]+)') && req.method === 'GET') {
         const playlistId = req.url.split('/')[2];
         const songId = req.url.split('/')[4];
@@ -1537,11 +1558,16 @@ const server = http.createServer(async (req, res) => {
             const data = await getListenerBaseData(sessionData.id);
 
             // Get playlist details
-            const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration FROM Playlist WHERE PlaylistID=?';
+            const playlistQuery = 'SELECT PlaylistID, PlaylistName, PlaylistDuration, Playlist.UserID, Username FROM Playlist,Listener WHERE PlaylistID=? AND Deleted=0 AND Playlist.UserID=Listener.UserID';
             const playlistResult = await executeQuery(playlistQuery, [playlistId]);
 
             data.playlist = playlistResult[0];
             data.username = sessionData['username'];
+            data.owned = false;
+
+            if(data.playlist['UserID'] == sessionData.id) {
+                data.owned = true;
+            }
 
             const duration_min = Math.floor(data.playlist['PlaylistDuration'] / 60);
             const duration_sec = Math.floor(data.playlist['PlaylistDuration'] % 60);
