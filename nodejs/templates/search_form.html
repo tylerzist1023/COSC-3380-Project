@@ -21,12 +21,11 @@
                     <h1>Search</h1>
                 </header>
 
-                <form method='POST' action="/search">
+                <form method='POST' action="/search" class="searchForm">
                     <div class="searchForm">
                         <div class="search_form_bar">
-                            <input type="text" name="search" id="search" required>
-
-                            <label for="searchBy"></label>
+                            <input type="text" name="search" id="search" placeholder="Search..." required>
+                            
                             <select id="searchBy" name="searchBy">
                                 <option value="">Any</option>
                                 <option value="song">Song</option>
@@ -38,13 +37,18 @@
                 </form>
                 <br>
             </div>
+            <div class="song_list">
+                <h2>Search Results</h2>
+                <div class="list" id='searchResult'>
+                </div>
+            </div>
     
     <div class="left_sidebar" id='leftBar'>
 </div>
 
 <div id='playerDiv' style='display:none;' class="song_player">
     <!-- Replace image, song name, artist name with actual database information -->
-    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <img id='playerImage' src="" alt="song name">
     <h5>
     <div id='playerSong'>Song Name</div>
     <div id='playerArtist' class="artist_name">Artist Name</div>
@@ -60,15 +64,53 @@
 
 <script>
 addEventListener("DOMContentLoaded", (event) => {
+    const searchForm = document.querySelector('.searchForm');
+
+    searchForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(searchForm);
+
+        try {
+            const response = await fetch('/search', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Search request failed');
+            }
+
+            const data = await response.json();
+
+            updateSearchResults(data);
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    });
+
+    function updateSearchResults(results) {
+        let html = '';
+        console.log(results['SongID']);
+        results.forEach(results => {
+            html += `<div class="item">
+                <a href="/album/${results['AlbumID']}"><img src="/album/${results['AlbumID']}/pic"></a>
+                <h4>${results['SongName']}</h4>
+                <p>${results['ArtistName']}</p>
+            </div>`;
+        });
+
+        document.getElementById('searchResult').innerHTML = html;
+    }
+
     fetch('/ajax')
         .then(response => response.json())
         .then(data => {
-
             document.getElementById('topBar').innerHTML = getTopbar(data);
             document.getElementById('leftBar').innerHTML = getSidebar(data);
         })
+
 });
 </script>
-
 </body>
 </html>
