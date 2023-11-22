@@ -121,6 +121,13 @@ addEventListener("DOMContentLoaded", (event) => {
             document.getElementById('topBar').innerHTML = getTopbar(data);
             document.getElementById('leftBar').innerHTML = getSidebar(data);
 
+            let removeButton = '';
+            if(data.owned===true) {
+                removeButton += `<li>
+                                <a id='deleteLink' href='/playlist/${data.playlist['PlaylistID']}/remove'>Delete</a>
+                            </li>`;
+            }
+
             let html = '';
             html += `<img src="/playlist/${data.playlist['PlaylistID']}/pic" alt="playlist picture">
                 <div class="album_information">
@@ -128,11 +135,12 @@ addEventListener("DOMContentLoaded", (event) => {
                     <div>
                         <ul class="album_data">
                             <li>
-                                <h4>${data.username}</h4>
+                                <h4>${data.playlist['Username']}</h4>
                             </li>
                             <li>
                                 <h4>${data.playlist_duration}</h4>
                             </li>
+                            ${removeButton}
                         </ul>
                     </div>
                 </div>`;
@@ -190,6 +198,19 @@ addEventListener("DOMContentLoaded", (event) => {
         for (var i = 0; i < playSongLinks.length; i++) {
             playSongLinks[i].addEventListener('click', playSong);
         }
+
+        document.getElementById('deleteLink').addEventListener('click', function(ev){
+            ev.preventDefault();
+            fetch(this.href)
+            .then((res) => res.text())
+            .then((data) => {
+                if(confirm("Press OK to confirm you want to delete this playlist.")) {
+                    alert(data);
+                    document.getElementById('leftBar').innerHTML = getSidebar(data);
+                    window.location = '/';
+                }
+            }); 
+        });
     });
 });
 </script>
