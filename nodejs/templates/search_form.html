@@ -24,9 +24,10 @@
                 <form method='POST' action="/search">
                     <div class="searchForm">
                         <div class="search_form_bar">
-                            <input type="text" name="username" id="username" placeholder="Search..." required>
+                            <input type="text" name="search" id="search" required>
 
-                            <select id="saerchBy" name="genre">
+                            <label for="searchBy"></label>
+                            <select id="searchBy" name="searchBy">
                                 <option value="">Any</option>
                                 <option value="song">Song</option>
                                 <option value="artist">Artist</option>
@@ -65,26 +66,6 @@ addEventListener("DOMContentLoaded", (event) => {
 
             document.getElementById('topBar').innerHTML = getTopbar(data);
             document.getElementById('leftBar').innerHTML = getSidebar(data);
-
-            let html = '';
-            for(const album of data['new_releases']) {
-                html += `<div class="item">
-                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
-                    <h4>${album.AlbumName}</h4>
-                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
-                </div>`;
-            }
-            document.getElementById('newReleases').innerHTML = html;
-
-            html = '';
-            for(const album of data.for_you) {
-                html += `<div class="item">
-                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
-                    <h4>${album.AlbumName}</h4>
-                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
-                </div>`;
-            }
-            document.getElementById('forYou').innerHTML = html;
         })
 });
 </script>

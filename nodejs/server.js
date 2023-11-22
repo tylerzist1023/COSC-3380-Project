@@ -1160,14 +1160,69 @@ const server = http.createServer(async (req, res) => {
             res.end('<h1>Internal Server Error</h1>');
         }
     } 
-
-        else if(matchUrl(req.url, '/search') && req.method === 'GET') {
+    
+    else if(matchUrl(req.url, '/search') && req.method === 'GET') {
         if (getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/search_form.html', "");
         }
     }
     
-    
+    else if (matchUrl(req.url, '/search') && req.method === 'POST') {
+        if (getRole(sessionData) === 'listener') {
+            const form = new Types.IncomingForm();
+            const fields = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(fields);
+                    }
+                })
+            });
+
+            console.log("Request Received");
+            console.log(fields.searchBy);
+
+            if (fields.searchBy === 'song') {
+                const query = `SELECT DISTINCT Song.Name AS SongName, ArtistName FROM Song, Artist WHERE Song.Name = ? AND Song.ArtistID=Artist.ArtistID`;
+                const vals = [fields.search];
+                console.log(fields.search);
+                const results = await executeQuery(query, vals);
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(JSON.stringify(results));
+            }
+            else if (fields.searchBy === 'artist') {
+                const query = `SELECT DISTINCT Song.Name AS SongName, ArtistName FROM Song, Artist WHERE ArtistName = ? AND Song.ArtistID=Artist.ArtistID`
+                const vals = [fields.search];
+                console.log(fields.search);
+                const results = await executeQuery(query, vals);
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(JSON.stringify(results));
+            }
+            else if (fields.searchBy === 'album') {
+                const query = `SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName FROM Song, Album, Artist WHERE AlbumName = ? AND Artist.ArtistID = Album.ArtistID AND Song.AlbumID = Album.AlbumID`
+                const vals = [fields.search];
+                console.log(fields.search);
+                const results = await executeQuery(query, vals);
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(JSON.stringify(results));
+            }
+            else if (fields.searchBy === '') {
+                const query = `SELECT DISTINCT Song.Name AS SongName, ArtistName, AlbumName FROM Album, Artist, Song WHERE Song.Name = ? AND Song.ArtistID = Artist.ArtistID AND Song.AlbumID=Album.AlbumID OR AlbumName = ? AND Album.AlbumID=Song.AlbumID AND Artist.ArtistID = Album.ArtistID OR ArtistName = ? AND Artist.ArtistID=Song.ArtistID AND Album.ArtistID=Artist.ArtistID`
+                const vals = [fields.search, fields.search, fields.search];
+                console.log(fields.search);
+                const results = await executeQuery(query, vals)
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(JSON.stringify(results));
+            }
+            else {
+                res.writeHead(400, { 'Content-Type': 'text/plain' });
+                res.end("Search Failed");
+                return;
+            }
+        }
+    }
     
     else if(matchUrl(req.url, '/artist/([0-9]+)/follow') && req.method === 'GET') {
         try {
