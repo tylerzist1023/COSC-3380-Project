@@ -1263,3 +1263,42 @@ button.login_btn:hover {
     transition: all 0.2s ease;
     background-color: #2b4ba1;
 }
+.flag-button {
+    /* Button styling */
+    display: inline-block;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    background-color: rgb(0, 68, 255); /* Flag color */
+    color: white; /* Text color */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline from links */
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.flagged-button {
+    /* Button styling */
+    display: inline-block;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    background-color: rgb(255, 0, 119); /* Flag color */
+    color: white; /* Text color */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline from links */
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.under-review {
+    /* Button styling */
+    display: inline-block;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    background-color: rgb(251, 255, 0); /* Flag color */
+    color: rgb(0, 0, 0); /* Text color */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline from links */
+    font-weight: bold;
+    text-transform: uppercase;
+}

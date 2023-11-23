@@ -40,10 +40,7 @@ async function getAdminArtist() {
         const NewArtistResults = await executeQuery(NewArtistQuery);
 
 
-        const NewSongQuery = 'SELECT SongID,Song.Name AS SongName, Artist.ArtistName as ArtistName, Artist.ProfilePic as ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp';
-        const NewSongResults = await executeQuery(NewSongQuery);
-        
-
+    
         NewArtistResults.forEach(artist => {
             if (artist.ProfilePic && Buffer.isBuffer(artist.ProfilePic)) {
                 // Convert the Buffer to a Base64 string
