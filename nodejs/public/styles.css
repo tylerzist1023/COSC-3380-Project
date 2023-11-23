@@ -611,7 +611,6 @@ button.submit_btn:hover {
     align-items: center;
     padding: 5px 0px 5px 20px;
     text-overflow: ellipsis;
-    /* background-image: linear-gradient(to bottom right, rgb(48, 53, 61), rgb(106, 110, 129)); */
 } 
 
 .edit_profile img { 
@@ -624,7 +623,9 @@ button.submit_btn:hover {
 
 .edit_profile h1 { 
     color: white;
+    align-items: center;
     text-align: center;
+    margin-right: 20px;
 }
 
 .edit_profile_form {
@@ -638,7 +639,7 @@ button.submit_btn:hover {
     width: 700px;
     position: relative;
     align-items: center;
-    color: #707070;
+    color: #3d3d3d;
     outline: none;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -1176,7 +1177,7 @@ button.login_btn:hover {
 
 .report_form_container .historyForm div input {
     font-size: 1rem;
-    color: #707070;
+    color: #252525;
     margin-top: 8px;
     border: 1px solid #ddd;
     border-radius: 6px;

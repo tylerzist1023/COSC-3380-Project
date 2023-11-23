@@ -75,7 +75,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 html += `<div class="item">
                     <a href="/playlist/${playlist['PlaylistID']}"><img src="/playlist/${playlist['PlaylistID']}/pic"></a>
                     <h4>${playlist['PlaylistName']}</h4>
-                    <p>by ${playlist['Fname']} ${playlist['Lname']}</p>
+                    <p>by ${data.username}</p>
                 </div>`;
             }
             document.getElementById('playlists').innerHTML = html;
@@ -95,7 +95,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 <img src="/pic" alt="profile picture">
                 <div class="profile_information">
                     <h4>Profile</h4>
-                    <h1>${data.user.Fname} ${data.user.Lname}</h1>
+                    <h1>${data.username}</h1>
                     <h3>${data.user['COUNT(DISTINCT Follow.ArtistID)']} Following</h3>
                 </div>
                 <a href="/edit"><h4>Edit Profile</h4></a>
