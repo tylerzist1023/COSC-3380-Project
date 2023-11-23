@@ -348,6 +348,40 @@ async function getArtistProfile(sessionData, res) {
         return {error: "Error"};
     }
 }
+async function getAdminUnResolved(sessionData, res) {
+    try {
+        const data={}
+        const userQuery = `SELECT SongID, Name
+        FROM Song
+        WHERE flagged = 1 AND reviewed = 0`;
+        const userResults = await executeQuery(userQuery);
+        data['UnResolved']= userResults;
+        
+          
+        console.log(data);
+
+        return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+async function getAdminResolved(sessionData, res) {
+    try {
+        const data={}
+        const userQuery = `SELECT SongID, Name
+        FROM Song
+        WHERE flagged = 1 AND reviewed = 1`;
+        const userResults = await executeQuery(userQuery);
+        data['Resolved']= userResults;
+        console.log(data);
+        return data;
+        
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -427,18 +461,32 @@ const server = http.createServer(async (req, res) => {
 
     }
     //get the data 
-    else if(req.url==='/admin/reports'){
+    else if(ReplaceMatchUrl(req.url,'/admin/reported/')){
 
-        serveStaticFile(res, "./templates/reports_charlie.html", "");
+        const Inthere= 'SELECT UserID,SongID FROM UserFlags WHERE SongID=? AND UserID =?';
+        //admin/reported/UnResolved
+        const request_to_serve = req.url.replace('/admin/reported/',"");
+        if(request_to_serve==='UnResolved'){
+            print(1)
+            res.end(JSON.stringify(await getAdminUnResolved(sessionData)));
+        }
+        else if(request_to_serve==='Resolved'){
+            print(2)
+            res.end(JSON.stringify(await getAdminResolved(sessionData)));
+        }
+
+
+
+      
     }
     else if(ReplaceMatchUrl(req.url,'/admin/insights/type') && req.method==='GET'){
 
        const request_to_serve = req.url.replace('/admin/insights/type',"");
 
-        if(request_to_serve=='Artist'){
+        if(request_to_serve==='Artist'){
             res.end(JSON.stringify(await getAdminArtist()));
         }
-        else if(request_to_serve=='Song'){
+        else if(request_to_serve==='Song'){
             res.end(JSON.stringify(await getAdminSong()));
         }
 

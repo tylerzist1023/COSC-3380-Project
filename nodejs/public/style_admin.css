@@ -236,7 +236,53 @@ input[type="checkbox"] {
     max-height: 300px;
     overflow-y: auto;
     padding-right: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #0c0c0c;
     border-radius: 5px;
     margin-bottom: 20px;
+}
+/* General Styles for the Song List */
+#unresolved-requests-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.song-box {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #000000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.song-box:hover {
+    background-color: #f0f0f0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.song-id, .song-name {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #c71010;
+}
+
+.song-id {
+    font-weight: bold;
+}
+
+.song-name {
+    font-style: italic;
+}
+
+.song-action-button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: rgb(255, 0, 0)
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.song-action-button:hover {
+    background-color: rgb(7, 255, 19);
 }
