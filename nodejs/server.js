@@ -382,6 +382,43 @@ async function getAdminResolved(sessionData, res) {
         return {error: "Error"};
     }
 }
+//joshie
+async function getSongInfoConsider(songID) {
+    try {
+        const data={}
+        const userQuery = `SELECT 
+        Song.Name AS SongName, 
+        Artist.ArtistName, 
+        Album.AlbumName, 
+        Album.AlbumPic
+    FROM 
+        Song
+    INNER JOIN Artist ON Song.ArtistID = Artist.ArtistID
+    INNER JOIN Album ON Song.AlbumID = Album.AlbumID
+    WHERE 
+        Song.SongID = ?;
+    
+    `;
+        const userResults = await executeQuery(userQuery,[songID]);
+
+        userResults.forEach(artist => {
+            if (artist.AlbumPic && Buffer.isBuffer(artist.AlbumPic)) {
+                // Convert the Buffer to a Base64 string
+                artist.AlbumPic = artist.AlbumPic.toString('base64');
+            }
+        });
+
+
+
+        data['song']= userResults;
+        console.log(data);
+        return data;
+        
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -467,11 +504,11 @@ const server = http.createServer(async (req, res) => {
         //admin/reported/UnResolved
         const request_to_serve = req.url.replace('/admin/reported/',"");
         if(request_to_serve==='UnResolved'){
-            print(1)
+  
             res.end(JSON.stringify(await getAdminUnResolved(sessionData)));
         }
         else if(request_to_serve==='Resolved'){
-            print(2)
+
             res.end(JSON.stringify(await getAdminResolved(sessionData)));
         }
 
@@ -506,6 +543,22 @@ const server = http.createServer(async (req, res) => {
 
         }
     }
+    else if(ReplaceMatchUrl(req.url,'/song-consider/')){
+        const SongID = req.url.replace('/song-consider/',"")
+
+        serveStatic_Plus(res,'./templates/consider_admin.html', '',{'SongID':SongID})
+
+
+    }
+
+    else if(ReplaceMatchUrl(req.url,'/getsonginfo/')){
+        const SongID = req.url.replace('/getsonginfo/',"")
+
+       print(SongID)
+       res.end(JSON.stringify(await getSongInfoConsider(SongID)))
+
+
+    }
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
@@ -537,6 +590,10 @@ const server = http.createServer(async (req, res) => {
     //To go to the Login_Options HTML
     else if(req.url === "/getstarted"){
         serveStaticFile(res, './templates/login_options.html', 'text/html');
+    }
+    else if(req.url==="/style_admin_consider.css"){
+        serveStaticFile(res, './public/style_admin_consider.css', 'text/css');
+
     }
     else if (req.url === "/report-song" ) {
         //print(req.url)
@@ -2004,8 +2061,8 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
 
                 const genreCode = genreResults[0]['GenreCode'];
 
-                songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
-                    [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate]));
+                songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate,ArtistID) VALUES (?, ?, ?, ?, ?, ?,?)',
+                    [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate,sessionData.id]));
             }
 
             // Wait for all songs to be uploaded before responding

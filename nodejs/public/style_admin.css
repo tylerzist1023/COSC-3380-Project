@@ -67,13 +67,13 @@ input[type="checkbox"] {
 
 /* Variables for colors */
 :root {
-    --background-color: #121212;
-    --primary-text-color: #ffffff;
-    --secondary-text-color: #bbbbbb;
-    --accent-color: #e71c0e;
-    --divider-color: #ca1515;
-    --button-bg-color: red; /* Red button background color */
-    --button-text-color: white; /* Button text color */
+    --background-color: rgb(17, 30, 83); /* Light blue background for a professional look */
+    --primary-text-color: #ffffff; /* Dark blue for primary text to ensure readability */
+    --secondary-text-color: #5a7391; /* Medium blue for secondary text for contrast */
+    --accent-color: #4a90e2; /* Bright blue for accents to add vibrancy */
+    --divider-color: #1f2d3d; /* Dark blue for dividers for consistency */
+    --button-bg-color: #4a90e2; /* Matching the accent color for buttons */
+    --button-text-color: white; /* Keeping the button text color white for legibility */
 }
 
 /* Common styles for header and logout button */
@@ -106,7 +106,7 @@ input[type="checkbox"] {
 }
 
 .logout-button:hover {
-    color: red; /* Text color turns red on hover */
+    color:rgb(0, 68, 255);; /* Text color turns red on hover */
     background-color: darkred; /* Optional: Change background color on hover */
 }
 
@@ -127,7 +127,7 @@ input[type="checkbox"] {
     background-color: var(--background-color);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(231, 4, 4, 0.938)
+    box-shadow: 0 4px 8px var(--accent-color);
 }
 
 .request-section h2 {
@@ -174,7 +174,7 @@ input[type="checkbox"] {
 
 .insight-box {
     flex: 1;
-    background-color: black; /* Change background color to black */
+    background-color: var(--accent-color); /* Change background color to black */
     color: white; /* Change text color to white */
     padding: 20px;
     border-radius: 20px;
@@ -182,14 +182,14 @@ input[type="checkbox"] {
 }
 
 .insight-box h3 {
-    color: red;
+    color: rgb(0, 68, 255);
 }
 
 .insight-details {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: red;
+    color: rgb(0, 68, 255);
 }
 .insight-box:hover {
     background-color: rgb(255, 255, 255);
@@ -198,7 +198,7 @@ input[type="checkbox"] {
 
 
 .view-button {
-    background-color: rgb(255, 0, 0);
+    background-color: rgb(0, 68, 255);
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
@@ -236,7 +236,7 @@ input[type="checkbox"] {
     max-height: 300px;
     overflow-y: auto;
     padding-right: 10px;
-    border: 1px solid #0c0c0c;
+    border: 1px solid var(--accent-color);
     border-radius: 5px;
     margin-bottom: 20px;
 }
@@ -251,18 +251,18 @@ input[type="checkbox"] {
     margin-bottom: 10px;
     padding: 10px;
     border-radius: 5px;
-    background-color: #000000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--accent-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.993);
 }
 .song-box:hover {
-    background-color: #f0f0f0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background-color: #000000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.733);
 }
 
 .song-id, .song-name {
     margin-bottom: 5px;
     font-size: 14px;
-    color: #c71010;
+    color: #ffffff;
 }
 
 .song-id {
@@ -277,8 +277,8 @@ input[type="checkbox"] {
     padding: 5px 10px;
     border: none;
     border-radius: 3px;
-    background-color: rgb(255, 0, 0);
-    color: rgb(255, 255, 255);
+    background-color: rgb(255, 255, 255);
+    color: rgb(8, 8, 8);
     cursor: pointer;
     transition: background-color 0.3s;
 }

@@ -149,6 +149,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 console.log(songId)
                 let html='';
                 // if its been reviewed unable to keep being reported
+                //this person must be an artist
                 if(userflagged===-1){
 
                     if(flagged && !reviewed){
@@ -188,6 +189,63 @@ addEventListener("DOMContentLoaded", (event) => {
 
                 return html
             }
+            const AddPossible=(isFlagged,isReviewed,User)=>{
+
+
+                let html='';
+                // if its been reviewed unable to keep being reported
+                //this person must be an artist
+                if(User===-1){
+
+                
+                        html+='x'
+
+                
+                }
+                else{
+                    if(isReviewed){
+                    return "+"
+                }
+                else if(!isFlagged&& User===1){
+                    //html+='<button class="under-review">Pending</button>'
+                    html += '+';
+                }
+                // if its not been completly flagged 
+                else if(!isFlagged&& !isReviewed){
+
+
+
+                    html += '+';
+
+
+
+                }
+                else if(isFlagged&&!isReviewed){
+                    html+='x'
+                }
+
+
+                }
+              
+
+
+
+
+
+                return html
+            }
+            const Compare= (x,y,z,song)=>{
+
+                if(AddPossible(x,y,z)==="+"){
+                    return playlistsDropdownHtml(song)
+                }
+                else{
+
+                    return ""
+                }
+
+
+            }
 
             html = '';
             for(const song of data['songData']) {
@@ -220,9 +278,11 @@ addEventListener("DOMContentLoaded", (event) => {
                                     </li>
                                     <li>
                                         <div class="dropdown">
-                                            <h4>+</h4>
+                                            <h4>
+                                                ${AddPossible(song['Flag'],song['Reviewed'],song['UserFlagged'])}
+                                                </h4>
                                             <div class="dropdown_menu">
-                                                ${playlistsDropdownHtml(song['songID'])}
+                                                ${(Compare(song['Flag'],song['Reviewed'],song['UserFlagged'],song['songID']))}
                                             </div>
                                         </div>
                                     </li>

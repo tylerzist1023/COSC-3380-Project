@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style_admin_consider.css"> <!-- Link to your CSS file -->
+    <title>Song Review {{SongID}} </title> 
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><span class="highlight">Song</span> Review Platform</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li class="current"><a href="#">Home</a></li>
+                    <!-- Add more navigation links as needed -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+
+    <div class="container">
+        <div id="song-info" data-value="{{SongID}}">
+            <!-- Dynamic content will be loaded here by the JavaScript -->
+        </div>
+    
+        <button class="button" id="accept-button">Accept</button>
+        <button class="button" id="reject-button">Reject</button>
+    </div>
+    
+
+<!-- ... (remaining HTML content) ... -->
+
+
+    <footer>
+        <p>Song Review Platform © 2023</p>
+    </footer>
+</body>
+</html>
+<script>
+
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const songInfoDiv = document.getElementById('song-info');
+        const songInfo = songInfoDiv.dataset.value;
+        // Replace with the actual URL; for example, '/getsonginfo/21'
+        const response = await fetch('/getsonginfo/' + songInfo);
+        const data = await response.json();
+
+        // Check if the song data array is available and has at least one item
+        if (data.song && Array.isArray(data.song) && data.song.length > 0) {
+            const song = data.song[0]; // Accessing the first item in the song array
+
+            // Add song name
+            let songName = document.createElement('h3');
+            songName.textContent = `Song: ${song.SongName}`;
+            songInfoDiv.appendChild(songName);
+
+            // Add artist name
+            let artistName = document.createElement('p');
+            artistName.textContent = `Artist: ${song.ArtistName}`;
+            songInfoDiv.appendChild(artistName);
+
+            // Add album name
+            let albumInfo = document.createElement('p');
+            albumInfo.textContent = `Album: ${song.AlbumName}`;
+            songInfoDiv.appendChild(albumInfo);
+
+            // Add album image
+            let img = document.createElement('img');
+            img.classList.add('artist-image');
+            img.src = song.AlbumPic ? `data:image/png;base64,${song.AlbumPic}` :'/npc/picture'; // Direct link to the image
+            img.alt = 'Album Picture';
+            songInfoDiv.appendChild(img); // Appending the image directly to the song container
+
+            // Add additional information like listened history, reports, etc., in a similar fashion
+            // ...
+        }
+    } catch (error) {
+        console.error('Error fetching song data:', error);
+    }
+});
+
+
+
+
+
+</script>

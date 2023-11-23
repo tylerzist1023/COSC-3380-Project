@@ -1,0 +1,84 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e3eaf3;
+    color: #1f2d3d;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+header {
+    background: #4a90e2;
+    color: white;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: #1f2d3d 3px solid;
+}
+header a {
+    color: #ffffff;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+header ul {
+    padding: 0;
+    list-style: none;
+    text-align: center;
+}
+header li {
+    display: inline;
+    margin: 0 20px;
+}
+header #branding {
+    float: left;
+}
+header #branding h1 {
+    margin: 0;
+}
+header nav {
+    float: right;
+    margin-top: 10px;
+}
+header .highlight, header .current a {
+    color: #e3eaf3;
+    font-weight: bold;
+}
+header a:hover {
+    color: #ffffff;
+    font-weight: bold;
+}
+.button {
+    display: inline-block;
+    text-decoration: none;
+    color: white;
+    background: #4a90e2;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 5px;
+    margin: 20px 10px;
+    cursor: pointer;
+}
+.button:hover {
+    background: #1f2d3d;
+}
+footer {
+    padding: 20px;
+    margin-top: 20px;
+    color: white;
+    background-color: #1f2d3d;
+    text-align: center;
+}
+.artist-image {
+    width: 100%; /* Makes the image responsive to the container width */
+    max-width: 300px; /* Limits the maximum width */
+    height: auto; /* Maintains the aspect ratio of the image */
+    border-radius: 10px; /* Gives rounded corners to the image */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+    margin: 20px 0; /* Adds some space around the image */
+    display: block; /* Ensures the image is a block-level element */
+    object-fit: cover; /* Ensures the image covers the element box */
+}
+
