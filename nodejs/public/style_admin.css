@@ -277,7 +277,7 @@ input[type="checkbox"] {
     padding: 5px 10px;
     border: none;
     border-radius: 3px;
-    background-color: rgb(255, 0, 0)
+    background-color: rgb(255, 0, 0);
     color: rgb(255, 255, 255);
     cursor: pointer;
     transition: background-color 0.3s;
