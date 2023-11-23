@@ -387,6 +387,7 @@ async function getSongInfoConsider(songID) {
     try {
         const data={}
         const userQuery = `SELECT 
+        Song.SongFile AS SongFile,
         Song.Name AS SongName, 
         Artist.ArtistName, 
         Album.AlbumName, 
@@ -407,11 +408,17 @@ async function getSongInfoConsider(songID) {
                 artist.AlbumPic = artist.AlbumPic.toString('base64');
             }
         });
+        
 
 
 
         data['song']= userResults;
-        console.log(data);
+        const type = await fileTypeFromBuffer(data['song'][0]['SongFile'])
+        data['song'][0]['SongFile']=data['song'][0]['SongFile'].toString('base64');
+        //print(type)
+        data['song'][0]['MimeType'] = type['mime']
+       // print(data)
+        //console.log(data);
         return data;
         
     } catch (error) {
@@ -554,7 +561,7 @@ const server = http.createServer(async (req, res) => {
     else if(ReplaceMatchUrl(req.url,'/getsonginfo/')){
         const SongID = req.url.replace('/getsonginfo/',"")
 
-       print(SongID)
+       //print(SongID)
        res.end(JSON.stringify(await getSongInfoConsider(SongID)))
 
 
