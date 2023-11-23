@@ -84,34 +84,6 @@
 
 <script src='/base.js'></script>
 <script>
-function playSong(e) {
-    e.preventDefault();
-
-    let songid = this.getAttribute('songid');
-    
-    fetch('/song/'+songid)
-        .then(response => response.json())
-        .then(data => {
-            let playerImage = document.getElementById('playerImage');
-            let playerSong = document.getElementById('playerSong');
-            let playerArtist = document.getElementById('playerArtist');
-            let playerSource = document.getElementById('playerSource');
-
-            playerImage.setAttribute('src', '/album/'+data['albumid']+'/pic');
-            playerSong.innerHTML = data['songname'];
-            playerArtist.innerHTML = data['artistname'];
-        })
-        .finally(() => {
-            let playerSource = document.getElementById('playerSource');
-            let playerAudio = document.getElementById('playerAudio');
-            playerSource.setAttribute('src', '/song/'+songid+'/audio');
-            playerAudio.load();
-            playerAudio.play();
-            let playerDiv = document.getElementById('playerDiv');
-            playerDiv.style.display = '';
-        })
-        .catch(error => console.error('Error:', error));
-}
 addEventListener("DOMContentLoaded", (event) => {
     let playlistId = window.location.pathname.split('/')[2];
 
@@ -148,7 +120,7 @@ addEventListener("DOMContentLoaded", (event) => {
 
             html = '';
             for(const song of data['songs']) {
-                html += `<div class="track_list">
+                html += `<div class="track_list" id='list${song[5]}'>
                         <div class="track_info">
                             <ul>
                                 <div class="track_left_info">
@@ -156,7 +128,7 @@ addEventListener("DOMContentLoaded", (event) => {
                                         <h4>${song[0]}</h4>
                                     </li>
                                     <li>
-                                        <a id='playSong' songid="${ song[5]}" href='#'><h4>${ song[1]}</h4></a>
+                                        <a id='playSong' ii="${song[0]}" songid="${ song[5]}" href='#'><h4>${ song[1]}</h4></a>
                                         <a href="/artist/${song[3]}"><h5>${song[2]}</h5></a>
                                     </li>
                                 </div>
@@ -196,7 +168,7 @@ addEventListener("DOMContentLoaded", (event) => {
     .then(() => {
         const playSongLinks = document.querySelectorAll('#playSong');
         for (var i = 0; i < playSongLinks.length; i++) {
-            playSongLinks[i].addEventListener('click', playSong);
+            playSongLinks[i].addEventListener('click', playSong(playSongLinks[i]));
         }
 
         document.getElementById('deleteLink').addEventListener('click', function(ev){
