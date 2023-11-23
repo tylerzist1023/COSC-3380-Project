@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Artist</title>
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <header id='topBar'>
+    </header>
+
+    <div class="main_container">
+
+        <div class="listener_profile" id='profile'>
+            
+        </div>
+
+
+        <div class="song_list">
+            <h2>Albums</h2>
+            <div class="list" id='following'>
+                
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Left Side Bar -->
+    <div class="left_sidebar" id='leftBar'>
+        
+    </div>
+
+<script src='/base.js'></script>
+<script>
+
+</script>
+<script>
+addEventListener("DOMContentLoaded", (event) => {
+
+    const artistID = window.location.pathname.split('/').pop();
+
+    fetch(`/ajax/artist/${artistID}`)
+        .then(response => response.json())
+        .then(data => {
+
+            console.log(data);
+
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            // let html = '';
+            // for(const playlist of data['playlists']) {
+            //     html += `<div class="item">
+            //         <a href="/playlist/${playlist['PlaylistID']}"><img src="/playlist/${playlist['PlaylistID']}/pic"></a>
+            //         <h4>${playlist['PlaylistName']}</h4>
+            //         <p>by ${data.username}</p>
+            //     </div>`;
+            // }
+            // document.getElementById('playlists').innerHTML = html;
+
+            // html = '';
+            // for(const artist of data['following']) {
+            //     html += `<div class="artist_item">
+            //         <a><img src="/artist/${artist['ArtistID'] }/pic" class="artist_img"></a>
+            //         <h4>${artist['ArtistName'] }</h4>
+            //         <p>Profile</p>
+            //     </div>`;
+            // }
+            // document.getElementById('following').innerHTML = html;
+
+            html = '';
+            html += `<img src="/artist/${data[0]['ArtistID']}/pic" alt="profile picture">
+            <div class="profile_information">
+                <h4>Profile</h4>
+                <h1>${data[0]['ArtistName']}</h1>
+                <h3>${data[0]['COUNT(Follow.ArtistID)']} Followers</h3>
+            </div>`;
+            document.getElementById('profile').innerHTML = html;
+        })
+});
+</script>
+</body>
+</html>

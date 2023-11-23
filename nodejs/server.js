@@ -460,10 +460,6 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify(await getAdminSong()));
         }
 
-        
-
-
-
     }
     else if(ReplaceMatchUrl(req.url,'/admin/insights/')){
 
@@ -1221,6 +1217,57 @@ const server = http.createServer(async (req, res) => {
                 res.end("Search Failed");
                 return;
             }
+        }
+    }
+
+    else if (matchUrl(req.url, '/artist/([0-9]+)') && req.method === 'GET' ) {
+        try {
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            } 
+            
+            else {
+                const data = await getListenerBaseData(sessionData.id);
+                data.username = sessionData.username;
+
+                serveStaticFile(res, './templates/artist_info.html', '');
+            }
+        } 
+        catch (error) {
+            console.error('Error processing follow request:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
+        }
+    }
+
+    else if (matchUrl(req.url, '/ajax/artist/([0-9]+)') && req.method === 'GET') {
+        try {
+            let data = {};
+            if (getRole(sessionData) !== 'listener') {
+                res.writeHead(401, { 'Content-Type': 'text/plain' });
+                res.end("You are not authorized to do that");
+                return;
+            }
+            
+            const artistId = req.url.split('/')[3];
+
+            const artistInfoQuery = 'SELECT Artist.ArtistID, ArtistName, COUNT(Follow.ArtistID) FROM Artist LEFT JOIN Follow ON Artist.ArtistID = Follow.ArtistID WHERE Artist.ArtistID=? GROUP BY Artist.ArtistID, ArtistName';
+            const vals = [artistId];
+
+            console.log(vals);
+
+            data.artistInfo = await executeQuery(artistInfoQuery, vals);
+            console.log(data);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(data.artistInfo));
+            
+        }
+
+        catch (error) {
+            console.error('Error processing follow request:', error);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end("Internal Server Error");
         }
     }
     
