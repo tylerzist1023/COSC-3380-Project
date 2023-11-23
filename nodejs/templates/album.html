@@ -12,6 +12,9 @@
 </head>
 
 <body>
+
+
+    
 <!-- Main Container To Display The Album Details and Songs-->
 <header id='topBar'>
 </header>
@@ -36,6 +39,13 @@
                     </li>
                 </div>
                 <div class="album_right_info">
+                    <!-- josh-edits-to-flag -->
+                    <li>
+                        <h4>Report</h4>
+                    </li>
+                    <li>
+                        <h4></h4> 
+                    </li>
                     <li>
                         <h4>Duration</h4>
                     </li>
@@ -160,7 +170,52 @@ addEventListener("DOMContentLoaded", (event) => {
                 }
                 return html;
             }
-            
+
+
+
+            const ReportHTML = (flagged,reviewed,userflagged,songId)=>{
+                console.log(songId)
+                let html='';
+                // if its been reviewed unable to keep being reported
+                if(userflagged===-1){
+
+                    if(flagged && !reviewed){
+                        html+='<button class="flagged-button">Flagged</button>'
+
+                    }
+                }
+                else{
+                    if(reviewed){
+                    return html
+                }
+                else if(!flagged && userflagged===1){
+                    //html+='<button class="under-review">Pending</button>'
+                    html += '<button value="' + songId + '" onclick="toggleDropdown(this)" class="under-review">Pending</button>';
+                }
+                // if its not been completly flagged 
+                else if(!flagged && !reviewed){
+
+
+
+                    html += '<button value="' + songId + '" onclick="toggleDropdown(this)" class="flag-button">Flag</button>';
+
+
+
+                }
+                else if(flagged &&!reviewed){
+                    html+='<button class="flagged-button">Flagged</button>'
+                }
+
+
+                }
+              
+
+
+
+
+
+                return html
+            }
 
             html = '';
             for(const song of data['songData']) {
@@ -177,6 +232,17 @@ addEventListener("DOMContentLoaded", (event) => {
                                     </li>
                                 </div>
                                 <div class="track_right_info">
+                              
+    <li class="centered-list">
+        <h4>${ReportHTML(song['Flag'],song['Reviewed'],song['UserFlagged'],song['songID'])}</h4>
+    </li>
+
+                                    <li>
+                        <h4></h4>
+                    </li>
+                    <li>
+                        <h4></h4> 
+                    </li>
                                     <li>
                                         <h4>${song['Duration']}</h4>
                                     </li>
@@ -243,6 +309,44 @@ addEventListener("DOMContentLoaded", (event) => {
     });
 
 });
+
+
+async function toggleDropdown(button) {
+    var songId = button.value; // Assuming the button has a value attribute set to songId
+
+    // Construct the data to send
+    const data = { 'SongID': songId };
+
+    // Perform the POST request
+    try {
+        const response = await fetch('/report-song', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const responseData = await response.json(); // Or .text(), depending on the response type
+        console.log('Server response:', responseData);
+        window.location.reload();
+
+   
+
+    } catch (error) {
+        console.error('Error during the POST request:', error);
+    }
+
+}
+
+
+
+
+
 </script>
 </body>
 </html>

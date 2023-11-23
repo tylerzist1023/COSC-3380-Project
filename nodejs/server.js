@@ -168,7 +168,7 @@ function serveStaticFile(res, filePath, contentType, responseCode = 200) {
 }
 
 
-
+//gets all the song counts when the Admin Logs IN 
 const getAdminBaseData= async () => {
     try {
         const data = {};
@@ -176,32 +176,10 @@ const getAdminBaseData= async () => {
         const NumUsers =await executeQuery('SELECT COUNT(*) FROM Listener');
         const NumSongs = await executeQuery('SELECT COUNT(*) FROM Song');
         const NumPlaylist = await executeQuery('SELECT COUNT(*) FROM Playlist'); // show all playlists including deleted ones
-
-
         data['NumArtist']=NumArtist
         data['NumUsers'] = NumUsers
         data['NumSongs'] = NumSongs
         data['NumPlaylist'] = NumPlaylist
-        // Get all the new songs added
-        // const NewSongQuery = 'SELECT SongID,Song.Name AS SongName, Artist.ArtistName as ArtistName, Artist.ProfilePic as ProfilePic FROM Song JOIN Artist ON Song.ArtistID = Artist.ArtistID ORDER BY Song.CreationTimestamp';
-        // const NewSongResults = await executeQuery(NewSongQuery);
-        // data['NewSongs'] = NewSongResults;
-
-
-        // Get All the new Artist 
-        // const NewArtistQuery = 'SELECT ArtistName, ProfilePic,ArtistID FROM Artist ORDER BY CreationStamp DESC';
-        // const NewArtistResults = await executeQuery(NewArtistQuery);
-
-        //get all the pictures 
-
-        // NewArtistResults.forEach(artist => {
-        //     if (artist.ProfilePic && Buffer.isBuffer(artist.ProfilePic)) {
-        //         // Convert the Buffer to a Base64 string
-        //         artist.ProfilePic = artist.ProfilePic.toString('base64');
-        //     }
-        // });
-
-        // data['NewArtist'] = NewArtistResults;
         return data;
     } catch (err) {
         throw new Error(`Error in getListenerBaseData: ${err.message}`);
@@ -449,6 +427,10 @@ const server = http.createServer(async (req, res) => {
 
     }
     //get the data 
+    else if(req.url==='/admin/reports'){
+
+        serveStaticFile(res, "./templates/reports_charlie.html", "");
+    }
     else if(ReplaceMatchUrl(req.url,'/admin/insights/type') && req.method==='GET'){
 
        const request_to_serve = req.url.replace('/admin/insights/type',"");
@@ -512,6 +494,61 @@ const server = http.createServer(async (req, res) => {
     else if(req.url === "/getstarted"){
         serveStaticFile(res, './templates/login_options.html', 'text/html');
     }
+    else if (req.url === "/report-song" ) {
+        //print(req.url)
+        const form = new Types.IncomingForm();
+    
+        try {
+            const [fields, files] = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields, files) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve([fields, files]);
+                    }
+                });
+            });
+            const user = sessionData['id']; // Ensure sessionData['id'] is correctly populated
+            const songID = (fields['SongID']); // Assuming you want to log the fields for debugging
+
+            const Inthere= 'SELECT UserID,SongID FROM UserFlags WHERE SongID=? AND UserID =?';
+
+            const Results = await executeQuery(Inthere,[songID,user]);
+            console.log(Results);
+
+
+//delete the instance 
+            if(Results.length>0){
+
+                const query = 'DELETE FROM UserFlags WHERE UserID = ? AND SongID = ?';
+                await executeQuery(query, [user, songID]);
+
+
+
+
+
+
+            }
+            else{
+                let currentPassQuery= 'INSERT INTO UserFlags (SongID, UserID) VALUES (?, ?)';
+            await executeQuery(currentPassQuery, [songID,sessionData['id']])
+
+            }
+
+            
+    
+            // Add database insertion logic or other processing here
+    
+            // Send success response
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Flag inserted successfully' }));
+        } catch (err) {
+            console.error(err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('An error occurred during form processing');
+        }
+    }
+    
 
     else if(req.url === "/topbar"){
 
@@ -1396,9 +1433,46 @@ const server = http.createServer(async (req, res) => {
             // Format Release Date to MM/DD/YYYY
             const releaseDate = new Date(data.albumData['ReleaseDate']);
             data.formattedReleaseDate = releaseDate.toLocaleDateString();
+            
 
-            const songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
-            const songResults = await executeQuery(songQuery, [albumId]);
+            //Josh-album/get all the songs: Need to be Configured for the trigger
+            let songQuery =""
+            let songResults=""
+            if(getRole(sessionData)==="listener"){
+                 songQuery = `
+  SELECT 
+    ROW_NUMBER() OVER (ORDER BY Song.SongID) AS row_num,
+    Song.Name,
+    Duration,
+    ArtistName,
+    Artist.ArtistID,
+    Song.SongID,
+    Song.flagged,
+    Song.reviewed,
+    CASE 
+        WHEN UserFlags.SongID IS NOT NULL THEN 1 
+        ELSE 0 
+    END AS UserHasFlagged
+  FROM 
+    Song
+    JOIN Album ON Song.AlbumID = Album.AlbumID
+    JOIN Artist ON Album.ArtistID = Artist.ArtistID
+    LEFT JOIN UserFlags ON Song.SongID = UserFlags.SongID AND UserFlags.UserID = ?
+  WHERE 
+    Album.AlbumID = ?
+
+`;
+songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
+
+            }
+            else{
+                 songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID,Song.flagged,Song.reviewed FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
+                songResults = await executeQuery(songQuery, [albumId]);
+            
+            }
+            
+            
+      
 
             if (songResults.length === 0) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
@@ -1411,15 +1485,45 @@ const server = http.createServer(async (req, res) => {
                 const duration_sec = Math.floor(song.Duration % 60);
                 const duration_str = `${duration_min}:${duration_sec}`;
 
+
+                //upadte the name in the return statement
+                //if a listener
+                if(getRole(sessionData)==='listener'){
+
+                
+
                 return {
+                    
                     count: song.row_num,
-                    songName: song.Name,
+                    songName: (song.flagged===1 && song.reviewed===0) ? "Not Available - "+song.Name : song.Name ,
                     Duration: duration_str,
                     artistName: song.ArtistName,
                     artistID: song.ArtistID,
-                    songID: song.SongID
+                    songID: song.SongID,
+                    Flag: song.flagged,
+                    Reviewed: song.reviewed,
+                    UserFlagged: song.UserHasFlagged
+                  
                 };
+            }
+            else{
+                //must be an artist
+                return{
+                    count: song.row_num,
+                    songName: (song.flagged===1 && song.reviewed===0) ? "Not Available - "+song.Name : song.Name ,
+                    Duration: duration_str,
+                    artistName: song.ArtistName,
+                    artistID: song.ArtistID,
+                    songID: song.SongID,
+                    Flag: song.flagged,
+                    Reviewed: song.reviewed,
+                    UserFlagged: -1
+               
+                }
+
+            }
             });
+            //print(data.songData)
 
             // Get AristID from previous query
             const artistID = data.albumData['ArtistID'];
@@ -1575,14 +1679,16 @@ const server = http.createServer(async (req, res) => {
             data.playlist_duration = `${duration_min} min ${duration_sec} sec`;
 
             // Get songs in the playlist
-            const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
+            const playlistSongsQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY PlaylistSong.SongID) row_num, Name, ArtistName, Duration, Song.SongID,Song.flagged,Song.reviewed FROM Song, PlaylistSong, Artist, Album WHERE Song.SongID=PlaylistSong.SongID AND PlaylistSong.PlaylistID=? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID';
             const playlistSongsResult = await executeQuery(playlistSongsQuery, [playlistId]);
 
             data.songs = playlistSongsResult.map(song => {
                 const duration_min = Math.floor(song.Duration / 60);
                 const duration_sec = song.Duration % 60;
                 const duration_str = `${duration_min}:${duration_sec}`;
-                return [song.row_num, song.Name, song.ArtistName, song.Duration, duration_str, song.SongID];
+
+                //fixed the code in the playlist -Josh-edits
+                return [song.row_num, (song.flagged===1 && song.reviewed===0) ? "Not Available - "+song.Name : song.Name , song.ArtistName, song.Duration, duration_str, song.SongID];
             });
 
             // Get recommended songs
@@ -1685,7 +1791,13 @@ const server = http.createServer(async (req, res) => {
     } else if(matchUrl(req.url, '/song/([0-9]+)') && req.method === 'GET') {
         try {
             const songId = req.url.split('/')[2];
-            const query = 'SELECT SongID, Song.AlbumID, Name, AlbumName FROM Song, Album WHERE SongID=? AND Album.AlbumID=Song.AlbumID';
+            const query = `
+                    SELECT SongID, Song.AlbumID, Name, AlbumName 
+                    FROM Song, Album 
+                    WHERE SongID = ? 
+                    AND Album.AlbumID = Song.AlbumID`;
+                    // AND (Song.flagged = 0 OR Song.reviewed = 1)`;
+
             const vals = [songId];
 
             const results = await executeQuery(query, vals);
@@ -1708,7 +1820,7 @@ const server = http.createServer(async (req, res) => {
     } else if(matchUrl(req.url, '/song/([0-9]+)/audio') && req.method === 'GET') {
         try {
             const songId = req.url.split('/')[2];
-            const query = 'SELECT SongFile,Duration FROM Song WHERE SongID=?';
+            const query = 'SELECT SongFile,Duration,flagged,reviewed FROM Song WHERE SongID=?';
             const vals = [songId];
 
             const results = await executeQuery(query, vals);
@@ -1718,10 +1830,18 @@ const server = http.createServer(async (req, res) => {
                 res.end('Not found');
                 return;
             }
+           // console.log(results)
 
             const songFile = results[0]['SongFile'];
+            //josh-edits
+            //now when the song comes in 
+            //if flagged or has not been reviewed
+            //the person cannot play the song
+            const flagged = results[0]['flagged'];
+            const reviewed = results[0]['reviewed'];
+            //console.log(flagged)
 
-            if (songFile === null || songFile === undefined) {
+            if (songFile === null || songFile === undefined  || (flagged===1 && reviewed ===0)) {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
                 res.end('Not found');
                 return;
