@@ -37,14 +37,31 @@
                 </form>
                 <br>
             </div>
+
             <div class="song_list">
                 <h2>Search Results</h2>
-                <div class="list" id='searchResult'>
+            </div>
+
+            <div class="song_list">
+                <h2>Songs</h2>
+                <div class="list" id='searchResultSongs'>
                 </div>
             </div>
+
+            <div class="song_list">
+                <h2>Artists</h2>
+                <div class="list" id='searchResultArtists'>
+                </div>
+            </div>
+
+            <div class="song_list">
+                <h2>Albums</h2>
+                <div class="list" id='searchResultAlbums'>
+                </div>
+            </div>
+        </div>
     
-    <div class="left_sidebar" id='leftBar'>
-</div>
+    <div class="left_sidebar" id='leftBar'></div>
 
 <div id='playerDiv' style='display:none;' class="song_player">
     <!-- Replace image, song name, artist name with actual database information -->
@@ -64,52 +81,76 @@
 
 <script>
 addEventListener("DOMContentLoaded", (event) => {
-    const searchForm = document.querySelector('.searchForm');
-
-    searchForm.addEventListener('submit', async function (event) {
-        event.preventDefault();
-
-        const formData = new FormData(searchForm);
-
-        try {
-            const response = await fetch('/search', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error('Search request failed');
-            }
-
-            const data = await response.json();
-
-            updateSearchResults(data);
-        } catch (error) {
-            console.error('Error:', error.message);
-        }
-    });
-
-    function updateSearchResults(results) {
-        let html = '';
-        console.log(results['SongID']);
-        results.forEach(results => {
-            html += `<div class="item">
-                <a href="/album/${results['AlbumID']}"><img src="/album/${results['AlbumID']}/pic"></a>
-                <h4>${results['SongName']}</h4>
-                <p>${results['ArtistName']}</p>
-            </div>`;
-        });
-
-        document.getElementById('searchResult').innerHTML = html;
-    }
-
     fetch('/ajax')
         .then(response => response.json())
         .then(data => {
             document.getElementById('topBar').innerHTML = getTopbar(data);
             document.getElementById('leftBar').innerHTML = getSidebar(data);
         })
+        .then(() => {
+            const searchForm = document.querySelector('.searchForm');
+            
+            searchForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
 
+            const formData = new FormData(searchForm);
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Search request failed');
+                }
+
+                const data = await response.json();
+
+                updateSearchResults(data);
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        });
+        
+            function updateSearchResults(results) {
+            let songsHtml = '';
+            let artistsHtml = '';
+            let albumsHtml = '';
+
+            results.forEach(result => {
+                console.log(result);
+                if (result['type'] === 'song') {
+                    songsHtml += `<div class="item">
+                        <a id='playSong' songid="${ result['SongID'] }" href='#'><img src="/album/${result['AlbumID']}/pic"></a>
+                        <h4>${result['SongName']}</h4>
+                        <a href="/artist/${result['ArtistID']}"><p>${result['ArtistName']}</p></a>
+                    </div>`;
+                } else if (result['type'] === 'artist') {
+                    artistsHtml += `<div class="artist_item">
+                        <a href="/artist/${result['ArtistID']}"><img src="/artist/${result['ArtistID']}/pic"></a>
+                        <h4>${result['ArtistName']}</h4>
+                        <p>Profile</p>
+                    </div>`;
+                } else if (result.type === 'album') {
+                    albumsHtml += `<div class="item">
+                        <a href="/album/${result['AlbumID']}"><img src="/album/${result['AlbumID']}/pic"></a>
+                        <h4>${result['AlbumName']}</h4>
+                        <a href="/artist/${result['ArtistID']}"><p>${result['ArtistName']}</p></a>
+                    </div>`;
+                }
+            });
+
+            document.getElementById('searchResultSongs').innerHTML = songsHtml;
+            document.getElementById('searchResultArtists').innerHTML = artistsHtml;
+            document.getElementById('searchResultAlbums').innerHTML = albumsHtml;
+
+            const playSongLinks = document.querySelectorAll('#playSong');
+            for (let i = 0; i < playSongLinks.length; i++) {
+                playSongLinks[i].addEventListener('click', playSong(playSongLinks[i]));
+            }
+        }
+    })
 });
 </script>
 </body>

@@ -29,6 +29,7 @@ function playSong(this_) {
         fetch('/song/'+songid)
             .then(response => response.json())
             .then(data => {
+                console.log('Data received from /song/:id endpoint:', data);
                 let playerImage = document.getElementById('playerImage');
                 let playerSong = document.getElementById('playerSong');
                 let playerArtist = document.getElementById('playerArtist');
