@@ -198,8 +198,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         const data = await response.json();
 
         const unresolvedRequestsList = document.getElementById('resolved-requests-list');
-        if (data.UnResolved && Array.isArray(data.UnResolved)) {
-            data.UnResolved.forEach(song => {
+        if (data.Resolved && Array.isArray(data.Resolved)) {
+            data.Resolved.forEach(song => {
                 let songDiv = document.createElement('div');
                 songDiv.classList.add('song-box');
 
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 actionButton.textContent = 'View Song';
                 actionButton.classList.add('song-action-button');
                 actionButton.onclick = function() {
-                    window.location.href = `/song-consider/${song.SongID}`;
+                    window.location.href = `/song-considered/${song.SongID}`;
                 };
                 songDiv.appendChild(actionButton);
 

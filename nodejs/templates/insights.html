@@ -216,7 +216,8 @@ else if(document.getElementById('Song')){
 
                 // Add album image inside an anchor tag
                 let imgLink = document.createElement('a');
-                imgLink.href = `/album/admin/${song.AlbumID}`; // Link to the album's admin page
+                //add the code to redirect considered page
+                imgLink.href = `/song-considered/${song.SongID}`; // Link to the album's admin page
                 let img = document.createElement('img');
                 img.classList.add('artist-image');
                 img.src = song.AlbumPic ? `data:image/png;base64,${song.AlbumPic}` : '/default/album/picture';

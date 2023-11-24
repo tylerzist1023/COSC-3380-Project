@@ -28,7 +28,6 @@
         </div>
         <audio id="audioPlayer" controls></audio>
     
-        <button class="button" id="accept-button">Accept</button>
         <button class="button" id="reject-button">Delete</button>
     </div>
     
@@ -85,23 +84,15 @@ function askUser(action) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    const acceptButton = document.getElementById('accept-button');
+
     const rejectButton = document.getElementById('reject-button');
 
-    acceptButton.addEventListener('click', function() {
-        
-        if(askUser('accept')){
-            makeGetRequest('accept');
-            window.location.href = '/'
-
-        }
-    
-    });
 
     rejectButton.addEventListener('click', function() {
         if(askUser('Delete')){
             makeGetRequest('reject');
             window.location.href = '/'
+            
 
         }
         

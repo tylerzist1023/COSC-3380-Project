@@ -14,6 +14,7 @@ import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
 import { getAdminArtist ,getAdminSong} from './insights.js';
+import { getNotif } from './notification.js';
 
 // import nodemon from 'nodemon';
 
@@ -358,7 +359,7 @@ async function getAdminUnResolved(sessionData, res) {
         data['UnResolved']= userResults;
         
           
-        console.log(data);
+     
 
         return data;
     } catch (error) {
@@ -374,7 +375,8 @@ async function getAdminResolved(sessionData, res) {
         WHERE flagged = 1 AND reviewed = 1`;
         const userResults = await executeQuery(userQuery);
         data['Resolved']= userResults;
-        console.log(data);
+        //print(data)
+ 
         return data;
         
     } catch (error) {
@@ -425,6 +427,44 @@ async function getSongInfoConsider(songID) {
         console.error(error);
         return {error: "Error"};
     }
+}
+async function KillorKeep(songID, type,res) {
+    try {
+
+        if(type==='Keep'){
+
+
+            let updateSongQuery = 'UPDATE Song SET reviewed = 1 WHERE SongID = ?';
+            await executeQuery(updateSongQuery , [songID])
+
+
+
+        }
+        else if(type==="Kill"){
+
+            //first delete all the ratings from the song
+            let deleteSongQuery = 'DELETE FROM Rating WHERE SongID = ?';
+            await executeQuery(deleteSongQuery , [songID])
+            //then delete the song form the user flags
+
+
+            deleteSongQuery = 'DELETE FROM UserFlags WHERE SongID = ?';
+            await executeQuery(deleteSongQuery , [songID])
+
+
+             deleteSongQuery = 'DELETE FROM Song WHERE SongID = ?';
+            await executeQuery(deleteSongQuery , [songID])
+        }
+
+
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Flag inserted successfully' }));
+        } catch (err) {
+            console.error(err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('An error occurred during form processing');
+        }
 }
 
 // Create HTTP server
@@ -550,6 +590,15 @@ const server = http.createServer(async (req, res) => {
 
         }
     }
+    //song has been considered but can still be rejected
+    else if(ReplaceMatchUrl(req.url,'/song-considered/')){
+        const SongID = req.url.replace('/song-considered/',"")
+
+        serveStatic_Plus(res,'./templates/considered_admin.html', '',{'SongID':SongID})
+
+
+    }
+    //song needs to be accepted or rejects
     else if(ReplaceMatchUrl(req.url,'/song-consider/')){
         const SongID = req.url.replace('/song-consider/',"")
 
@@ -564,6 +613,27 @@ const server = http.createServer(async (req, res) => {
        //print(SongID)
        res.end(JSON.stringify(await getSongInfoConsider(SongID)))
 
+
+    }
+    else if (ReplaceMatchUrl(req.url,'/considered/result/')){
+        print(req.url)
+
+        let action = req.url.replace('/considered/result/',"")
+        //keep the song forever, no more reports
+
+        if(ReplaceMatchUrl(action,'accept/')){
+            var songID = action.replace('accept/',"")
+            res.end(JSON.stringify(await KillorKeep(songID,'Keep',res)))
+            
+
+
+        }
+        //must be to delete the song
+        else {
+            var songID = action.replace('reject/',"")
+            res.end(JSON.stringify(await KillorKeep(songID,'Kill',res)))
+
+        }
 
     }
     // css of the homepage
@@ -629,13 +699,7 @@ const server = http.createServer(async (req, res) => {
             if(Results.length>0){
 
                 const query = 'DELETE FROM UserFlags WHERE UserID = ? AND SongID = ?';
-                await executeQuery(query, [user, songID]);
-
-
-
-
-
-
+                await executeQuery(query, [user, songID])
             }
             else{
                 let currentPassQuery= 'INSERT INTO UserFlags (SongID, UserID) VALUES (?, ?)';
@@ -643,8 +707,6 @@ const server = http.createServer(async (req, res) => {
 
             }
 
-            
-    
             // Add database insertion logic or other processing here
     
             // Send success response
@@ -692,6 +754,7 @@ const server = http.createServer(async (req, res) => {
                     <button type="submit" class="search_btn">Search</button>
                 </form>
             </div>
+            
             <ul class="topbar_navigation">
                 <li>
                     <a href="/logout">
@@ -736,6 +799,7 @@ const server = http.createServer(async (req, res) => {
                         <button type="submit" class="search_btn">Search</button>
                     </form>
                 </div>
+                ${getNotif()}
                 <ul class="topbar_navigation">
                 <li>
                     <a href="/logout">
@@ -2045,7 +2109,7 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
             return;
         }
 
-        const form = new Types.IncomingForm({ multiples: true });
+        const form =  new Types.IncomingForm({ multiples: true });
 
         try {
             const { fields, files } = await parseFormAsync(form, req);
@@ -2054,6 +2118,7 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
 
             const albumId = await executeQuery('INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (?,?,?,?)',
                 [fields.albumName, albumCover, sessionData.id, fields.releaseDate]);
+            
 
             const songPromises = [];
             for (let i = 0; i < fields.songNames.length; i++) {
@@ -2068,9 +2133,10 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
 
                 const genreCode = genreResults[0]['GenreCode'];
 
-                songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate,ArtistID) VALUES (?, ?, ?, ?, ?, ?,?)',
-                    [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate,sessionData.id]));
+                songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
+                    [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate]));
             }
+        
 
             // Wait for all songs to be uploaded before responding
             await Promise.all(songPromises);
@@ -2082,7 +2148,7 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
             await removeFile(files.albumCover.filepath);
         } catch (error) {
             console.error('Error uploading album:', error);
-            res.writeHead(500, { 'Content-Type': 'text/html' });
+            // res.writeHead(500, { 'Content-Type': 'text/html' })
             res.end(`<h1>Internal Server Error: ${error}</h1>`);
         }
     } else {
