@@ -1509,6 +1509,9 @@ const server = http.createServer(async (req, res) => {
 
             const artistSongsQuery = 'SELECT Album.AlbumID, Song.Name AS SongName, Album.AlbumName,  Artist.ArtistName, Album.ArtistID, Song.SongID FROM Song, Album, Artist WHERE Song.AlbumID = Album.AlbumID AND Artist.ArtistID = Album.ArtistID AND Artist.ArtistID = ?';
             data.artistSongs = await executeQuery(artistSongsQuery, vals);
+
+            const artistAlbumQuery = 'Select AlbumID, AlbumName FROM Album, Artist WHERE Album.ArtistID = Artist.ArtistID AND Artist.ArtistID = ?'
+            data.artistAlbums = await executeQuery(artistAlbumQuery, vals);
     
             console.log(data);
             res.writeHead(200, { 'Content-Type': 'application/json' });

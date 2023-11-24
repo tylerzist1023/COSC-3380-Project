@@ -71,7 +71,6 @@ addEventListener("DOMContentLoaded", (event) => {
         .then(data => {
 
             console.log(data);
-            console.log(data.artistSongs);
 
 
             document.getElementById('topBar').innerHTML = getTopbar(data);
@@ -82,21 +81,19 @@ addEventListener("DOMContentLoaded", (event) => {
                 html += `<div class="item">
                     <a id='playSong' songid="${ song['SongID'] }" href='#'><img src="/album/${song['AlbumID']}/pic"></a>
                     <h4>${song['SongName']}</h4>
-  
                 </div>`;
             }
             document.getElementById('songs').innerHTML = html;
 
 
-            // html = '';
-            // for(const artist of data['following']) {
-            //     html += `<div class="artist_item">
-            //         <a><img src="/artist/${artist['ArtistID'] }/pic" class="artist_img"></a>
-            //         <h4>${artist['ArtistName'] }</h4>
-            //         <p>Profile</p>
-            //     </div>`;
-            // }
-            // document.getElementById('following').innerHTML = html;
+            html = '';
+            for(const album of data.artistAlbums) {
+                html += `<div class="item">
+                    <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
+                    <h4>${album['AlbumName']}</h4>
+                </div>`;
+            }
+            document.getElementById('albums').innerHTML = html;
 
             html = '';
             html += `<img src="/artist/${data.artistInfo[0]['ArtistID']}/pic" alt="profile picture">
