@@ -37,9 +37,26 @@
                 </form>
                 <br>
             </div>
+
             <div class="song_list">
                 <h2>Search Results</h2>
-                <div class="list" id='searchResult'>
+            </div>
+
+            <div class="song_list">
+                <h2>Songs</h2>
+                <div class="list" id='searchResultSongs'>
+                </div>
+            </div>
+
+            <div class="song_list">
+                <h2>Artists</h2>
+                <div class="list" id='searchResultArtists'>
+                </div>
+            </div>
+
+            <div class="song_list">
+                <h2>Albums</h2>
+                <div class="list" id='searchResultAlbums'>
                 </div>
             </div>
     
@@ -90,18 +107,37 @@ addEventListener("DOMContentLoaded", (event) => {
     });
 
     function updateSearchResults(results) {
-        let html = '';
-        console.log(results['SongID']);
-        results.forEach(results => {
-            html += `<div class="item">
-                <a href="/album/${results['AlbumID']}"><img src="/album/${results['AlbumID']}/pic"></a>
-                <h4>${results['SongName']}</h4>
-                <p>${results['ArtistName']}</p>
-            </div>`;
-        });
+    let songsHtml = '';
+    let artistsHtml = '';
+    let albumsHtml = '';
 
-        document.getElementById('searchResult').innerHTML = html;
-    }
+    results.forEach(result => {
+        console.log(result);
+        if (result['type'] === 'song') {
+            songsHtml += `<div class="item">
+                <a href="/album/${result['AlbumID']}"><img src="/album/${result['AlbumID']}/pic"></a>
+                <h4>${result['SongName']}</h4>
+                <p>${result['ArtistName']}</p>
+            </div>`;
+        } else if (result['type'] === 'artist') {
+            artistsHtml += `<div class="artist_item">
+                <a href="/artist/${result['ArtistID']}"><img src="/artist/${result['ArtistID']}/pic"></a>
+                <h4>${result['ArtistName']}</h4>
+                <p>Profile</p>
+            </div>`;
+        } else if (result.type === 'album') {
+            albumsHtml += `<div class="item">
+                <a href="/album/${result['AlbumID']}"><img src="/album/${result['AlbumID']}/pic"></a>
+                <h4>${result['AlbumName']}</h4>
+                <p>${result['ArtistName']}</p>
+            </div>`;
+        }
+    });
+
+    document.getElementById('searchResultSongs').innerHTML = songsHtml;
+    document.getElementById('searchResultArtists').innerHTML = artistsHtml;
+    document.getElementById('searchResultAlbums').innerHTML = albumsHtml;
+}
 
     fetch('/ajax')
         .then(response => response.json())

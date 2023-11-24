@@ -1429,34 +1429,71 @@ const server = http.createServer(async (req, res) => {
             console.log(fields.searchBy);
 
             if (fields.searchBy === 'song') {
-                const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName FROM Song, Artist, Album.AlbumID WHERE Song.Name LIKE ? AND Song.ArtistID=Artist.ArtistID`;
+                const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID FROM Song, Artist, Album WHERE Song.Name LIKE ? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID`;
                 const vals = [`%${fields.search}%`];
                 console.log(fields.search);
                 const results = await executeQuery(query, vals);
+                for(let i=0; i<results.length; i++) {
+                    results[i].type = 'song';
+                }
+                console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
             else if (fields.searchBy === 'artist') {
-                const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName FROM Song, Artist, Album.AlbumID WHERE ArtistName LIKE ? AND Song.ArtistID=Artist.ArtistID`
-                const vals = [`$%{fields.search}%`];
+                // const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID, Artist.ArtistID FROM Song, Artist, Album WHERE ArtistName LIKE ? AND Album.ArtistID=Artist.ArtistID AND Album.ArtistID=Artist.ArtistID`
+                const query = `SELECT DISTINCT ArtistName, ArtistID FROM Artist WHERE ArtistName LIKE ?  `;
+                const vals = [`%${fields.search}%`];
                 console.log(fields.search);
                 const results = await executeQuery(query, vals);
+                for(let i=0; i<results.length; i++) {
+                    results[i].type = 'artist';
+                }
+                console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
             else if (fields.searchBy === 'album') {
-                const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, AlbumName, Album.AlbumID FROM Song, Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID AND Song.AlbumID = Album.AlbumID`
+                // const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, AlbumName, Album.AlbumID FROM Song, Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID AND Song.AlbumID = Album.AlbumID`
+                const query = `SELECT DISTINCT AlbumName, ArtistName, Album.AlbumID FROM Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID`;
                 const vals = [`%${fields.search}%`];
                 console.log(fields.search);
                 const results = await executeQuery(query, vals);
+                for(let i=0; i<results.length; i++) {
+                    results[i].type = 'album';
+                }
+                console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
             else if (fields.searchBy === '') {
-                const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, AlbumName, Album.AlbumID FROM Album, Artist, Song WHERE Song.Name LIKE ? AND Song.ArtistID LIKE Artist.ArtistID AND Song.AlbumID=Album.AlbumID OR AlbumName LIKE ? AND Album.AlbumID=Song.AlbumID AND Artist.ArtistID = Album.ArtistID OR ArtistName LIKE ? AND Artist.ArtistID=Song.ArtistID AND Album.ArtistID=Artist.ArtistID`
-                const vals = [`%${fields.search}%`, `%${fields.search}%`, `%${fields.search}%`];
+                let results = [];
+
+                const songQuery = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID FROM Song, Artist, Album WHERE Song.Name LIKE ? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID`;
+                const vals = [`%${fields.search}%`];
                 console.log(fields.search);
-                const results = await executeQuery(query, vals)
+                const songSearchResults = await executeQuery(songQuery, vals);
+                for(let i=0; i<songSearchResults.length; i++) {
+                    songSearchResults[i].type = 'song';
+                }
+                
+                const albumQuery = `SELECT DISTINCT AlbumName, ArtistName, Album.AlbumID FROM Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID`;
+                console.log(fields.search);
+                const albumSearchResults = await executeQuery(albumQuery, vals);
+                for(let i=0; i<albumSearchResults.length; i++) {
+                    albumSearchResults[i].type = 'album';
+                }
+
+                const artistQuery = `SELECT DISTINCT ArtistName, ArtistID FROM Artist WHERE ArtistName LIKE ?  `;
+                const artistSearchResults = await executeQuery(artistQuery, vals);
+                for(let i=0; i<artistSearchResults.length; i++) {
+                    artistSearchResults[i].type = 'artist';
+                }
+
+                results = [...songSearchResults, ...artistSearchResults, ...albumSearchResults];
+
+                console.log(fields.search);
+                console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
