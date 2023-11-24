@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import path from 'path';
 import mysql from 'mysql2/promise';
 import url from 'url';
-import querystring from 'querystring';
+import querystring, { stringify } from 'querystring';
 import cookie from 'cookie';
 import { createToken, parseToken } from './session.js';
 import dotenv from 'dotenv';
@@ -466,6 +466,24 @@ async function KillorKeep(songID, type,res) {
             res.end('An error occurred during form processing');
         }
 }
+async function NotificationsUser(userID) {
+    try {
+        const data={}
+        const userQuery = `SELECT UserID, Notification, Reviewed
+        FROM NotificationUser
+        WHERE UserID = ?`;
+        const userResults = await executeQuery(userQuery,[userID]);
+        data['notification']= userResults;
+        
+          
+     
+print(data)
+        return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -624,9 +642,7 @@ const server = http.createServer(async (req, res) => {
         if(ReplaceMatchUrl(action,'accept/')){
             var songID = action.replace('accept/',"")
             res.end(JSON.stringify(await KillorKeep(songID,'Keep',res)))
-            
-
-
+        
         }
         //must be to delete the song
         else {
@@ -634,6 +650,16 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify(await KillorKeep(songID,'Kill',res)))
 
         }
+
+    }
+    else if(ReplaceMatchUrl(req.url,'/user/notifications/')){
+        if(ReplaceMatchUrl(req.url,'/user/notifications/base')){
+            serveStatic_Plus(res,'./templates/notification_user.html', '',{'who':sessionData.id})
+            return
+
+        }
+        res.end(JSON.stringify(await NotificationsUser(sessionData.id)))
+
 
     }
     // css of the homepage
@@ -747,6 +773,11 @@ const server = http.createServer(async (req, res) => {
                         <span>Listen History</span>
                     </a>
                 </li>
+                <li>
+                <a href="/user/notifications/base/${sessionData.id}">
+                    <span>Notifications</span>
+                </a>
+            </li>
             </ul>
             <div class="search">
                 <form action='/search' method='POST'>
@@ -2073,8 +2104,8 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
                 res.end('Not found');
                 return;
             }
-
-            const type = fileTypeFromBuffer(songFile);
+//i changed to await// no issue 
+            const type = await fileTypeFromBuffer(songFile);
 
             // add to the listen history. full duration of the song for now
             if(getRole(sessionData) === 'listener') {
@@ -2082,6 +2113,7 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
             }
 
             res.writeHead(200, { 'Content-Type': type });
+
             res.end(songFile);
         } catch (error) {
             console.error('Error getting song file:', error);
