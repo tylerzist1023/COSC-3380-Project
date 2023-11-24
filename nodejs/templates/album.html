@@ -248,6 +248,7 @@ addEventListener("DOMContentLoaded", (event) => {
             }
 
             html = '';
+            if(data.songData !== null && data.songData !== undefined) {
             for(const song of data['songData']) {
                 html += `<div class="track_list" id='list${ song['songID'] }'>
                         <div class="track_info">
@@ -301,8 +302,10 @@ addEventListener("DOMContentLoaded", (event) => {
                     </div>`;
             }
             document.getElementById('songList').innerHTML = html;
+            }
 
             html = '';
+            if(data.more_by !== null && data.more_by !== undefined) {
             for(const album of data.more_by) {
                 html += `<div class="item">
                     <a href="/album/${album['AlbumID']}"><img src="/album/${ album['AlbumID']}/pic"></a>
@@ -311,6 +314,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 </div>`;
             }
             document.getElementById('moreBy').innerHTML = html;
+            }
         })
     .then(() => {
         const playSongLinks = document.querySelectorAll('#playSong');
