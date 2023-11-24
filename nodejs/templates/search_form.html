@@ -124,7 +124,7 @@ addEventListener("DOMContentLoaded", (event) => {
                     songsHtml += `<div class="item">
                         <a id='playSong' songid="${ result['SongID'] }" href='#'><img src="/album/${result['AlbumID']}/pic"></a>
                         <h4>${result['SongName']}</h4>
-                        <p>${result['ArtistName']}</p>
+                        <a href="/artist/${result['ArtistID']}"><p>${result['ArtistName']}</p></a>
                     </div>`;
                 } else if (result['type'] === 'artist') {
                     artistsHtml += `<div class="artist_item">
@@ -136,7 +136,7 @@ addEventListener("DOMContentLoaded", (event) => {
                     albumsHtml += `<div class="item">
                         <a href="/album/${result['AlbumID']}"><img src="/album/${result['AlbumID']}/pic"></a>
                         <h4>${result['AlbumName']}</h4>
-                        <p>${result['ArtistName']}</p>
+                        <a href="/artist/${result['ArtistID']}"><p>${result['ArtistName']}</p></a>
                     </div>`;
                 }
             });
