@@ -98,10 +98,44 @@ async function getAdminSong() {
         return {error: "Error"};
     }
 }
+async function getAdminListener() {
+    try {
+        const data = {};
+
+
+        const sqlQuery = `
+        SELECT UserID, Username, ProfilePic
+        FROM Listener
+        ORDER BY UserID;
+        
+    
+`;
+        const NewSongResults = await executeQuery(sqlQuery);
+        
+
+        NewSongResults.forEach(artist => {
+            if (artist.ProfilePic&& Buffer.isBuffer(artist.ProfilePic)) {
+                // Convert the Buffer to a Base64 string
+                artist.ProfilePic = artist.ProfilePic.toString('base64');
+            }
+        });
+
+        
+
+        data['NewListener'] = NewSongResults;
+        return data;
+
+
+
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 
 
 
 
 
-export { getAdminArtist,getAdminSong};
+export { getAdminArtist,getAdminSong,getAdminListener};

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=width-device, initial-scale=1.0">
+    <title>Notifications</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0A192F; /* Dark Blue Background */
+            color: #E0E1DD; /* Light Text Color */
+            margin: 0;
+            padding: 20px;
+        }
+    
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            background-color: #112D4E; /* Darker Blue for Table */
+        }
+    
+        th, td {
+            border: 1px solid #1B3B6F; /* Even Darker Blue for Border */
+            padding: 12px 15px;
+            text-align: left;
+            color: #DBE2EF; /* Light Color for Text */
+        }
+    
+        th {
+            background-color: #3F72AF; /* Medium Blue for Headers */
+            color: white;
+            font-weight: normal;
+        }
+    
+        tr:nth-child(even) {
+            background-color: #1E4363; /* Slightly Different Blue for Alternate Rows */
+        }
+    
+        /* Button Styles */
+        .reviewed-button {
+            background-color: #3F72AF; /* Matching Medium Blue */
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            margin: 4px 2px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    
+        .reviewed-button:hover {
+            background-color: #1B3B6F; /* Darker Blue on Hover */
+        }
+        .button-link {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.button-link:hover {
+    background-color: #0056b3; /* Darken on hover */
+    text-decoration: none; /* No underline on hover */
+    color: white;
+}
+
+    </style>
+    
+</head>
+<body>
+    <h2>Notifications</h2>
+    <a href="/" class="button-link">Go Back</a>
+    <table id="notificationsTable" data-value="{{SongID}}" >
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Notification</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Notifications will be loaded here -->
+        </tbody>
+    </table>
+    
+    <script>
+ document.addEventListener('DOMContentLoaded', async function () {
+    const notificationsTable = document.getElementById('notificationsTable').getElementsByTagName('tbody')[0];
+    // Assuming you've set the data-value attribute to the notificationsTable element
+    const UserInfo = notificationsTable.dataset.value;
+
+    try {
+        const response = await fetch('/artist/notifications/details'); // Replace with actual URL
+        const data = await response.json();
+        let rowed =1;
+        data.notification.forEach(notification => {
+            if (!notification.Reviewed) {
+                let row = notificationsTable.insertRow();
+                let cellUserID = row.insertCell(0);
+                let cellNotification = row.insertCell(1);
+                let cellAction = row.insertCell(2);
+
+                cellUserID.textContent = notification.CreationTime;
+                cellNotification.textContent = notification.Notification;
+
+                let button = document.createElement('button');
+                button.textContent = 'Mark as Reviewed';
+                button.classList.add('reviewed-button');
+                button.onclick = function() {
+                    markAsReviewed(notification.ArtistID, notification.Notification);
+                };
+                cellAction.appendChild(button);
+                rowed+=1;
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+    }
+});
+
+async function markAsReviewed(userID, notificationContent) {
+    try {
+        const response = await fetch(`/mark-reviewed/artist`, {
+            method: 'POST', // Change the method to POST
+            headers: {
+                'Content-Type': 'application/json', // Indicate that the body format is JSON
+            },
+            body: JSON.stringify({
+                userID: userID,
+                notificationContent: notificationContent
+            }) // Send the data in the request body as JSON
+        });
+        window.location.reload()
+        const result = await response.json();
+        
+    } catch (error) {
+        console.error('Error marking notification as reviewed:', error);
+    }
+}
+
+
+    </script>
+</body>
+</html>

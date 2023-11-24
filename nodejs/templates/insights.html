@@ -32,7 +32,7 @@ h1 {
 }
 
 /* Grid layout for artists and songs */
-#Artist, #Song {
+#Artist, #Song,#Listener {
     display: grid;
     grid-template-columns: repeat(8, 1fr); /* Five items per row */
     gap: 20px;
@@ -142,50 +142,51 @@ if(document.getElementById('Artist')){
 else if(document.getElementById('Listener')){
     const u = '/admin/insights/typeListener';
     document.addEventListener('DOMContentLoaded', async function () {
-        try {
-        const response = await fetch(u);
+    try {
+        const response = await fetch(u); // Replace with actual URL
         const data = await response.json();
-        
-        const songsList = document.getElementById('Songs');
-        data.NewSong.forEach(song => {
-            let songDiv = document.createElement('div');
-            songDiv.classList.add('song-box');
 
-            // Song Name
-            let name = document.createElement('div');
-            name.textContent = `Song: ${song.SongName}`;
-            name.classList.add('song-name');
-            songDiv.appendChild(name);
+        const songsList = document.getElementById('Listener'); // Ensure you have a corresponding container in HTML
+        if (data.NewListener && Array.isArray(data.NewListener)) {
+            data.NewListener.forEach(song => {
+                // Create a container for each song
+                let songDiv = document.createElement('div');
+                songDiv.classList.add('artist-box');
 
-            // Artist Name
-            let artist = document.createElement('div');
-            artist.textContent = `Artist: ${song.ArtistName}`;
-            artist.classList.add('artist-name');
-            songDiv.appendChild(artist);
+                // Add song name
+                let songName = document.createElement('div');
+                songName.textContent = `UserID: ${song.UserID}`;
+                songName.classList.add('artist-id');
+                songDiv.appendChild(songName);
 
-            // Album Image
-            let img = document.createElement('img');
-            img.classList.add('album-image');
-            if (song.AlbumPic) {
-                img.src = `data:image/png;base64,${song.AlbumPic}`;
-            } else {
-                img.src = '/default/album/picture'; // Path to a default album picture
-                img.alt = 'Album Picture';
-            }
-            songDiv.appendChild(img);
+                // Add artist name
+                let artistName = document.createElement('div');
+                artistName.textContent = `Username: ${song.Username}`;
+                artistName.classList.add('artist-name');
+                songDiv.appendChild(artistName);
 
-            songsList.appendChild(songDiv);
-        });
+                // Add album image inside an anchor tag
+                let imgLink = document.createElement('a');
+                //add the code to redirect considered page
+                imgLink.href = `/listener/${song.UserID}`; // Link to the album's admin page
+                let img = document.createElement('img');
+                img.classList.add('artist-image');
+                img.src = song.ProfilePic ? `data:image/png;base64,${song.ProfilePic}` : '/default/person/picture';
+                img.alt = 'Listener Picture';
+                imgLink.appendChild(img);
+                songDiv.appendChild(imgLink);
+
+                // Append the song container to the songs list
+                songsList.appendChild(songDiv);
+            });
+        }
     } catch (error) {
         console.error('Error fetching song data:', error);
     }
 });
 
 }
-else if(document.getElementById('Playlist')){
-    const u = '/admin/insights/typePlaylist';
 
-}
 else if(document.getElementById('Song')){
     const u = '/admin/insights/typeSong';
 
