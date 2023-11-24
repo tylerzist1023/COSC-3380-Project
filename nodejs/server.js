@@ -1506,9 +1506,13 @@ const server = http.createServer(async (req, res) => {
             console.log(vals);
 
             data.artistInfo = await executeQuery(artistInfoQuery, vals);
+
+            const artistSongsQuery = 'SELECT Album.AlbumID, Song.Name AS SongName, Album.AlbumName,  Artist.ArtistName, Album.ArtistID, Song.SongID FROM Song, Album, Artist WHERE Song.AlbumID = Album.AlbumID AND Artist.ArtistID = Album.ArtistID AND Artist.ArtistID = ?';
+            data.artistSongs = await executeQuery(artistSongsQuery, vals);
+    
             console.log(data);
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(data.artistInfo));
+            res.end(JSON.stringify(data));
             
         }
 
@@ -1724,7 +1728,7 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
 
             }
             else{
-                 songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID,Song.flagged,Song.reviewed FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
+                songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID,Song.flagged,Song.reviewed FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
                 songResults = await executeQuery(songQuery, [albumId]);
             
             }

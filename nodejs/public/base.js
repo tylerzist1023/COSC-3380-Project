@@ -35,6 +35,12 @@ function playSong(this_) {
                 let playerSource = document.getElementById('playerSource');
                 let playerList = document.getElementById(`list${songid}`);
 
+                // Bottom code didn't work for Artist Info Page but this does. It would play the song but not set the elements with the correct img, song name, and artist name.
+                // This resolves that issue
+                playerImage.src = '/album/' + data['albumid'] + '/pic';
+                playerSong.textContent = data['songname'];
+                playerArtist.textContent = data['artistname'];
+
                 // one problem: the "hover" stops working. i don't know how to fix it!
                 const trackLists = document.querySelectorAll('.track_list');
                 for (let i = 0; i < trackLists.length; i++) {
@@ -43,7 +49,7 @@ function playSong(this_) {
                 playerList.style.backgroundColor = '#636363';
                 playerImage.setAttribute('src', '/album/'+data['albumid']+'/pic');
                 playerSong.innerHTML = data['songname'];
-                playerArtist.innerHTML = data['artistname'];            
+                playerArtist.innerHTML = data['artistname'];
             })
             .finally(() => {
                 let playerSource = document.getElementById('playerSource');

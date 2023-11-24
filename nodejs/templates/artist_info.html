@@ -21,10 +21,16 @@
             
         </div>
 
+        <div class="song_list">
+            <h2>Songs</h2>
+            <div class="list" id='songs'>
+            </div>
+            <hr>
+        </div>
 
         <div class="song_list">
             <h2>Albums</h2>
-            <div class="list" id='following'>
+            <div class="list" id='albums'>
                 
             </div>
             <hr>
@@ -35,6 +41,21 @@
     <div class="left_sidebar" id='leftBar'>
         
     </div>
+
+    <div id='playerDiv' style='display:none;' class="song_player">
+        <!-- Replace image, song name, artist name with actual database information -->
+        <img id='playerImage' src="" alt="song name">
+        <h5>
+        <div id='playerSong'>Song Name</div>
+        <div id='playerArtist' class="artist_name">Artist Name</div>
+    </h5>
+        <audio id='playerAudio' controls>
+            <!-- Provide the actual source path for the song -->
+            <source id='playerSource' src="" type="">
+        </audio>
+        </div>
+    </div>
+    
 
 <script src='/base.js'></script>
 <script>
@@ -50,19 +71,22 @@ addEventListener("DOMContentLoaded", (event) => {
         .then(data => {
 
             console.log(data);
+            console.log(data.artistSongs);
+
 
             document.getElementById('topBar').innerHTML = getTopbar(data);
             document.getElementById('leftBar').innerHTML = getSidebar(data);
 
-            // let html = '';
-            // for(const playlist of data['playlists']) {
-            //     html += `<div class="item">
-            //         <a href="/playlist/${playlist['PlaylistID']}"><img src="/playlist/${playlist['PlaylistID']}/pic"></a>
-            //         <h4>${playlist['PlaylistName']}</h4>
-            //         <p>by ${data.username}</p>
-            //     </div>`;
-            // }
-            // document.getElementById('playlists').innerHTML = html;
+            let html = '';
+            for(const song of data.artistSongs) {
+                html += `<div class="item">
+                    <a id='playSong' songid="${ song['SongID'] }" href='#'><img src="/album/${song['AlbumID']}/pic"></a>
+                    <h4>${song['SongName']}</h4>
+  
+                </div>`;
+            }
+            document.getElementById('songs').innerHTML = html;
+
 
             // html = '';
             // for(const artist of data['following']) {
@@ -75,14 +99,20 @@ addEventListener("DOMContentLoaded", (event) => {
             // document.getElementById('following').innerHTML = html;
 
             html = '';
-            html += `<img src="/artist/${data[0]['ArtistID']}/pic" alt="profile picture">
+            html += `<img src="/artist/${data.artistInfo[0]['ArtistID']}/pic" alt="profile picture">
             <div class="profile_information">
                 <h4>Profile</h4>
-                <h1>${data[0]['ArtistName']}</h1>
-                <h3>${data[0]['COUNT(Follow.ArtistID)']} Followers</h3>
+                <h1>${data.artistInfo[0]['ArtistName']}</h1>
+                <h3>${data.artistInfo[0]['COUNT(Follow.ArtistID)']} Followers</h3>
             </div>`;
             document.getElementById('profile').innerHTML = html;
         })
+        .then(() => {
+        const playSongLinks = document.querySelectorAll('#playSong');
+        for (let i = 0; i < playSongLinks.length; i++) {
+            playSongLinks[i].addEventListener('click', playSong(playSongLinks[i]));
+        }
+    });
 });
 </script>
 </body>
