@@ -14,7 +14,7 @@ import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
 import { getAdminArtist ,getAdminSong} from './insights.js';
-import { getNotif } from './notification.js';
+
 
 // import nodemon from 'nodemon';
 
@@ -791,6 +791,11 @@ const server = http.createServer(async (req, res) => {
                             <span>Publish Album</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="/artist/notifications/base/${sessionData.id}">
+                            <span>Notifications</span>
+                        </a>
+                    </li>
 
                 </ul>
                 <div class="search">
@@ -799,7 +804,6 @@ const server = http.createServer(async (req, res) => {
                         <button type="submit" class="search_btn">Search</button>
                     </form>
                 </div>
-                ${getNotif()}
                 <ul class="topbar_navigation">
                 <li>
                     <a href="/logout">
