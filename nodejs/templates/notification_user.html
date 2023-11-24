@@ -58,11 +58,31 @@
         .reviewed-button:hover {
             background-color: #1B3B6F; /* Darker Blue on Hover */
         }
+        .button-link {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.button-link:hover {
+    background-color: #0056b3; /* Darken on hover */
+    text-decoration: none; /* No underline on hover */
+    color: white;
+}
+
     </style>
     
 </head>
 <body>
     <h2>Notifications</h2>
+    <a href="/" class="button-link">Go Back</a>
     <table id="notificationsTable" data-value="{{SongID}}" >
         <thead>
             <tr>
@@ -75,6 +95,7 @@
             <!-- Notifications will be loaded here -->
         </tbody>
     </table>
+    
     <script>
  document.addEventListener('DOMContentLoaded', async function () {
     const notificationsTable = document.getElementById('notificationsTable').getElementsByTagName('tbody')[0];
@@ -99,7 +120,7 @@
                 button.textContent = 'Mark as Reviewed';
                 button.classList.add('reviewed-button');
                 button.onclick = function() {
-                    //markAsReviewed(notification.UserID, notification.Notification);
+                    markAsReviewed(notification.UserID, notification.Notification);
                 };
                 cellAction.appendChild(button);
                 rowed+=1;
@@ -112,18 +133,24 @@
 
 async function markAsReviewed(userID, notificationContent) {
     try {
-        // Replace with the actual URL and request details necessary for your API
-        const response = await fetch(`/api/mark-reviewed?userID=${userID}&notificationContent=${encodeURIComponent(notificationContent)}`, {
-            method: 'GET', // Consider using POST if you're modifying data on the server
-            // Additional headers and body might be required depending on your API
+        const response = await fetch(`/mark-reviewed/user`, {
+            method: 'POST', // Change the method to POST
+            headers: {
+                'Content-Type': 'application/json', // Indicate that the body format is JSON
+            },
+            body: JSON.stringify({
+                userID: userID,
+                notificationContent: notificationContent
+            }) // Send the data in the request body as JSON
         });
+        window.location.reload()
         const result = await response.json();
-        console.log('Marked as reviewed:', result);
-        // You might want to update the UI here to reflect the change
+        
     } catch (error) {
         console.error('Error marking notification as reviewed:', error);
     }
 }
+
 
     </script>
 </body>

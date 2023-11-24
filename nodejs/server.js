@@ -534,6 +534,49 @@ async function NotificationsUser(userID) {
     }
 }
 
+async function getnotificationCount(role,id) {
+    try {
+       // print(id)
+        if(role==="listener"){
+            const userQuery = `
+            SELECT COUNT(*)
+            FROM NotificationUser
+            WHERE UserID = ? AND Reviewed=0
+            `;
+            const userResults = await executeQuery(userQuery,[id]);
+           // print(userResults)
+     
+            return userResults[0]['COUNT(*)'];
+
+
+
+        }
+   
+        
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+async function review_notification_user(userID,message) {
+    try {
+
+
+            const userQuery = `
+            UPDATE NotificationUser
+            SET Reviewed = 1
+            WHERE UserID = ?
+            AND Notification = ?;
+            `;
+            const userResults = await executeQuery(userQuery,[userID,message]);
+     
+        
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
     //print(req.url)
@@ -711,6 +754,30 @@ const server = http.createServer(async (req, res) => {
 
 
     }
+    else if(ReplaceMatchUrl(req.url,'/mark-reviewed/')&& req.method==='POST'){
+
+        const TypePerson = req.url.replace('/mark-reviewed/',"")
+        const form = new Types.IncomingForm();
+        const fields = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(fields);
+                    }
+                });
+            });
+        if(TypePerson==='user'){
+            await review_notification_user(sessionData.id,fields.notificationContent)
+            
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
+
+    
+
+
+    }
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
@@ -824,9 +891,16 @@ const server = http.createServer(async (req, res) => {
                 </li>
                 <li>
                 <a href="/user/notifications/base/${sessionData.id}">
-                    <span>Notifications</span>
+                <span>Notifications</span>
+            
                 </a>
             </li>
+            <li>
+            <div class="Notification-Style">
+            ${await getnotificationCount(getRole(sessionData),sessionData.id)}
+            </div>
+
+        </li>
             </ul>
             <div class="search">
                 <form action='/search' method='POST'>
@@ -872,9 +946,9 @@ const server = http.createServer(async (req, res) => {
                         </a>
                     </li>
                     <li>
-                        <a href="/artist/notifications/base/${sessionData.id}">
-                            <span>Notifications</span>
-                        </a>
+                    <a href="/artist/notifications/base/${sessionData.id}">
+                    <span>Notifications</span>
+                </a>
                     </li>
 
                 </ul>
