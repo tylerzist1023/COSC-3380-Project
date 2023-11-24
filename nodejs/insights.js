@@ -64,18 +64,19 @@ async function getAdminSong() {
 
 
         const sqlQuery = `
-SELECT 
-    Song.SongID AS SongID,
-    Song.Name AS SongName,
-    Artist.ArtistID AS ArtistID,
-    Artist.ArtistName AS ArtistName,
-    Song.AlbumID AS AlbumID,
-    Album.AlbumPic AS AlbumPic
-FROM 
-    Song
-INNER JOIN Artist ON Song.ArtistID = Artist.ArtistID
-INNER JOIN Album ON Song.AlbumID = Album.AlbumID
-ORDER BY Artist.ArtistID;
+        SELECT 
+        Song.SongID AS SongID,
+        Song.Name AS SongName,
+        Album.ArtistID AS ArtistID,  -- Assuming Album table has ArtistID
+        Artist.ArtistName AS ArtistName,
+        Song.AlbumID AS AlbumID,
+        Album.AlbumPic AS AlbumPic
+    FROM 
+        Song
+    INNER JOIN Album ON Song.AlbumID = Album.AlbumID
+    INNER JOIN Artist ON Album.ArtistID = Artist.ArtistID  -- Joining Artist with Album
+    ORDER BY Album.ArtistID;  -- Ordering by Album's ArtistID
+    
 `;
         const NewSongResults = await executeQuery(sqlQuery);
         
