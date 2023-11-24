@@ -101,13 +101,17 @@
     </div>
 </div> -->
 
-<script src='/base.js'></script>
+<script src='/base.js'>
+</script>
 <script>
 addEventListener("DOMContentLoaded", (event) => {
     fetch('/ajax')
         .then(response => response.json())
         .then(data => {
 
+       
+
+            //document.getElementById('notificationCount').textContent = '21';
             document.getElementById('topBar').innerHTML = getTopbar(data);
             document.getElementById('leftBar').innerHTML = getSidebar(data);
 
@@ -132,6 +136,8 @@ addEventListener("DOMContentLoaded", (event) => {
             document.getElementById('forYou').innerHTML = html;
         })
 });
+
+
 </script>
 </body>
 </html>

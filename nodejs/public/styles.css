@@ -1302,3 +1302,18 @@ button.login_btn:hover {
     font-weight: bold;
     text-transform: uppercase;
 }
+.Notification-Style {
+
+    top: -20px; /* Align to the top */
+    left: 0; /* Align to the left */
+    right: 0; /* Align to the right */
+    color: #ff0000; /* Darker text for contrast */
+    margin: 0; /* No margin to ensure it's at the very top */
+    font-family: Arial, sans-serif; /* Font style */
+    font-size: 1.2em; /* Larger font size */
+    font-weight: bold; /* Bold font weight */
+    text-align: center; /* Center the text */
+    width: 5%; /* Full width */
+    z-index: 1000; /* Ensure it's above other elements */
+    height: 4%;
+}

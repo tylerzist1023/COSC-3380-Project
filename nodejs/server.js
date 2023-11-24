@@ -388,7 +388,8 @@ async function getAdminResolved(sessionData, res) {
 async function getSongInfoConsider(songID) {
     try {
         const data={}
-        const userQuery = `SELECT 
+        const userQuery = `
+        SELECT 
         Song.SongFile AS SongFile,
         Song.Name AS SongName, 
         Artist.ArtistName, 
@@ -396,10 +397,11 @@ async function getSongInfoConsider(songID) {
         Album.AlbumPic
     FROM 
         Song
-    INNER JOIN Artist ON Song.ArtistID = Artist.ArtistID
     INNER JOIN Album ON Song.AlbumID = Album.AlbumID
+    INNER JOIN Artist ON Album.ArtistID = Artist.ArtistID  -- Joining Artist with Album
     WHERE 
         Song.SongID = ?;
+    
     
     `;
         const userResults = await executeQuery(userQuery,[songID]);
@@ -466,19 +468,109 @@ async function KillorKeep(songID, type,res) {
             res.end('An error occurred during form processing');
         }
 }
+async function calculateTimeDifference(notification, timeDatabase) {
+    // Extracting the current time from the time_database array
+    const currentTime = new Date(timeDatabase[0]['NOW()']);
+   // console.log(currentTime);
+    const notificationTime = new Date(notification.CreationTime);
+
+    // Calculate the difference in milliseconds
+    const diffMs = currentTime - notificationTime;
+   // console.log(diffMs);
+
+    // Convert milliseconds to minutes, hours, and days
+    const diffMins = Math.floor(diffMs / 60000); // 60,000 milliseconds in a minute
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    // Determine the appropriate unit to return
+    if (diffMins < 60) {
+        return `${diffMins} minutes`;
+    } else if (diffHours < 24) {
+        return `${diffHours} hours`;
+    } else {
+        return `${diffDays} days`;
+    }
+}
+
+async function modifyCreationTimes(data, time_database) {
+   // console.log(time_database);
+    const promises = data.notification.map(async (notification) => {
+        // Calculate and update the CreationTime for each notification
+        notification.CreationTime = await calculateTimeDifference(notification, time_database);
+    });
+
+    // Wait for all the promises to resolve
+    await Promise.all(promises);
+}
+
 async function NotificationsUser(userID) {
     try {
         const data={}
-        const userQuery = `SELECT UserID, Notification, Reviewed
-        FROM NotificationUser
-        WHERE UserID = ?`;
+        const userQuery = `SELECT 
+        Notification, 
+        Reviewed,
+        CreationTime
+    FROM 
+        NotificationUser
+    WHERE 
+        UserID = ?
+    ORDER BY 
+        CreationTime DESC; `;
+        const time_database = await executeQuery('SELECT NOW();')
+
         const userResults = await executeQuery(userQuery,[userID]);
         data['notification']= userResults;
+        await modifyCreationTimes(data,time_database)
+    
         
           
      
-print(data)
+//print(data)
         return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+
+async function getnotificationCount(role,id) {
+    try {
+       // print(id)
+        if(role==="listener"){
+            const userQuery = `
+            SELECT COUNT(*)
+            FROM NotificationUser
+            WHERE UserID = ? AND Reviewed=0
+            `;
+            const userResults = await executeQuery(userQuery,[id]);
+           // print(userResults)
+     
+            return userResults[0]['COUNT(*)'];
+
+
+
+        }
+   
+        
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+async function review_notification_user(userID,message) {
+    try {
+
+
+            const userQuery = `
+            UPDATE NotificationUser
+            SET Reviewed = 1
+            WHERE UserID = ?
+            AND Notification = ?;
+            `;
+            const userResults = await executeQuery(userQuery,[userID,message]);
+     
+        
     } catch (error) {
         console.error(error);
         return {error: "Error"};
@@ -662,6 +754,30 @@ const server = http.createServer(async (req, res) => {
 
 
     }
+    else if(ReplaceMatchUrl(req.url,'/mark-reviewed/')&& req.method==='POST'){
+
+        const TypePerson = req.url.replace('/mark-reviewed/',"")
+        const form = new Types.IncomingForm();
+        const fields = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(fields);
+                    }
+                });
+            });
+        if(TypePerson==='user'){
+            await review_notification_user(sessionData.id,fields.notificationContent)
+            
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
+
+    
+
+
+    }
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
@@ -775,9 +891,16 @@ const server = http.createServer(async (req, res) => {
                 </li>
                 <li>
                 <a href="/user/notifications/base/${sessionData.id}">
-                    <span>Notifications</span>
+                <span>Notifications</span>
+            
                 </a>
             </li>
+            <li>
+            <div class="Notification-Style">
+            ${await getnotificationCount(getRole(sessionData),sessionData.id)}
+            </div>
+
+        </li>
             </ul>
             <div class="search">
                 <form action='/search' method='POST'>
@@ -823,9 +946,9 @@ const server = http.createServer(async (req, res) => {
                         </a>
                     </li>
                     <li>
-                        <a href="/artist/notifications/base/${sessionData.id}">
-                            <span>Notifications</span>
-                        </a>
+                    <a href="/artist/notifications/base/${sessionData.id}">
+                    <span>Notifications</span>
+                </a>
                     </li>
 
                 </ul>
