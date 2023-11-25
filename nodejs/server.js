@@ -612,7 +612,7 @@ async function getnotificationCount(role,id) {
     }
 }
  function getColorNotification(num){
-    print(num)
+    //print(num)
     
         if(num>=1){
             return "Notification-Style"
@@ -665,7 +665,7 @@ async function getAdminSearchData(search_result, boxes_check) {
     let data = {};
     try {
         for (const item of boxes_check) {
-            console.log(search_result); // using console.log instead of print
+            //console.log(search_result); // using console.log instead of print
             let userQuery = '';
             let key = '';
 
@@ -826,7 +826,7 @@ const server = http.createServer(async (req, res) => {
       
     }
     else if(ReplaceMatchUrl(req.url,'/admin/insights/type') && req.method==='GET'){
-        print(req.url)
+        //print(req.url)
 
        const request_to_serve = req.url.replace('/admin/insights/type',"");
 
@@ -882,7 +882,7 @@ const server = http.createServer(async (req, res) => {
 
     }
     else if (ReplaceMatchUrl(req.url,'/considered/result/')){
-        print(req.url)
+        //(req.url)
 
         let action = req.url.replace('/considered/result/',"")
         //keep the song forever, no more reports
@@ -1064,7 +1064,7 @@ const server = http.createServer(async (req, res) => {
                 else if(fields.category === 'Song'){
                     query = queries['top_songs'];
                 }
-                console.log(vals);
+                //console.log(vals);
     
                 // Execute the query
                 const results = await executeQuery(query, vals);
@@ -1157,7 +1157,7 @@ const server = http.createServer(async (req, res) => {
             const Inthere= 'SELECT UserID,SongID FROM UserFlags WHERE SongID=? AND UserID =?';
 
             const Results = await executeQuery(Inthere,[songID,user]);
-            console.log(Results);
+           // console.log(Results);
 
 
 //delete the instance 
@@ -1436,7 +1436,7 @@ const server = http.createServer(async (req, res) => {
     }
     else if(matchUrl(req.url, '/register') && req.method === 'GET'){
         if(params['role'] === 'listener' || params['role'] === 'artist') {
-            console.log(params['role']);
+           // console.log(params['role']);
             serveStatic_Plus(res,'./templates/register.html', 'text/html',{ 'role': params['role'] });
         } else {
             res.writeHead(404);
@@ -1621,7 +1621,7 @@ const server = http.createServer(async (req, res) => {
             if (fields.newpassword) {
                 let currentPassQuery = 'SELECT Password FROM Listener WHERE UserID=?';
                 const currentPassResults = await executeQuery(currentPassQuery, [sessionData['id']])
-                console.log(currentPassResults);
+                //console.log(currentPassResults);
                 if (currentPassResults.length > 0) {
                     const currentPass = currentPassResults[0].Password;
                     if (fields.newpassword === fields.confirmpassword && currentPass === fields.password) {
@@ -1629,7 +1629,7 @@ const server = http.createServer(async (req, res) => {
                         vals.push(fields.newpassword);
                     }
                     else{
-                        console.log("Password did not update")
+                       // console.log("Password did not update")
                     }
                 }
             }
@@ -1641,12 +1641,12 @@ const server = http.createServer(async (req, res) => {
 
             // Add UserID to the values array
             vals.push(sessionData['id']);
-            console.log(query);
+           // console.log(query);
 
             // Execute the query
             if (conditions.length > 0) {
                 const results = await executeQuery(query, vals);
-                console.log(results)
+               // console.log(results)
                 res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
@@ -1693,7 +1693,7 @@ const server = http.createServer(async (req, res) => {
             if (fields.newpassword) {
                 let currentPassQuery = 'SELECT Password FROM Artist WHERE ArtistID=?';
                 const currentPassResults = await executeQuery(currentPassQuery, [sessionData['id']])
-                console.log(currentPassResults);
+               // console.log(currentPassResults);
                 if (currentPassResults.length > 0) {
                     const currentPass = currentPassResults[0].Password;
                     if (fields.newpassword === fields.confirmpassword && currentPass === fields.password) {
@@ -1701,7 +1701,7 @@ const server = http.createServer(async (req, res) => {
                         vals.push(fields.newpassword);
                     }
                     else{
-                        console.log("Password did not update")
+                        //console.log("Password did not update")
                     }
                 }
             }
@@ -1713,12 +1713,12 @@ const server = http.createServer(async (req, res) => {
 
             // Add UserID to the values array
             vals.push(sessionData['id']);
-            console.log(query);
+           // console.log(query);
 
             // Execute the query
             if (conditions.length > 0) {
                 const results = await executeQuery(query, vals);
-                console.log(results)
+                //console.log(results)
                 res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
@@ -1758,7 +1758,7 @@ const server = http.createServer(async (req, res) => {
                 data.email = results[0]['Email'];
                 data.Fname = results[0]['Fname'];
                 data.Lname = results[0]['Lname'];
-                console.log(data.email);
+                //console.log(data.email);
 
                 data.username = sessionData.username;
                 res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -1784,11 +1784,11 @@ const server = http.createServer(async (req, res) => {
 
                 // Store Query Results
                 data.email = results[0]['Email'];
-                console.log(data.email);
+                //console.log(data.email);
                 data.ArtistName = results[0]['ArtistName'];
 
                 data.username = sessionData.username;
-                console.log(data.username);
+                //console.log(data.username);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(data));
             } catch (error) {
@@ -1993,19 +1993,19 @@ const server = http.createServer(async (req, res) => {
                 })
             });
 
-            console.log("Request Received");
-            console.log(fields.searchBy);
+           // console.log("Request Received");
+           // console.log(fields.searchBy);
 
             // Determine if the user is searching for a song, artist, album or all by name.
             if (fields.searchBy === 'song') {
                 const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID, Artist.ArtistID FROM Song, Artist, Album WHERE Song.Name LIKE ? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID`;
                 const vals = [`%${fields.search}%`];
-                console.log(fields.search);
+               // console.log(fields.search);
                 const results = await executeQuery(query, vals);
                 for(let i=0; i<results.length; i++) {
                     results[i].type = 'song';
                 }
-                console.log(results);
+               // console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
@@ -2013,12 +2013,12 @@ const server = http.createServer(async (req, res) => {
             else if (fields.searchBy === 'artist') {
                 const query = `SELECT DISTINCT ArtistName, ArtistID FROM Artist WHERE ArtistName LIKE ?  `;
                 const vals = [`%${fields.search}%`];
-                console.log(fields.search);
+               // console.log(fields.search);
                 const results = await executeQuery(query, vals);
                 for(let i=0; i<results.length; i++) {
                     results[i].type = 'artist';
                 }
-                console.log(results);
+                //console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
@@ -2026,12 +2026,12 @@ const server = http.createServer(async (req, res) => {
             else if (fields.searchBy === 'album') {
                 const query = `SELECT DISTINCT AlbumName, ArtistName, Album.AlbumID, Artist.ArtistID FROM Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID`;
                 const vals = [`%${fields.search}%`];
-                console.log(fields.search);
+                //console.log(fields.search);
                 const results = await executeQuery(query, vals);
                 for(let i=0; i<results.length; i++) {
                     results[i].type = 'album';
                 }
-                console.log(results);
+               // console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
@@ -2041,14 +2041,14 @@ const server = http.createServer(async (req, res) => {
                 
                 const songQuery = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID, Artist.ArtistID FROM Song, Artist, Album WHERE Song.Name LIKE ? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID`;
                 const vals = [`%${fields.search}%`];
-                console.log(fields.search);
+                //console.log(fields.search);
                 const songSearchResults = await executeQuery(songQuery, vals);
                 for(let i=0; i<songSearchResults.length; i++) {
                     songSearchResults[i].type = 'song';
                 }
                 
                 const albumQuery = `SELECT DISTINCT AlbumName, ArtistName, Album.AlbumID, Artist.ArtistID FROM Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID`;
-                console.log(fields.search);
+                //console.log(fields.search);
                 const albumSearchResults = await executeQuery(albumQuery, vals);
                 for(let i=0; i<albumSearchResults.length; i++) {
                     albumSearchResults[i].type = 'album';
@@ -2062,8 +2062,8 @@ const server = http.createServer(async (req, res) => {
 
                 results = [...songSearchResults, ...artistSearchResults, ...albumSearchResults];
 
-                console.log(fields.search);
-                console.log(results);
+               // console.log(fields.search);
+                //console.log(results);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
@@ -2111,7 +2111,7 @@ const server = http.createServer(async (req, res) => {
             const artistInfoQuery = 'SELECT Artist.ArtistID, ArtistName, COUNT(Follow.ArtistID) FROM Artist LEFT JOIN Follow ON Artist.ArtistID = Follow.ArtistID WHERE Artist.ArtistID=? GROUP BY Artist.ArtistID, ArtistName';
             const vals = [artistId];
 
-            console.log(vals);
+            //console.log(vals);
 
             data.artistInfo = await executeQuery(artistInfoQuery, vals);
 
@@ -2121,7 +2121,7 @@ const server = http.createServer(async (req, res) => {
             const artistAlbumQuery = 'Select AlbumID, AlbumName FROM Album, Artist WHERE Album.ArtistID = Artist.ArtistID AND Artist.ArtistID = ?'
             data.artistAlbums = await executeQuery(artistAlbumQuery, vals);
     
-            console.log(data);
+           // console.log(data);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(data));
             
@@ -2303,7 +2303,7 @@ const server = http.createServer(async (req, res) => {
 
             const formatted_duration_sec = duration_sec.toString().padStart(2, '0');
 
-            console.log(formatted_duration_sec);
+            //console.log(formatted_duration_sec);
 
             data.album_duration = `${duration_min} min ${formatted_duration_sec} sec`;
 
@@ -2802,20 +2802,20 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
 
                 let valsQuery = "SELECT AlbumID, ReleaseDate FROM Album WHERE AlbumID = ?";
                 let queryval = [fields.album];
-                console.log(fields.album);
+                //console.log(fields.album);
                 const albumInfo = await executeQuery(valsQuery, queryval);
-                console.log(albumInfo);
+                //console.log(albumInfo);
 
                 const songAudio = await readFile(files.song.filepath);
                 const duration = await getAudioDurationInSeconds(files.song.filepath);
                 const ReleaseDate = albumInfo[0].ReleaseDate;
-                console.log(ReleaseDate);
+                //console.log(ReleaseDate);
 
                 const vals = [`${fields.songName}`, duration, `${fields.album}`, `${fields.genre}`, songAudio, ReleaseDate];
-                console.log(vals);
+                //console.log(vals);
                 const result = await executeQuery(query, vals);
 
-                console.log(result);
+                //console.log(result);
                 res.writeHead(302, {Location: '/song/upload'});
                 res.end("Successfully uploaded song");
             }
