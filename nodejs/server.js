@@ -955,6 +955,25 @@ const server = http.createServer(async (req, res) => {
             res.end('An error occurred during form processing');
         }
     }
+    else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="POST"){
+        const form = new Types.IncomingForm();
+        const fields = await new Promise((resolve, reject) => {
+            form.parse(req, (err, fields) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(fields);
+                }
+            });
+        });
+        print(fields);
+        res.end(JSON.stringify(fields));
+        
+    }
+    else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="GET"){
+
+        serveStaticFile(res,"./templates/search_results_admin.html","text/html")
+    }
     
 
     else if(req.url === "/topbar"){
