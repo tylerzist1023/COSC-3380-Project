@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Generate Report</title>
+    <style> 
+        #myChart{ width: 25; height: 50; padding: 50;}
+        table {border-collapse: collapse; width: 50%; margin-left: auto; margin-right: auto;}
+        th, td {border: 1px solid #ddd;padding: 8px;text-align: left;background-color: #f2f2f2;}
+        th {background-color: #f2f2f2;}
+        header {color: #f2f2f2;}
+        
+      </style>
+</head>
+<body>
+    <p>Generate Report<p>
+            <form method="POST" action="/create_report" class="reportForm">
+                <div>
+                    
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id= "startDate" name="startDate">
+                    
+
+                    <label for="endDate">To</label>
+                    <input type="date" id="endDate" name="endDate">
+                </div>
+                <div>
+                    <label for="artist">Artist</label>
+                    <input type="radio" id = "artist" name="category" value="Artist">
+
+                    <label for="album">Album</label>
+                    <input type="radio" id = "album" name="category" value="Album">
+
+                    <label for="genre">Genre</label>
+                    <input type = "radio" id="genre" name="category" value="Genre">
+
+                    <label for="song">Song</label>
+                    <input type = "radio" id="song" name="category" value="Song">
+                </div>
+                <div>
+                    <button type="button" onclick= "submitForm()" class="submit_btn">Generate Report</button>
+                </div>
+            </form>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
+    <script>
+    let chart = null;
+    function submitForm() {
+        // Collect form data
+        console.log('Submitting data');
+        
+        const formData = new FormData(document.querySelector('.reportForm'));
+        
+        // Send form data to the server using fetch
+        fetch('/create_report', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            createChart(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+function createChart(results){
+    if(chart){
+        chart.destroy();
+    }
+    const autocolors = window['chartjs-plugin-autocolors'];
+    console.log(results);
+    const titles = Object.keys(results[0]);
+    const labels = results.map(result => result[titles[0]]);
+    const data = results.map(result => result[titles[1]]);
+    console.log('results', results);
+    console.log('labels:', labels);
+    console.log('values:', data);
+    console.log('titles:',titles);
+    const ctx = document.getElementById('myChart').getContext('2d');
+    Chart.register(autocolors);
+    
+    chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+        label: titles[1],
+        data: data,
+        }]
+    },
+    options: {  
+        plugins: {
+        title: {
+            display: true,
+            text: [String(titles[1]), ' by ', String(titles[0])].join(' ')
+        },
+        autocolors: {
+            enabled:true,
+            mode: 'data',
+            offset: Math.floor(Math.random()*20)
+        },
+        datalabels: {
+            clamp: true
+        },
+        legend: {
+            display: false
+        },
+        },
+        scales: {
+        y: {
+            title:{
+            display:true,
+            text: String(titles[1])
+            }
+        },
+        x:{
+            title:{
+            display:true,
+            text: String(titles[0])
+            }
+        }
+        }
+        },
+    });
+    
+    const tableBody = document.getElementById('dataTable');
+    const tableHead = document.getElementById('tableHead');
+    // Clear existing table content
+    tableBody.innerHTML = '';
+    tableHead.innerHTML = '';
+
+    // Update table header
+    titles.forEach(title => {
+        const th = document.createElement('th');
+        th.textContent = title;
+        tableHead.appendChild(th);
+    });
+
+    // Populate table rows
+    for (let i = 0; i < labels.length; i++) {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = labels[i];
+        row.appendChild(labelCell);
+        
+        const dataCell = document.createElement('td');
+        dataCell.textContent = data[i];
+        row.appendChild(dataCell);
+    
+        tableBody.appendChild(row);
+    }
+}
+    </script>
+    <canvas id="myChart"  height="200" width="300" aria-label="chart" role="img"></canvas>
+ 
+    <table>
+       <thead id="tableHead">
+       </thead>
+       <tbody id="dataTable">
+       </tbody>
+    </table>
+            
+</body>

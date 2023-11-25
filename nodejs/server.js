@@ -15,8 +15,7 @@ import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
 import { getAdminArtist ,getAdminSong} from './insights.js';
 
-
-// import nodemon from 'nodemon';
+//import nodemon from 'nodemon';
 
 // bruh...
 const __filename = url.fileURLToPath(import.meta.url);
@@ -778,6 +777,107 @@ const server = http.createServer(async (req, res) => {
 
 
     }
+    //charlie edits
+    else if(ReplaceMatchUrl(req.url,'/create_report') && req.method ==='POST'){
+        const queries = {
+            top_genres: 
+            `SELECT G.Name as Genre, COUNT(*) as Listens 
+            FROM ListenedToHistory as LTH, Song as S, Genre as G 
+            WHERE DATE(DateAccessed) >= DATE(?) AND DATE(DateAccessed) <= DATE(?) AND LTH.SongID = S.SongID AND S.GenreCode = G.GenreCode 
+            GROUP BY Genre
+            ORDER BY Listens DESC;`,
+            top_songs:
+            `SELECT Song.Name as Song, COUNT(*) as Listens
+            FROM ListenedToHistory as LTH
+            JOIN Song ON Song.SongID = LTH.SongID
+            WHERE DATE(LTH.DateAccessed) >= DATE(?) AND DATE(LTH.DateAccessed) <= DATE(?)
+            GROUP BY Song
+            ORDER BY Listens DESC
+            LIMIT 10;`,
+            top_artists:
+            `SELECT A.ArtistName AS Artist, COUNT(*) AS Listens
+            FROM ListenedToHistory AS LTH, Artist AS A, Song AS S, Album as Al
+            WHERE DATE(LTH.DateAccessed) >= DATE(?) AND DATE(LTH.DateAccessed) <= DATE(?) AND LTH.SongID = S.SongID AND S.AlbumID = Al.AlbumID AND Al.AlbumID = A.ArtistID
+            GROUP BY Artist
+            ORDER BY Listens DESC
+            LIMIT 10;`,
+            top_albums:
+            `SELECT A.AlbumName as Album, COUNT(*) AS Listens
+            FROM ListenedToHistory AS LTH, Album AS A, Song AS S
+            WHERE DATE(LTH.DateAccessed) >= DATE(?) AND DATE(LTH.DateAccessed) <= DATE(?) AND LTH.SongID = S.SongID and S.AlbumID = A.AlbumID
+            GROUP BY Album
+            ORDER BY Listens DESC
+            LIMIT 10;`,
+        }
+        try {
+            if (getRole(sessionData) !== 'admin') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            }
+            else {
+                const form = new Types.IncomingForm();
+                const fields = await new Promise((resolve, reject) => {
+                    form.parse(req, (err, fields) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(fields);
+                        }
+                    });
+                });
+                let query;
+                // Build the SQL query based on the form fields
+                let vals = [];
+                if (fields.startDate) {
+                    
+                    vals.push(fields.startDate);
+                }
+    
+                if (fields.endDate) {
+                    vals.push(fields.endDate);
+                }
+    
+                if (fields.category === 'Artist') {
+                    query = queries['top_artists'];
+                }
+                else if (fields.category === 'Album') {
+                    query = queries['top_albums'];
+                }
+                else if (fields.category === 'Genre') {
+                    query = queries['top_genres'];
+                }
+                else if(fields.category === 'Song'){
+                    query = queries['top_songs'];
+                }
+                console.log(vals);
+    
+                // Execute the query
+                const results = await executeQuery(query, vals);
+                console.log(results);
+                // Change the column name and format the date
+    
+                // Send the results as JSON to the client
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(results));
+            }
+        }
+        catch (error) {
+            console.error('Error processing report:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
+    else if(ReplaceMatchUrl(req.url,'/create_report') && req.method ==='GET'){
+        try {
+            serveStaticFile(res, './templates/create_report.html', '');
+       } 
+       catch (error) {
+           console.error('Error processing listener data:', error);
+           res.writeHead(500, { 'Content-Type': 'text/html' });
+           res.end('<h1>Internal Server Error</h1>');
+       }
+    }
+
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
