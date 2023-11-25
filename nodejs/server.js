@@ -1201,15 +1201,11 @@ const server = http.createServer(async (req, res) => {
                 </li>
                 <li>
                 <a href="/user/notifications/base/${sessionData.id}">
-                <span>Notifications</span>
+                <span>Notifications <span class="Notification-Style">(${await getnotificationCount(getRole(sessionData),sessionData.id)})</span></span>
             
                 </a>
             </li>
             <li>
-            <div class="Notification-Style">
-            ${await getnotificationCount(getRole(sessionData),sessionData.id)}
-            </div>
-
         </li>
             </ul>
          
@@ -1253,13 +1249,10 @@ const server = http.createServer(async (req, res) => {
                     </li>
                     <li>
                     <a href="/artist/notifications/base/${sessionData.id}">
-                    <span>Notifications</span>
+                    <span>Notifications <span class="Notification-Style">(${await getnotificationCount(getRole(sessionData),sessionData.id)})</span></span>
                 </a>
                     </li>
                     <li>
-                    <div class="Notification-Style">
-                    ${await getnotificationCount(getRole(sessionData),sessionData.id)}
-                    </div>
         
                 </li>
 
@@ -2805,6 +2798,8 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
                 const result = await executeQuery(query, vals);
 
                 console.log(result);
+                res.writeHead(302, {Location: '/song/upload'});
+                res.end("Successfully uploaded song");
             }
             catch (error) {
                 // Handle errors and send an error response
@@ -2827,33 +2822,40 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
 
             const albumCover = await readFile(files.albumCover.filepath);
 
-            const albumId = await executeQuery('INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (?,?,?,?)',
+            const insertAlbumResults = await executeQuery('INSERT INTO Album (AlbumName, AlbumPic, ArtistID, ReleaseDate) VALUES (?,?,?,?)',
                 [fields.albumName, albumCover, sessionData.id, fields.releaseDate]);
+            const albumId = insertAlbumResults.insertId;
+
+            if(fields.songNames !== undefined) {
+                const songPromises = [];
+                if(fields.songNames.length === 1) {
+                    let file = files['songs[]'];
+                    files['songs[]'] = []
+                    files['songs[]'].push(file);
+                }
+                for (let i = 0; i < fields.songNames.length; i++) {
+                    const songAudio = await readFile(files['songs[]'][i].filepath);
+                    const duration = await getAudioDurationInSeconds(files['songs[]'][i].filepath);
+
+                    const genreResults = await executeQuery('SELECT GenreCode FROM Genre WHERE Name=?', [fields.songGenres[i]]);
+
+                    if (genreResults.length === 0) {
+                        throw new Error(`Genre not found for song ${fields.songNames[i]}`);
+                    }
+
+                    const genreCode = genreResults[0]['GenreCode'];
+
+                    songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
+                        [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate]));
+                }
             
 
-            const songPromises = [];
-            for (let i = 0; i < fields.songNames.length; i++) {
-                const songAudio = await readFile(files['songs[]'][i].filepath);
-                const duration = await getAudioDurationInSeconds(files['songs[]'][i].filepath);
-
-                const genreResults = await executeQuery('SELECT GenreCode FROM Genre WHERE Name=?', [fields.songGenres[i]]);
-
-                if (genreResults.length === 0) {
-                    throw new Error(`Genre not found for song ${fields.songNames[i]}`);
-                }
-
-                const genreCode = genreResults[0]['GenreCode'];
-
-                songPromises.push(executeQuery('INSERT INTO Song (Name, GenreCode, AlbumID, SongFile, Duration, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)',
-                    [fields.songNames[i], genreCode, albumId, songAudio, duration, fields.releaseDate]));
+                // Wait for all songs to be uploaded before responding
+                await Promise.all(songPromises);
             }
-        
 
-            // Wait for all songs to be uploaded before responding
-            await Promise.all(songPromises);
-
-            res.writeHead(200);
-            res.end("Successfully uploaded album");
+            res.writeHead(302, {Location: '/'});
+            res.end("Successfully created album");
 
             // Remove album cover file after upload
             await removeFile(files.albumCover.filepath);
