@@ -101,7 +101,9 @@ addEventListener("DOMContentLoaded", (event) => {
                 <h4>Profile</h4>
                 <h1>${data.artistInfo[0]['ArtistName']}</h1>
                 <h3>${data.artistInfo[0]['COUNT(Follow.ArtistID)']} Followers</h3>
-            </div>`;
+            </div>
+            <a id='followLink' href='/artist/${data.artistInfo[0]['ArtistID']}/follow' style='margin-left: 10px; margin-right: 5px'>Follow</a>
+            <a id='unfollowLink' href='/artist/${data.artistInfo[0]['ArtistID']}/unfollow' style='margin-left: 5px; margin-right: 5px'>Unfollow</a>`;
             document.getElementById('profile').innerHTML = html;
         })
         .then(() => {
