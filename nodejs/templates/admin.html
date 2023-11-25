@@ -14,7 +14,7 @@
 
     <!-- Reports Box (Top) -->
     <div class="reports-box">
-        <a href="/admin/reports">Reports</a>
+        <a href="/admin/create_report">Reports</a>
     </div>
 
     <!-- Logout Button (Top Left) -->
@@ -47,11 +47,11 @@
         <!-- Right Panel (Search and Insights) -->
         <div class="right-panel">
             <!-- Search Section -->
+            <!-- Your search form -->
             <div class="search-section">
                 <h2>Search</h2>
-                <form action="/search" method="get">
+                <form action="/search_results_admin"" method="post"> <!-- Changed to POST and action to /search -->
                     <input type="text" name="query" placeholder="Search...">
-                    <!-- Checkboxes for filters -->
                     <div>
                         <input type="checkbox" name="filters" value="artist"> Artist
                         <input type="checkbox" name="filters" value="album"> Album
@@ -62,6 +62,8 @@
                     <input type="submit" value="Search">
                 </form>
             </div>
+
+      
 
             <!-- Insights Section -->
             <div class="insights-section">

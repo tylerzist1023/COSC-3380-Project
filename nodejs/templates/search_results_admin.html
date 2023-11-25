@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fetch Data Example</title>
+</head>
+<body>
+    <h1>Data from Server</h1>
+    <div id="data-container"></div>
+
+    <script>
+        // JavaScript code goes here
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+        });
+
+        function fetchData() {
+            fetch('/search_results_admin')  // Replace '/data-endpoint' with your server's endpoint
+                .then(response => response.json())
+                .then(data => {
+                    displayData(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayData(data) {
+            const container = document.getElementById('data-container');
+
+            // Assuming 'data' is an array of objects
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.textContent = JSON.stringify(item); // Format the item as needed
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
