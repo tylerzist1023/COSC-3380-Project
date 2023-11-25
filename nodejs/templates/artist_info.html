@@ -81,6 +81,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 html += `<div class="item">
                     <a id='playSong' songid="${ song['SongID'] }" href='#'><img src="/album/${song['AlbumID']}/pic"></a>
                     <h4>${song['SongName']}</h4>
+                    <a href="/artist/${song.ArtistID}"><p>${song.AlbumName}</p></a>
                 </div>`;
             }
             document.getElementById('songs').innerHTML = html;
@@ -90,7 +91,7 @@ addEventListener("DOMContentLoaded", (event) => {
             for(const album of data.artistAlbums) {
                 html += `<div class="item">
                     <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
-                    <h4>${album['AlbumName']}</h4>
+                    <a href="/album/${album.AlbumID}"><h4>${album.AlbumName}</h4></a>
                 </div>`;
             }
             document.getElementById('albums').innerHTML = html;
