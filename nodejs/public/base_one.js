@@ -13,17 +13,18 @@ function getSidebar(x) {
         document.getElementById('leftBar').innerHTML = data;
     });
 }
-let currentSongIndex = null;
+
 function playSong(this_) {
     if(this_ === null || this_ === undefined) {
-        return function(e) { e.preventDefault();};
+        return function() { e.preventDefault();};
     }
-
+    // this may look a little weird, but if you want to pass in an event where the data varies, or if you want to pass in an event that proxies another object, you can create a function that returns a function and use the parameters of the top level function within the returned function. the "this_" object is the anchor object that the user is supposed to click on to play the desired song they want.
     return function(e) {
-       if(e) e.preventDefault();
+        e.preventDefault();
 
         let songid = this_.getAttribute('songid');
-        currentSongIndex = parseInt(this_.getAttribute('ii'));
+        // it's called "ii" because "i" is used as a variable for a for loop
+        let ii = this_.getAttribute('ii');
         
         fetch('/song/'+songid)
             .then(response => response.json())
@@ -35,56 +36,35 @@ function playSong(this_) {
                 let playerSource = document.getElementById('playerSource');
                 let playerList = document.getElementById(`list${songid}`);
 
+                // Bottom code didn't work for Artist Info Page but this does. It would play the song but not set the elements with the correct img, song name, and artist name.
+                // This resolves that issue
                 playerImage.src = '/album/' + data['albumid'] + '/pic';
                 playerSong.textContent = data['songname'];
                 playerArtist.textContent = data['artistname'];
 
-                // Resetting background color for all track lists
+                // one problem: the "hover" stops working. i don't know how to fix it!
                 const trackLists = document.querySelectorAll('.track_list');
                 for (let i = 0; i < trackLists.length; i++) {
                     trackLists[i].style.backgroundColor = '#111727';
                 }
                 playerList.style.backgroundColor = '#636363';
-
-                playerSource.setAttribute('src', '/song/'+songid+'/audio');
+                playerImage.setAttribute('src', '/album/'+data['albumid']+'/pic');
                 playerSong.innerHTML = data['songname'];
                 playerArtist.innerHTML = data['artistname'];
             })
-            .catch(error => console.error('Error:', error))
             .finally(() => {
+                let playerSource = document.getElementById('playerSource');
                 let playerAudio = document.getElementById('playerAudio');
+                playerSource.setAttribute('src', '/song/'+songid+'/audio');
                 playerAudio.load();
                 playerAudio.play();
                 let playerDiv = document.getElementById('playerDiv');
                 playerDiv.style.display = '';
-            });
-    };
-}
 
-// Functions to play the next and previous songs
-function playNextSong() {
-    if (currentSongIndex !== null) {
-        let nextSongLink = document.querySelector(`[ii="${currentSongIndex + 1}"]`);
-        if (nextSongLink) {
-            playSong(nextSongLink)(); // Call the inner function directly
-        }
+                let iiplus1 = parseInt(ii)+1;
+                let nextSongLink = document.querySelector('[ii="'+iiplus1+'"]');
+                playerAudio.onended = playSong(nextSongLink);
+            })
+            .catch(error => console.error('Error:', error));
     }
 }
-
-function playPrevSong() {
-    if (currentSongIndex !== null) {
-        let prevSongLink = document.querySelector(`[ii="${currentSongIndex - 1}"]`);
-        if (prevSongLink) {
-            playSong(prevSongLink)(); // Call the inner function directly
-        }
-    }
-}
-
-
-
-// Initialize event listeners for next and previous buttons
-document.getElementById('nextSong').addEventListener('click', playNextSong);
-document.getElementById('prevSong').addEventListener('click', playPrevSong);
-
-
-

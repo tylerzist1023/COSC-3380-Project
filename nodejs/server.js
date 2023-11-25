@@ -657,6 +657,36 @@ return {}
     return {error: "Error"};
 }
 }
+async function fetchSongFile(req) {
+    try {
+        const songId = req.url.split('/')[2];
+        const query = 'SELECT SongFile, Duration, flagged, reviewed FROM Song WHERE SongID = ?';
+        const vals = [songId];
+
+        const results = await executeQuery(query, vals);
+
+        if (results.length === 0) {
+            return { error: 'Not found', statusCode: 404 };
+        }
+
+        const songFile = results[0]['SongFile'];
+        const flagged = results[0]['flagged'];
+        const reviewed = results[0]['reviewed'];
+
+        if (songFile === null || songFile === undefined || (flagged === 1 && reviewed === 0)) {
+            return { error: 'Not found', statusCode: 404 };
+        }
+
+        const type = await fileTypeFromBuffer(songFile);
+
+        // Additional checks or logic here
+
+        return { songFile, type, statusCode: 200 };
+    } catch (error) {
+        console.error('Error getting song file:', error);
+        return { error: 'Internal Server Error', statusCode: 500 };
+    }
+}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -1020,6 +1050,9 @@ const server = http.createServer(async (req, res) => {
       } 
     else if (req.url === '/base.js') {
         serveStaticFile(res, './public/base.js', 'text/css');
+    }
+    else if (req.url === '/base_one.js') {
+        serveStaticFile(res, './public/base_one.js', 'text/css');
     }
     //picture of Coog Music (top left screen)
     else if(req.url === '/logo.png'){
@@ -2665,7 +2698,11 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
                 return;
             }
 //i changed to await// no issue 
-            const type = await fileTypeFromBuffer(songFile);
+
+            //print(songFile)
+
+            const type= await fileTypeFromBuffer(songFile);
+            
 
             // add to the listen history. full duration of the song for now
             if(getRole(sessionData) === 'listener') {
@@ -2680,6 +2717,16 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
             res.writeHead(500, { 'Content-Type': 'text/html' });
             res.end('<h1>Internal Server Error</h1>');
         }
+//tried with a function 
+// const result = await fetchSongFile(req);
+
+// res.writeHead(result.statusCode, { 'Content-Type': result.type || 'text/html' });
+
+// if (result.error) {
+//     res.end(result.error);
+// } else {
+//     res.end(result.songFile, 'binary');
+// }
     } else if (matchUrl(req.url, '/album/create') && req.method === 'GET') {
         if(getRole(sessionData) !== 'artist') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });

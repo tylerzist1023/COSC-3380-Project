@@ -7,6 +7,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap"
         rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="/styles.css">
     <title>Coog Music Home</title>
 </head>
@@ -304,16 +305,20 @@
 
 
     <!-- Music Player -->
-    <div class="song_player">
-        <!-- Replace image, song name, artist name with actual database information -->
-        <img src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
-        <h5>Song Name</br>
-            <div class="artist_name">Artist Name</div>
+    <!-- src="{{url_for('static', filename='Cockatiel-2.jpg')}}" -->
+    <div id='playerDiv' style='display:none;' class="song_player">
+        <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+        <h5>
+            <div id='playerSong'>Song Name</div>
+            <div id='playerArtist' class="artist_name">Artist Name</div>
         </h5>
-        <audio controls>
-            <!-- Provide the actual source path for the song -->
-            <source src="" type="">
-        </audio>
+        <div class="player_controls">
+            <button id="prevSong"><i class="fa fa-backward"></i></button>
+            <audio id='playerAudio' controls>
+                <source id='playerSource' src="" type="">
+            </audio>
+            <button id="nextSong"><i class="fa fa-forward"></i></button>
+        </div>
     </div>
 
 </body>
