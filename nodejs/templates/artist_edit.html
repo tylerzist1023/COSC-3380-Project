@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Edit Profile</title>
+</head>
+<body>
+<!-- Main Container To Display The Album Details and Songs-->
+<header id='topBar'>
+</header>
+<!-- Main Container To Display Profile -->
+<div class="main_container">
+    <div class="edit_profile">
+        <img src="/pic" alt="profile picture">
+        <h1 id='profileName'></h1>
+    </div>
+    <section class="edit_profile_form">
+        <div>
+            <header>
+                <h1>Edit Profile</h1>
+            </header>
+            <!-- May need to query database to retrieve the current username and email for the user -->
+            <form action="/edit" method='POST' class="form" id="editProfile">
+                <div class="input_box">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" class="edit_box" value='' placeholder="Enter your new username">
+                </div>
+
+                <div class="input_box">
+                    <label for="email">Email</label>
+                    <input type="text" value='' name="email" id="email" class="edit_box" placeholder="Enter your new email">
+                </div>
+    
+                <div class="input_box">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" class="edit_box" placeholder="Enter your password">
+                </div>
+
+                <div class="input_box">
+                    <label for="newpassword">New Password</label>
+                    <input type="password" name="newpassword" id="newpassword" class="edit_box" placeholder="Enter your new password">
+                </div>
+
+                <div class="input_box">
+                    <label for="confirmpassword">Confirm New Password</label>
+                    <input type="password" name="confirmpassword" id="confirmpassword"  class="edit_box" placeholder="Re-enter your new password">
+                </div>
+                
+                <button type="submit" class="save_btn">Save Profile</button>
+            </form>
+        </div>
+    </section>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+</div>
+
+<div class="left_sidebar" id='leftBar'>
+</div>
+<script src='/base.js'></script>
+<script>
+addEventListener("DOMContentLoaded", (event) => {
+    fetch(`/ajax/edit`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+            document.getElementById('username').setAttribute('value', data.username);
+            document.getElementById('email').setAttribute('value', data.email);
+            document.getElementById('profileName').innerHTML = `${data.ArtistName}`;
+        });
+});
+</script>
+
+<script>
+document.getElementById('editProfile').addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const formData = new FormData(event.target);
+
+  try {
+    const response = await fetch(window.location.href, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Display a notification if login is successful
+      alert('Profile Succesfully Updated');
+
+      // Redirect to the index page
+      window.location.href = '/edit';
+    } else {
+      console.error('Update Fail');
+      // Display a notification if login failed.
+      alert('Please enter a field to update');
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+});
+</script>
+</body>
+</html>

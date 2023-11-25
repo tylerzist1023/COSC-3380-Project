@@ -1371,6 +1371,9 @@ const server = http.createServer(async (req, res) => {
         if (getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/listener_edit.html', "");
         }
+        else if (getRole(sessionData) === 'artist') {
+            serveStaticFile(res, './templates/artist_edit.html', "");
+        }
     }
 
     else if (matchUrl(req.url, '/edit') && req.method =='POST') {
@@ -1446,6 +1449,83 @@ const server = http.createServer(async (req, res) => {
                 res.end();
             }
         }
+        else if (getRole(sessionData) === 'artist') {
+
+            const data = await getListenerBaseData(sessionData.id);
+                
+            const form = new Types.IncomingForm();
+            const fields = await new Promise((resolve, reject) => {
+                form.parse(req, (err, fields) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(fields);
+                    }
+                });
+            });
+
+
+            let query = "UPDATE Artist SET ";
+            let conditions = [];
+            let vals = [];
+
+            if (fields.username && fields.username !== '') {
+                conditions.push(`UserName = ?`);
+                vals.push(`${fields.username}`);
+                sessionData.username = fields.username;
+            }
+            if (fields.email && fields.email !== '') {
+                conditions.push(`Email = ?`);
+                vals.push(`${fields.email}`);
+            }
+            if (fields.newpassword) {
+                let currentPassQuery = 'SELECT Password FROM Artist WHERE ArtistID=?';
+                const currentPassResults = await executeQuery(currentPassQuery, [sessionData['id']])
+                console.log(currentPassResults);
+                if (currentPassResults.length > 0) {
+                    const currentPass = currentPassResults[0].Password;
+                    if (fields.newpassword === fields.confirmpassword && currentPass === fields.password) {
+                        conditions.push(`Password = ?`);
+                        vals.push(fields.newpassword);
+                    }
+                    else{
+                        console.log("Password did not update")
+                    }
+                }
+            }
+
+            if (conditions.length > 0) {
+                query += conditions.join(", ")
+                query += ' WHERE ArtistID = ?'
+            }
+
+            // Add UserID to the values array
+            vals.push(sessionData['id']);
+            console.log(query);
+
+            // Execute the query
+            if (conditions.length > 0) {
+                const results = await executeQuery(query, vals);
+                console.log(results)
+                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
+            }
+            else if (conditions.length === 0) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, message: 'Unable To Update' }));
+            }
+            else {
+                res.setHeader('Set-Cookie', `session=${createToken(sessionData)}; HttpOnly`);
+                res.writeHead(302, { Location: '/edit' });
+                res.end();
+            }
+        }
+
+        else {
+            res.writeHead(401);
+            res.end('<h1>Unauthorized</h1>');
+        }
     }
 
     else if (matchUrl(req.url, '/ajax/edit') && req.method =='GET') {
@@ -1469,6 +1549,34 @@ const server = http.createServer(async (req, res) => {
                 console.log(data.email);
 
                 data.username = sessionData.username;
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(data));
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end('<h1>Internal Server Error</h1>');
+            }
+        }
+        else if (getRole(sessionData) === 'artist') {
+            try {
+                const data = await getArtistBaseData(sessionData.id);
+                
+                const userProfileQuery = 'SELECT UserName, Email, ArtistName FROM Artist WHERE ArtistID=?';
+                const vals = [sessionData['id']];
+                
+                const results = await executeQuery(userProfileQuery, vals);
+
+                if (results.length === 0) {
+                    throw new Error('User not found');
+                }
+
+                // Store Query Results
+                data.email = results[0]['Email'];
+                console.log(data.email);
+                data.ArtistName = results[0]['ArtistName'];
+
+                data.username = sessionData.username;
+                console.log(data.username);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(data));
             } catch (error) {
@@ -1534,12 +1642,12 @@ const server = http.createServer(async (req, res) => {
                 let vals = [];
                 if (fields.beginDate) {
                     conditions.push(`DateAccessed >= ?`);
-                    vals.push(`${fields.beginDate} 00:00:00`);
+                    vals.push(`${fields.beginDate}T00:00:00`);
                 }
 
                 if (fields.endDate) {
                     conditions.push(`DateAccessed <= ?`);
-                    vals.push(`${fields.endDate} 23:59:59`);
+                    vals.push(`${fields.endDate}T23:59:59`);
                 }
 
                 if (fields.artist) {
@@ -1601,10 +1709,7 @@ const server = http.createServer(async (req, res) => {
     } 
     else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
         try {
-            if (getRole(sessionData) !== 'listener') {
-                res.writeHead(401);
-                res.end('<h1>Unauthorized</h1>');
-            } else {
+            if (getRole(sessionData) === 'listener') {
                 const query = 'SELECT ProfilePic FROM Listener WHERE UserID=?';
                 const vals = [sessionData['id']];
 
@@ -1621,20 +1726,47 @@ const server = http.createServer(async (req, res) => {
 
                 res.writeHead(200, { 'Content-Type': type });
                 res.end(profilePic);
+            } 
+
+            else if (getRole(sessionData) === 'artist') {
+                const query = 'SELECT ProfilePic FROM Artist WHERE ArtistID=?';
+                const vals = [sessionData['id']];
+
+                const results = await executeQuery(query, vals);
+
+                if (!results[0] || results[0]['ProfilePic'] === null) {
+                    res.writeHead(302, { Location: '/logo.png' });
+                    res.end();
+                    return;
+                }
+
+                const profilePic = results[0]['ProfilePic'];
+                const type = fileTypeFromBuffer(profilePic);
+
+                res.writeHead(200, { 'Content-Type': type });
+                res.end(profilePic);
             }
-        } catch (error) {
+
+            else {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            }
+        }  
+        catch (error) {
             console.error('Error processing profile picture:', error);
             res.writeHead(500, { 'Content-Type': 'text/html' });
             res.end('<h1>Internal Server Error</h1>');
         }
     } 
     
+    // Serve Search Page For Listener
     else if(matchUrl(req.url, '/search') && req.method === 'GET') {
         if (getRole(sessionData) === 'listener') {
             serveStaticFile(res, './templates/search_form.html', "");
         }
     }
     
+    // Handles Search Requests
     else if (matchUrl(req.url, '/search') && req.method === 'POST') {
         if (getRole(sessionData) === 'listener') {
             const form = new Types.IncomingForm();
@@ -1652,6 +1784,7 @@ const server = http.createServer(async (req, res) => {
             console.log("Request Received");
             console.log(fields.searchBy);
 
+            // Determine if the user is searching for a song, artist, album or all by name.
             if (fields.searchBy === 'song') {
                 const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID, Artist.ArtistID FROM Song, Artist, Album WHERE Song.Name LIKE ? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID`;
                 const vals = [`%${fields.search}%`];
@@ -1664,8 +1797,8 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
+
             else if (fields.searchBy === 'artist') {
-                // const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID, Artist.ArtistID FROM Song, Artist, Album WHERE ArtistName LIKE ? AND Album.ArtistID=Artist.ArtistID AND Album.ArtistID=Artist.ArtistID`
                 const query = `SELECT DISTINCT ArtistName, ArtistID FROM Artist WHERE ArtistName LIKE ?  `;
                 const vals = [`%${fields.search}%`];
                 console.log(fields.search);
@@ -1677,8 +1810,8 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
+
             else if (fields.searchBy === 'album') {
-                // const query = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, AlbumName, Album.AlbumID FROM Song, Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID AND Song.AlbumID = Album.AlbumID`
                 const query = `SELECT DISTINCT AlbumName, ArtistName, Album.AlbumID, Artist.ArtistID FROM Album, Artist WHERE AlbumName LIKE ? AND Artist.ArtistID = Album.ArtistID`;
                 const vals = [`%${fields.search}%`];
                 console.log(fields.search);
@@ -1690,9 +1823,10 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
+
             else if (fields.searchBy === '') {
                 let results = [];
-
+                
                 const songQuery = `SELECT DISTINCT Song.Name AS SongName, Song.SongID AS SongID, ArtistName, Album.AlbumID, Artist.ArtistID FROM Song, Artist, Album WHERE Song.Name LIKE ? AND Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID`;
                 const vals = [`%${fields.search}%`];
                 console.log(fields.search);
@@ -1721,6 +1855,7 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
             }
+
             else {
                 res.writeHead(400, { 'Content-Type': 'text/plain' });
                 res.end("Search Failed");

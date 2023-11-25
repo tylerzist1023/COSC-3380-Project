@@ -71,7 +71,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 html += `<div class="item">
                     <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
                     <h4>${album['AlbumName']}</h4>
-                    <a href='/artist/${album['ArtistID']}'>${album['ArtistName']}</a>
+                    <a href='/profile'><p>${album['ArtistName']}</p></a>
                 </div>`;
             }
             document.getElementById('myMusic').innerHTML = html;
@@ -81,7 +81,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 html += `<div class="item">
                     <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
                     <h4>${album['AlbumName']}</h4>
-                    <a href='/artist/${album['ArtistID']}'>${album['ArtistName']}</a>
+                    <a href='/profile'><p>${album['ArtistName']}<p></a>
                 </div>`;
             }
             document.getElementById('mostPlayedAlbums').innerHTML = html;
@@ -91,7 +91,7 @@ addEventListener("DOMContentLoaded", (event) => {
                 html += `<div class="item">
                     <a href='/album/${album['AlbumID']}'><img src="/album/${album['AlbumID']}/pic"></a>
                     <h4>${album['AlbumName']}</h4>
-                    <a href='/artist/${album['ArtistID']}'>${album['ArtistName']}</a>
+                    <a href='/profile'><p>${album['ArtistName']}</p></a>
                 </div>`;
             }
             document.getElementById('highestRatedAlbums').innerHTML = html;
