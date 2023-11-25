@@ -160,7 +160,7 @@ addEventListener("DOMContentLoaded", (event) => {
             html = '';
             for(const song of data.recommended) {
                 html += `<div class="item">
-                        <a id='playSong' songid='${song['SongID']}' href='#'><img src="/album/${song['AlbumID']}/pic" alt="song name"></a>
+                        <a songid='${song['SongID']}' href="/album/${song['AlbumID']}"><img src="/album/${song['AlbumID']}/pic" alt="song name"></a>
                         <h4>${song['Name']}</h4>
                         <a href='/artist/${song['ArtistID']}'><p>${song['ArtistName']}</p></a>
                     </div>`;
