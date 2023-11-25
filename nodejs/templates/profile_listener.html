@@ -83,7 +83,7 @@ addEventListener("DOMContentLoaded", (event) => {
             html = '';
             for(const artist of data['following']) {
                 html += `<div class="artist_item">
-                    <a><img src="/artist/${artist['ArtistID'] }/pic" class="artist_img"></a>
+                    <a href='/artist/${artist['ArtistID']}'><img src="/artist/${artist['ArtistID'] }/pic" class="artist_img"></a>
                     <h4>${artist['ArtistName'] }</h4>
                     <p>Profile</p>
                 </div>`;

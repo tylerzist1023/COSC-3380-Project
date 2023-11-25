@@ -1187,7 +1187,7 @@ const server = http.createServer(async (req, res) => {
                         <li>
                             <a href="">
                                 <span class="link_icon"></span>
-                                <span>My Music</span>
+                                <span>My Albums</span>
                             </a>
                             <a href="/album/create" class="add_album">+</a>
                             <ul class="list_container">`;
