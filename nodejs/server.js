@@ -611,6 +611,20 @@ async function getnotificationCount(role,id) {
         return {error: "Error"};
     }
 }
+ function getColorNotification(num){
+    print(num)
+    
+        if(num>=1){
+            return "Notification-Style"
+        }
+        else{
+            return "Notification-Styled"
+        }
+
+
+
+
+}
 async function review_notification_user(userID,message) {
     try {
 
@@ -1201,8 +1215,7 @@ const server = http.createServer(async (req, res) => {
                 </li>
                 <li>
                 <a href="/user/notifications/base/${sessionData.id}">
-                <span>Notifications <span class="Notification-Style">(${await getnotificationCount(getRole(sessionData),sessionData.id)})</span></span>
-            
+                <span>Notifications <span class=${ getColorNotification(await getnotificationCount(getRole(sessionData),sessionData.id))}>(${await getnotificationCount(getRole(sessionData),sessionData.id)})</span></span>
                 </a>
             </li>
             <li>
@@ -1249,7 +1262,7 @@ const server = http.createServer(async (req, res) => {
                     </li>
                     <li>
                     <a href="/artist/notifications/base/${sessionData.id}">
-                    <span>Notifications <span class="Notification-Style">(${await getnotificationCount(getRole(sessionData),sessionData.id)})</span></span>
+                    <span>Notifications <span class=${ getColorNotification(await getnotificationCount(getRole(sessionData),sessionData.id))}>(${await getnotificationCount(getRole(sessionData),sessionData.id)})</span></span>
                 </a>
                     </li>
                     <li>
