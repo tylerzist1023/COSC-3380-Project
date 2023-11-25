@@ -13,7 +13,7 @@ import { Readable } from 'stream';
 import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
-import { getAdminArtist ,getAdminSong} from './insights.js';
+import { getAdminArtist ,getAdminSong,getAdminListener} from './insights.js';
 
 
 // import nodemon from 'nodemon';
@@ -533,6 +533,35 @@ async function NotificationsUser(userID) {
         return {error: "Error"};
     }
 }
+async function NotificationsArtist(userID) {
+    try {
+        const data={}
+        const userQuery = `SELECT 
+        Notification, 
+        Reviewed,
+        CreationTime
+    FROM 
+        NotificationArtist
+    WHERE 
+        ArtistID = ?
+    ORDER BY 
+        CreationTime DESC; `;
+        const time_database = await executeQuery('SELECT NOW();')
+
+        const userResults = await executeQuery(userQuery,[userID]);
+        data['notification']= userResults;
+        await modifyCreationTimes(data,time_database)
+    
+        
+          
+     
+//print(data)
+        return data;
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
 
 async function getnotificationCount(role,id) {
     try {
@@ -551,6 +580,31 @@ async function getnotificationCount(role,id) {
 
 
         }
+        else if(role==="artist"){
+
+            const userQuery = `
+            SELECT COUNT(*)
+            FROM NotificationArtist
+            WHERE ArtistID = ? AND Reviewed=0
+            `;
+            const userResults = await executeQuery(userQuery,[id]);
+            print(userResults)
+     
+            return userResults[0]['COUNT(*)'];
+
+        }
+        else if (role==="admin"){
+            const userQuery = `
+            SELECT COUNT(*)
+            FROM NotificationAdmin
+            WHERE AdminID = ? AND Reviewed=0
+            `;
+            const userResults = await executeQuery(userQuery,[id]);
+           // print(userResults)
+     
+            return userResults[0]['COUNT(*)'];
+
+        }
    
         
     } catch (error) {
@@ -566,6 +620,24 @@ async function review_notification_user(userID,message) {
             UPDATE NotificationUser
             SET Reviewed = 1
             WHERE UserID = ?
+            AND Notification = ?;
+            `;
+            const userResults = await executeQuery(userQuery,[userID,message]);
+     
+        
+    } catch (error) {
+        console.error(error);
+        return {error: "Error"};
+    }
+}
+async function review_notification_artist(userID,message) {
+    try {
+
+
+            const userQuery = `
+            UPDATE NotificationArtist
+            SET Reviewed = 1
+            WHERE ArtistID = ?
             AND Notification = ?;
             `;
             const userResults = await executeQuery(userQuery,[userID,message]);
@@ -674,6 +746,7 @@ const server = http.createServer(async (req, res) => {
       
     }
     else if(ReplaceMatchUrl(req.url,'/admin/insights/type') && req.method==='GET'){
+        print(req.url)
 
        const request_to_serve = req.url.replace('/admin/insights/type',"");
 
@@ -682,6 +755,9 @@ const server = http.createServer(async (req, res) => {
         }
         else if(request_to_serve==='Song'){
             res.end(JSON.stringify(await getAdminSong()));
+        }
+        else if (request_to_serve==='Listener'){
+            res.end(JSON.stringify(await getAdminListener()));
         }
 
     }
@@ -744,6 +820,16 @@ const server = http.createServer(async (req, res) => {
         }
 
     }
+    else if(ReplaceMatchUrl(req.url,'/artist/notifications/')){
+        if(ReplaceMatchUrl(req.url,'/artist/notifications/base')){
+            serveStatic_Plus(res,'./templates/notification_artist.html', '',{'who':sessionData.id})
+            return
+
+        }
+        res.end(JSON.stringify(await NotificationsArtist(sessionData.id)))
+
+
+    }
     else if(ReplaceMatchUrl(req.url,'/user/notifications/')){
         if(ReplaceMatchUrl(req.url,'/user/notifications/base')){
             serveStatic_Plus(res,'./templates/notification_user.html', '',{'who':sessionData.id})
@@ -771,6 +857,9 @@ const server = http.createServer(async (req, res) => {
             await review_notification_user(sessionData.id,fields.notificationContent)
             
         }
+        else if(TypePerson==="artist"){
+            await review_notification_artist(sessionData.id,fields.notificationContent)
+        }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
 
@@ -778,6 +867,7 @@ const server = http.createServer(async (req, res) => {
 
 
     }
+
     // css of the homepage
     else if (req.url === '/styles.css') {
         serveStaticFile(res, './public/styles.css', 'text/css');
@@ -790,6 +880,11 @@ const server = http.createServer(async (req, res) => {
     else if (req.url === '/npc/picture' ) {
       serveStaticFile(res, './public/cartoon-mysterious.png', 'image/png')
     } 
+    //picture of a profile picture
+    ///default/person/picture
+    else if (req.url === '/default/person/picture' ) {
+        serveStaticFile(res, './public/default_user.png', 'image/png')
+      } 
     else if (req.url === '/base.js') {
         serveStaticFile(res, './public/base.js', 'text/css');
     }
@@ -950,6 +1045,12 @@ const server = http.createServer(async (req, res) => {
                     <span>Notifications</span>
                 </a>
                     </li>
+                    <li>
+                    <div class="Notification-Style">
+                    ${await getnotificationCount(getRole(sessionData),sessionData.id)}
+                    </div>
+        
+                </li>
 
                 </ul>
                 <div class="search">
