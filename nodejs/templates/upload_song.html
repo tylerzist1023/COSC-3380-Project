@@ -10,6 +10,77 @@
     <link rel="stylesheet" href="/styles.css">
     <title>Edit Profile</title>
 </head>
+<style>
+
+.form input[type="text"],
+.form input[type="file"],
+.form select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box; 
+    font-size: 14px;
+}
+
+
+.form input[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; 
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, .3); 
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form input[type="submit"]:hover {
+    background-color: #0056b3; 
+    box-shadow: 0 4px 8px rgba(0, 123, 255, .5);
+}
+
+.form label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.form select {
+    appearance: none; 
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="%23007bff" d="M5.8 8l4.2 4.2L14.2 8z"/></svg>'); /* Adds custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%; 
+    background-size: 12px;
+    padding-right: 30px; 
+}
+
+/* Responsiveness for Smaller Devices */
+@media only screen and (max-width: 600px) {
+    .form input[type="submit"] {
+        padding: 10px;
+    }
+}
+
+
+hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+
+
+</style>
 <body>
     <header id='topBar'>
     </header>

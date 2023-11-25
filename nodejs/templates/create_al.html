@@ -15,9 +15,88 @@
         color: #859ad3;
     }
 
-    .song-inputs {
-        margin-bottom: 10px;
+
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+
+.form label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.form input[type="text"],
+.form input[type="date"],
+.form input[type="file"],
+.form select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; /* Makes sure padding doesn't affect overall width */
+}
+
+.form input[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;; /* Green color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.form input[type="submit"]:hover {
+    background-color: #4cae4c; /* Darker green on hover */
+}
+
+/* Responsive Layout */
+@media only screen and (max-width: 600px) {
+    .container {
+        width: 95%;
     }
+}
+
+
+
+/* Dynamic Elements Styling */
+.song-inputs {
+    margin-bottom: 20px;
+}
+
+.song-inputs label {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.song-inputs input,
+.song-inputs select {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.song-inputs button {
+    background-color: #d9534f; /* Red color for removal */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.song-inputs button:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}
+
 </style>
 
 <header id='topBar'>
