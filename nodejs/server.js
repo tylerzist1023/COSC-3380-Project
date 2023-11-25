@@ -1041,6 +1041,11 @@ const server = http.createServer(async (req, res) => {
                         </a>
                     </li>
                     <li>
+                    <a href="/song/upload">
+                        <span>Upload Song</span>
+                    </a>
+                    </li>
+                    <li>
                     <a href="/artist/notifications/base/${sessionData.id}">
                     <span>Notifications</span>
                 </a>
@@ -1142,14 +1147,14 @@ const server = http.createServer(async (req, res) => {
             const data = await getArtist(sessionData, res);
             let html = '';
             html += `<div class="logo">
-                    <a href="">
+                    <a href="/">
                         <img src="/logo.png" alt="Logo">
                     </a>
                 </div>
                 <div class="navigation">
                     <ul>
                         <li>
-                            <a href="">
+                            <a href="/">
                                 <span class="link_icon"></span>
                                 <span>Home</span>
                             </a>
@@ -2541,7 +2546,59 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
         } catch (error) {
             throw error;
         }
-    } else if (matchUrl(req.url, '/album/create') && req.method === 'POST') {
+    } 
+    else if (matchUrl(req.url, '/song/upload') && req.method==="GET") {
+        if (getRole(sessionData) !== 'artist') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        else {
+            serveStaticFile(res, './templates/upload_song.html', "");   
+        }
+    }
+    else if (matchUrl(req.url, '/song/upload') && req.method==="POST") {
+        if (getRole(sessionData) !== 'artist') {
+            res.writeHead(401, { 'Content-Type': 'text/plain' });
+            res.end("You are not authorized to do that");
+            return;
+        }
+
+        else {
+            try {
+                const data = await getArtistBaseData(sessionData.id);
+
+                const form =  new Types.IncomingForm({ multiples: true });
+                const { fields, files } = await parseFormAsync(form, req);
+
+                let query = "INSERT INTO Song (Name, Duration, AlbumID, GenreCode, SongFile, ReleaseDate) VALUES (?, ?, ?, ?, ?, ?)";
+
+                let valsQuery = "SELECT AlbumID, ReleaseDate FROM Album WHERE AlbumID = ?";
+                let queryval = [fields.album];
+                console.log(fields.album);
+                const albumInfo = await executeQuery(valsQuery, queryval);
+                console.log(albumInfo);
+
+                const songAudio = await readFile(files.song.filepath);
+                const duration = await getAudioDurationInSeconds(files.song.filepath);
+                const ReleaseDate = albumInfo[0].ReleaseDate;
+                console.log(ReleaseDate);
+
+                const vals = [`${fields.songName}`, duration, `${fields.album}`, `${fields.genre}`, songAudio, ReleaseDate];
+                console.log(vals);
+                const result = await executeQuery(query, vals);
+
+                console.log(result);
+            }
+            catch (error) {
+                // Handle errors and send an error response
+                console.error('Error:', error.message);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+            }
+        }
+    }
+    else if (matchUrl(req.url, '/album/create') && req.method === 'POST') {
         if (getRole(sessionData) !== 'artist') {
             res.writeHead(401, { 'Content-Type': 'text/plain' });
             res.end("You are not authorized to do that");
