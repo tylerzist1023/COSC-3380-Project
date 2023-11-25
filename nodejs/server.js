@@ -648,18 +648,6 @@ async function review_notification_artist(userID,message) {
         return {error: "Error"};
     }
 }
-async function getAdminSearchData(search_result,boxes_check){
-    try {
-
-return {}
- 
-    
-} catch (error) {
-    console.error(error);
-    return {error: "Error"};
-}
-
-}
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
@@ -978,15 +966,8 @@ const server = http.createServer(async (req, res) => {
                 }
             });
         });
-        //print(fields);
-        const search_result = fields.query;
-        let boxes_check = fields.filters
-        if (typeof boxes_check==="string"){
-             boxes_check = [boxes_check]
-        }
-        
-
-        res.end(JSON.stringify(await getAdminSearchData(search_result,boxes_check)));
+        print(fields);
+        res.end(JSON.stringify(fields));
         
     }
     else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="GET"){
