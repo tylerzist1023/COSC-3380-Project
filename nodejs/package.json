@@ -10,9 +10,6 @@
   "author": "Jack Spartan",
   "license": "ISC",
   "dependencies": {
-    "assert": "^2.1.0",
-    "chart.js": "^4.4.0",
-    "chartjs-plugin-autocolors": "^0.2.2",
     "cookie": "^0.6.0",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.3.1",
@@ -20,16 +17,13 @@
     "file-type": "^18.7.0",
     "formidable": "^2.1.2",
     "get-audio-duration": "^4.0.1",
-    "http": "^0.0.1-security",
     "mime": "^3.0.0",
     "mime-types": "^2.1.35",
     "mysql": "^2.18.1",
-    "mysql2": "^3.6.5",
-    "mysql2-promise": "^0.1.4",
+    "mysql2": "^3.6.3",
     "node-fetch": "^3.3.2",
     "node.js": "^0.0.1-security",
     "nodemon": "^3.0.1",
-    "nunjucks": "^3.2.4",
-    "stream": "^0.0.2"
+    "nunjucks": "^3.2.4"
   }
 }
