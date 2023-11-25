@@ -647,15 +647,42 @@ async function review_notification_artist(userID,message) {
         return {error: "Error"};
     }
 }
-async function getAdminSearchData(search_result,boxes_check){
+async function getAdminSearchData(search_result, boxes_check) {
+    let data = {};
     try {
-return {}
- 
-    
-} catch (error) {
-    console.error(error);
-    return {error: "Error"};
-}
+        for (const item of boxes_check) {
+            console.log(search_result); // using console.log instead of print
+            let userQuery = '';
+            let key = '';
+
+            switch (item) {
+                case 'artist':
+                    userQuery = 'SELECT ArtistID,ArtistName FROM Artist WHERE ArtistName LIKE ?';
+                    key = 'artist';
+                    break;
+                case 'album':
+                    userQuery = 'SELECT AlbumID,AlbumName FROM Album WHERE AlbumName LIKE ?';
+                    key = 'album';
+                    break;
+                case 'song':
+                    userQuery = 'SELECT SongID,Name FROM Song WHERE Name LIKE ?';
+                    key = 'song';
+                    break;
+                case 'listener':
+                    userQuery = 'SELECT UserID,Username FROM Listener WHERE Username LIKE ?';
+                    key = 'listener';
+                    break;
+            }
+
+            if (userQuery && key) {
+                data[key] = await executeQuery(userQuery, [`%${search_result}%`]);
+            }
+        }
+        return data;
+    } catch (error) {
+        console.error(error);
+        return { error: "Error" };
+    }
 }
 async function fetchSongFile(req) {
     try {
@@ -906,7 +933,9 @@ const server = http.createServer(async (req, res) => {
 
 
     }
-    else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="POST"){
+    else if(ReplaceMatchUrl(req.url,"/search_results_admin")){
+        if(req.method==='POST'){
+
         const form = new Types.IncomingForm();
         const fields = await new Promise((resolve, reject) => {
             form.parse(req, (err, fields) => {
@@ -917,18 +946,37 @@ const server = http.createServer(async (req, res) => {
                 }
             });
         });
-        const search_result = fields.query;
-        let boxes_check = fields.filters
+       let search_result = fields.query;
+       let boxes_check = fields.filters
+       //print(search_result)
+       //print(boxes_check)
         if (typeof boxes_check==="string"){
              boxes_check = [boxes_check]
         }
-        
+        search_result = search_result.replaceAll(" ","%%%")
+        print(search_result)
+
+        serveStatic_Plus(res,"./templates/search_results_admin.html","text/html",{data:`${search_result}+-1${boxes_check}`} )
+    }
+    else{
+        //print(req.url)
+       const searchInfo = req.url.replace('/search_results_admin/',"");
+       //print(searchInfo)
+       const search = searchInfo.split("+-1")
+       const search_result= search[0].replaceAll("%%%"," ")
+       const temp = search.splice(1,search.length)
+       //print(temp)
+       const boxes_check=temp[0].split(",")
+
+
         res.end(JSON.stringify(await getAdminSearchData(search_result,boxes_check)));
+    }
+        
         
     }
-    else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="GET"){
-        serveStaticFile(res,"./templates/search_results_admin.html","text/html")
-    }
+    // else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="GET"){
+    //     res.end(JSON.stringify(await getAdminSearchData(search_result,boxes_check)));
+    // }
 
     //charlie edits
     else if(ReplaceMatchUrl(req.url,'/create_report') && req.method ==='POST'){
@@ -1121,25 +1169,7 @@ const server = http.createServer(async (req, res) => {
             res.end('An error occurred during form processing');
         }
     }
-    else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="POST"){
-        const form = new Types.IncomingForm();
-        const fields = await new Promise((resolve, reject) => {
-            form.parse(req, (err, fields) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(fields);
-                }
-            });
-        });
-        print(fields);
-        res.end(JSON.stringify(fields));
-        
-    }
-    else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="GET"){
-
-        serveStaticFile(res,"./templates/search_results_admin.html","text/html")
-    }
+   
     
 
     else if(req.url === "/topbar"){
@@ -1182,12 +1212,7 @@ const server = http.createServer(async (req, res) => {
 
         </li>
             </ul>
-            <div class="search">
-                <form action='/search' method='POST'>
-                    <input type="text" class="search_bar" name='search' id='search' placeholder="Search Music...">
-                    <button type="submit" class="search_btn">Search</button>
-                </form>
-            </div>
+         
             
             <ul class="topbar_navigation">
                 <li>
@@ -1210,11 +1235,7 @@ const server = http.createServer(async (req, res) => {
                             <span>Profile</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="">
-                            <span>My Music</span>
-                        </a>
-                    </li>
+             
                     <li>
                         <a href="">
                             <span>Artist Insights</span>
@@ -1243,12 +1264,7 @@ const server = http.createServer(async (req, res) => {
                 </li>
 
                 </ul>
-                <div class="search">
-                    <form action='/search' method='POST'>
-                        <input type="text" class="search_bar" name='search' placeholder="Search Music...">
-                        <button type="submit" class="search_btn">Search</button>
-                    </form>
-                </div>
+     
                 <ul class="topbar_navigation">
                 <li>
                     <a href="/logout">
