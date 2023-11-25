@@ -2288,7 +2288,11 @@ const server = http.createServer(async (req, res) => {
             const duration_min = Math.floor(data.albumData['AlbumDuration'] / 60);
             const duration_sec = Math.floor(data.albumData['AlbumDuration'] % 60);
 
-            data.album_duration = `${duration_min} min ${duration_sec} sec`;
+            const formatted_duration_sec = duration_sec.toString().padStart(2, '0');
+
+            console.log(formatted_duration_sec);
+
+            data.album_duration = `${duration_min} min ${formatted_duration_sec} sec`;
 
             // Format Release Date to MM/DD/YYYY
             const releaseDate = new Date(data.albumData['ReleaseDate']);
@@ -2343,7 +2347,8 @@ songResults = await executeQuery(songQuery, [sessionData['id'],albumId],);
             data.songData = songResults.map((song) => {
                 const duration_min = Math.floor(song.Duration / 60);
                 const duration_sec = Math.floor(song.Duration % 60);
-                const duration_str = `${duration_min}:${duration_sec}`;
+                const formatted_duration_sec = duration_sec.toString().padStart(2, '0');
+                const duration_str = `${duration_min}:${formatted_duration_sec}`;
 
 
                 //upadte the name in the return statement
