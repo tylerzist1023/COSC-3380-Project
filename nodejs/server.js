@@ -661,6 +661,32 @@ async function review_notification_artist(userID,message) {
         return {error: "Error"};
     }
 }
+//DeleteAlbum
+
+async function DeleteAlbum(albumId) {
+ 
+        // Step 1: Retrieve all song IDs for the album
+        let songIds = await executeQuery('SELECT SongID FROM Song WHERE AlbumID = ?', [albumId]);
+    
+        for (let song of songIds) {
+            let songID = song.SongID;
+    
+            // Step 2: Delete all ratings for the song
+            await executeQuery('DELETE FROM Rating WHERE SongID = ?', [songID]);
+    
+            // Step 3: Delete all user flags for the song
+            await executeQuery('DELETE FROM UserFlags WHERE SongID = ?', [songID]);
+    
+            // Step 4: Delete the song
+            await executeQuery('DELETE FROM Song WHERE SongID = ?', [songID]);
+        }
+    
+        // Step 5: Delete the album
+        await executeQuery('DELETE FROM Album WHERE AlbumID = ?', [albumId]);
+    
+        // Handle commit, transaction or any error handling as needed
+    
+}
 async function DataAlbumsAdmin(id)  {
     
     try {
@@ -1074,6 +1100,13 @@ const server = http.createServer(async (req, res) => {
     {
         const id = req.url.replace("/data/artist/","")
         res.end(JSON.stringify(await DataArtistAdmin(id)))
+    }
+    else if(ReplaceMatchUrl(req.url,'/delete/album/'))
+    {
+        await DeleteAlbum(req.url.replace("/delete/album/",""))
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Profile Succesfully Updated' }));
     }
 
 
