@@ -27,7 +27,9 @@
       </style>
 </head>
 <body>
-    <p>Generate Report<p>
+    <div class="report_options">
+    <div class="report_form_container">
+    <header>Generate Report</header>
             <form method="POST" action="/create_report" class="reportForm">
                 <p>Graph Type</p>
                 <div id = "type">
@@ -86,9 +88,254 @@
         }
     }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
+            <table>
+                <thead id="tableHead">
+                </thead>
+                <tbody id="dataTable">
+                </tbody>
+             </table>
+             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+             <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
 
+             <canvas id="myChart"  height="200" width="300" aria-label="chart" role="img"></canvas>
+        </div>
+    </div>
+
+        <div class="report_options">
+            <div class="report_form_container">
+                <header>Account Creations</header>
+                <form method="POST" action="/account_creation_report" class="historyForm">
+                    <div>
+                        <label for="beginDate">From</label>
+                        <input type="date" name="beginDate">
+        
+                        <label for="endDate">To</label>
+                        <input type="date" name="endDate">
+                    </div>
+                    <div>
+                        <label for="accountType">Account Type</label>
+                        <select id="accountType" name="accountType" placeholder="Account Type">
+                            <option value="">Any</option>
+                            <option value="listener">Listener</option>
+                            <option value="artist">Artist</option>
+                        </select>
+        
+                        <label for="age">Age Group</label>
+                        <select id="age" name="age">
+                            <option value="">Any</option>
+                            <option value="1">13-18</option>
+                            <option value="2">18-24</option>
+                            <option value="3">25-34</option>
+                            <option value="4">35-44</option>
+                            <option value="5">45-54</option>
+                            <option value="6">55-64</option>
+                            <option value="7">65+</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="submit_btn">Submit</button>
+                    </div>
+                </form>
+        
+                <!-- Display results in a table -->
+                <table id="accountCreationTable" border="1">
+                    <thead>
+        
+                    </thead>
+                    <tbody id="accountCreationBody"></tbody>
+                </table>
+            </br>
+                <canvas id="accountCreationChart" width="800" height="400"></canvas></br>
+                <canvas id="accountCreationBarChart" width="800" height="400"></canvas>
+        </div>
+    <script>
+         document.addEventListener('DOMContentLoaded', function () {
+            const historyForm = document.querySelector('.historyForm');
+    
+            historyForm.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+    
+                // Collect form data
+                const formData = new FormData(historyForm);
+    
+                // Send form data to the server using fetch
+                fetch('/account_creation_report', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Display the results in the table
+                    displayResults(data);
+
+                    createLineChart(data);
+
+                    createBarChart(data);
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+
+        function createLineChart(results) {
+            const accountCreationDates = results.map(result => result['Account Creation Date']);
+            const uniqueDates = [...new Set(accountCreationDates)]; // Get unique dates
+            
+            const chartData = {
+                labels: uniqueDates,
+                datasets: [{
+                    label: 'Account Creation Trend',
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    data: uniqueDates.map(date => accountCreationDates.filter(d => d === date).length)
+                }]
+            };
+
+            const chartOptions = {
+                scales: {
+                    x: {
+                        type: 'category',
+                        labels: uniqueDates,
+                        title: {
+                            display: true,
+                            text: 'Account Creation Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Creations'
+                        }
+                    }
+                },
+            };
+            
+            const ctx = document.getElementById('accountCreationChart').getContext('2d');
+            // Check if a chart instance exists and destroy it
+            if (window.accountCreationLineChart) {
+                window.accountCreationLineChart.destroy();
+            }
+            // Create and display the new line chart
+            window.accountCreationLineChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: chartOptions
+            });
+            ctx.canvas.style.backgroundColor = 'white';
+        }
+
+        function createBarChart(results) {
+
+            console.log('Results for Bar Chart:', results);
+
+            const accountCreationDates = results.map(result => result['Account Creation Date']);
+            const uniqueDates = [...new Set(accountCreationDates)]; // Get unique dates
+            
+            const listenerCounts = [];
+            const artistCounts = [];
+
+            console.log('Listener Counts:', listenerCounts);
+            console.log('Artist Counts:', artistCounts);
+            
+            // Count the number of listener and artist accounts for each date
+            uniqueDates.forEach(date => {
+                const listenerCount = results.filter(result => result['Account Type'] === 'Listener' && result['Account Creation Date'] === date).length;
+                const artistCount = results.filter(result => result['Account Type'] === 'Artist' && result['Account Creation Date'] === date).length;
+                
+                listenerCounts.push(listenerCount);
+                artistCounts.push(artistCount);
+            });
+            
+            const chartData = {
+                labels: uniqueDates,
+                datasets: [
+                    {
+                        label: 'Listener Accounts',
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        data: listenerCounts
+                    },
+                    {
+                        label: 'Artist Accounts',
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        data: artistCounts
+                    }
+                ]
+            };
+            const chartOptions = {
+                scales: {
+                    x: {
+                        type: 'category',
+                        labels: uniqueDates,
+                        title: {
+                            display: true,
+                            text: 'Account Creation Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Accounts'
+                        }
+                    }
+                },
+            };
+
+            const ctx = document.getElementById('accountCreationBarChart').getContext('2d');
+            
+            // Check if a chart instance exists and destroy it (Having issues with this for bar charts for some reason)
+            // if (window.accountCreationBarChart) {
+            //     window.accountCreationBarChart.destroy();
+            // }
+            
+            // Create and display the new bar chart
+            window.accountCreationBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: chartOptions
+            });
+            ctx.canvas.style.backgroundColor = 'white';
+        }
+
+    
+        function displayResults(results) {
+            const resultsTableBody = document.getElementById('accountCreationBody');
+    
+            // Clear existing table rows and header
+            resultsTableBody.innerHTML = '';
+    
+            // Check if there are results
+            if (results.length === 0) {
+                console.log('No results found');
+                return;
+            }
+    
+            // Create dynamic table header
+            const tableHeader = document.createElement('tr');
+            const columns = Object.keys(results[0]);
+            columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column;
+                tableHeader.appendChild(th);
+            });
+            resultsTableBody.appendChild(tableHeader);
+    
+            // Populate the table with the results
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                columns.forEach(column => {
+                    const td = document.createElement('td');
+                    td.textContent = result[column];
+                    row.appendChild(td);
+                });
+                resultsTableBody.appendChild(row);
+            });
+        }
+
+    </script>
+
+
+    
     <script>
     let chart = null;
     function submitForm() {
