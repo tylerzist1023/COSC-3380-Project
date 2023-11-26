@@ -2385,6 +2385,140 @@ const server = http.createServer(async (req, res) => {
                     conditions.push(`Song.GenreCode = ?`);
                     vals.push(fields.genre);
                 }
+                if (fields.age) {
+                    if (fields.age === '1') {
+                        const oldestCurrentDate = new Date();
+                        const oldestDOB = oldestCurrentDate.getFullYear() - 18;
+                        oldestCurrentDate.setFullYear(oldestDOB);
+
+                        const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                        console.log(oldestFormattedDate);
+
+                        const youngestCurrentDate = new Date();
+                        const youngestDOB = youngestCurrentDate.getFullYear() - 13;
+                        youngestCurrentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('Listener.DOB >= ? AND Listener.DOB <= ?')
+                        vals.push(oldestFormattedDate, youngestFormattedDate)
+                    }
+                    else if (fields.age === '2') {
+                        const oldestCurrentDate = new Date();
+                        const oldestDOB = oldestCurrentDate.getFullYear() - 24;
+                        oldestCurrentDate.setFullYear(oldestDOB);
+
+                        const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                        console.log(oldestFormattedDate);
+
+                        const youngestCurrentDate = new Date();
+                        const youngestDOB = youngestCurrentDate.getFullYear() - 18;
+                        youngestCurrentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('Listener.DOB >= ? AND Listener.DOB <= ?')
+                        vals.push(oldestFormattedDate, youngestFormattedDate)
+                    }
+                    else if (fields.age === '3') {
+                        const oldestCurrentDate = new Date();
+                        const oldestDOB = oldestCurrentDate.getFullYear() - 34;
+                        oldestCurrentDate.setFullYear(oldestDOB);
+
+                        const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                        console.log(oldestFormattedDate);
+
+                        const youngestCurrentDate = new Date();
+                        const youngestDOB = youngestCurrentDate.getFullYear() - 25;
+                        youngestCurrentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('Listener.DOB >= ? AND Listener.DOB <= ?')
+                        vals.push(oldestFormattedDate, youngestFormattedDate)
+                    }
+                    else if (fields.age === '4') {
+                        const oldestCurrentDate = new Date();
+                        const oldestDOB = oldestCurrentDate.getFullYear() - 44;
+                        oldestCurrentDate.setFullYear(oldestDOB);
+
+                        const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                        console.log(oldestFormattedDate);
+
+                        const youngestCurrentDate = new Date();
+                        const youngestDOB = youngestCurrentDate.getFullYear() - 35;
+                        youngestCurrentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('Listener.DOB >= ? AND Listener.DOB <= ?')
+                        vals.push(oldestFormattedDate, youngestFormattedDate)
+                    }
+                    else if (fields.age === '5') {
+                        const oldestCurrentDate = new Date();
+                        const oldestDOB = oldestCurrentDate.getFullYear() - 54;
+                        oldestCurrentDate.setFullYear(oldestDOB);
+
+                        const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                        console.log(oldestFormattedDate);
+
+                        const youngestCurrentDate = new Date();
+                        const youngestDOB = youngestCurrentDate.getFullYear() - 45;
+                        youngestCurrentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('Listener.DOB >= ? AND Listener.DOB <= ?')
+                        vals.push(oldestFormattedDate, youngestFormattedDate)
+                    }
+                    else if (fields.age === '6') {
+                        const oldestCurrentDate = new Date();
+                        const oldestDOB = oldestCurrentDate.getFullYear() - 64;
+                        oldestCurrentDate.setFullYear(oldestDOB);
+
+                        const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                        console.log(oldestFormattedDate);
+
+                        const youngestCurrentDate = new Date();
+                        const youngestDOB = youngestCurrentDate.getFullYear() - 55;
+                        youngestCurrentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('Listener.DOB >= ? AND Listener.DOB <= ?')
+                        vals.push(oldestFormattedDate, youngestFormattedDate)
+                    }
+                    else {
+                        const currentDate = new Date();
+                        const youngestDOB = currentDate.getFullYear() - 65;
+                        currentDate.setFullYear(youngestDOB);
+
+                        const youngestFormattedDate = currentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                        console.log(youngestFormattedDate);
+
+                        conditions.push('DOB <= ?')
+                        vals.push(youngestFormattedDate)
+                    }
+                }
 
                 // Join the conditions with 'AND' and complete the query
                 if (conditions.length === 0) {
