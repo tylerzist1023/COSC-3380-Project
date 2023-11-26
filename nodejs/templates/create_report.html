@@ -38,7 +38,7 @@
                     <input type="radio" id = "Pie" name="type" value="pie" onchange="showOptions('Pie')">
 
                     <label for="Line">Line</label>
-                    <input type="radio" id = "Line" name="type" value="line" onchange="showOptions('')">
+                    <input type="radio" id = "Line" name="type" value="line" onchange="showOptions('Line')">
                 </div>
                 <div id = "dateRange" class="hidden">
                     <label for="startDate">Start Date:</label>
@@ -79,9 +79,10 @@
         if (selectedType === 'Bar' || selectedType === 'Pie') {
             categoryDiv.classList.remove('hidden');
             dateRangeDiv.classList.remove('hidden');
-        } else {
+        } 
+        else if(selectedType === 'Line'){
             categoryDiv.classList.add('hidden');
-            dateRangeDiv.classList.add('hidden');
+            dateRangeDiv.classList.remove('hidden');
         }
     }
     </script>

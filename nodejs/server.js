@@ -1148,26 +1148,30 @@ const server = http.createServer(async (req, res) => {
             LIMIT 10;`,
 
             overtime:
-            `SELECT 'New Listeners' AS Type, DATE_FORMAT(L.CreationStamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
-            FROM Listener as L
+            `SELECT 'New Listeners' AS Type, DATE_FORMAT(CreationStamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
+            FROM Listener
+            WHERE CreationStamp >= Date(?) AND CreationStamp <= Date(?)
             GROUP BY Month
             
             UNION ALL
             
             SELECT 'New Artists' AS Type, DATE_FORMAT(CreationStamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
             FROM Artist
+            WHERE CreationStamp >= Date(?) AND CreationStamp <= Date(?)
             GROUP BY Month
             
             UNION ALL
             
             SELECT 'New Songs' AS Type, DATE_FORMAT(CreationTimestamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
             FROM Song
+            WHERE CreationTimestamp >= Date(?) AND CreationTimestamp <= Date(?)
             GROUP BY Month
             
             UNION ALL
             
             SELECT 'Listens' AS Type, DATE_FORMAT(DateAccessed, '%Y,%m,%d') AS Month, COUNT(*) AS Count
             FROM ListenedToHistory
+            WHERE DateAccessed >= Date(?) AND DateAccessed <= Date(?)
             GROUP BY Month
             
             ORDER BY Month, Type;`
@@ -1201,6 +1205,11 @@ const server = http.createServer(async (req, res) => {
                     vals.push(fields.endDate);
                 }
                 if(fields.type === 'line'){
+                    for(let i = 0; i < 3; i++){
+                        vals.push(fields.startDate);
+                        vals.push(fields.endDate);
+                    }
+                    console.log(vals);
                     query = queries["overtime"];
                 }
                 else{
