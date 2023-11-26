@@ -154,6 +154,7 @@
                 <canvas id="accountCreationBarChart" width="800" height="400"></canvas>
         </div>
     <script>
+        let accountCreationBarChart;
          document.addEventListener('DOMContentLoaded', function () {
             const historyForm = document.querySelector('.historyForm');
     
@@ -289,12 +290,12 @@
             const ctx = document.getElementById('accountCreationBarChart').getContext('2d');
             
             // Check if a chart instance exists and destroy it (Having issues with this for bar charts for some reason)
-            // if (window.accountCreationBarChart) {
-            //     window.accountCreationBarChart.destroy();
-            // }
+            if (accountCreationBarChart) {
+                accountCreationBarChart.destroy();
+            }
             
             // Create and display the new bar chart
-            window.accountCreationBarChart = new Chart(ctx, {
+            accountCreationBarChart = new Chart(ctx, {
                 type: 'bar',
                 data: chartData,
                 options: chartOptions
