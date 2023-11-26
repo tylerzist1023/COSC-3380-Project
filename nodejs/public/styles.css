@@ -1139,6 +1139,12 @@ button.login_btn:hover {
 }
 
 /* Report Form Style */
+.report_options {
+    display: flex;
+    float: left;
+    margin-left: 20px;
+    margin-right: 20px;
+}
 .report_form_container {
     color: #859ad3;
     margin: 15px auto;
@@ -1222,7 +1228,6 @@ button.login_btn:hover {
     color: #859ad3;
     margin: 15px auto;
     width: 60%;
-    /* background: #1e2844; */
     padding: 25px;
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);

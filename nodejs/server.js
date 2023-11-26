@@ -14,6 +14,7 @@ import {fileTypeFromBuffer} from 'file-type';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { match } from 'assert';
 import { getAdminArtist ,getAdminSong,getAdminListener} from './insights.js';
+import { exec } from 'child_process';
 
 //import nodemon from 'nodemon';
 
@@ -1906,6 +1907,461 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
     } 
+    
+    else if (matchUrl(req.url, '/account_creation_report') && req.method === 'POST') {
+        try {
+            if (getRole(sessionData) !== 'admin') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            }
+            else {                
+                const form = new Types.IncomingForm();
+                const fields = await new Promise((resolve, reject) => {
+                    form.parse(req, (err, fields) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(fields);
+                        }
+                    });
+                });
+
+                console.log("Submission Requested")
+                console.log(fields.accountType)
+
+                // if (fields.accountType === '') {
+                    let query ='SELECT Listener.Username AS Username, DOB, CreationStamp FROM Listener WHERE ';
+
+                    let conditions = [];
+                    let vals = [];
+
+                    if (fields.beginDate) {
+                        conditions.push(`CreationStamp >= ?`);
+                        vals.push(`${fields.beginDate}T00:00:00`)
+                    }
+
+                    if (fields.endDate) {
+                        conditions.push(`CreationStamp <= ?`);
+                        vals.push(`${fields.endDate}T23:59:59`)
+                    }
+
+                    if (fields.age) {
+                        if (fields.age === '1') {
+                            const oldestCurrentDate = new Date();
+                            const oldestDOB = oldestCurrentDate.getFullYear() - 18;
+                            oldestCurrentDate.setFullYear(oldestDOB);
+
+                            const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                            console.log(oldestFormattedDate);
+
+                            const youngestCurrentDate = new Date();
+                            const youngestDOB = youngestCurrentDate.getFullYear() - 13;
+                            youngestCurrentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB >= ? AND DOB <= ?')
+                            vals.push(oldestFormattedDate, youngestFormattedDate)
+                        }
+                        else if (fields.age === '2') {
+                            const oldestCurrentDate = new Date();
+                            const oldestDOB = oldestCurrentDate.getFullYear() - 24;
+                            oldestCurrentDate.setFullYear(oldestDOB);
+
+                            const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                            console.log(oldestFormattedDate);
+
+                            const youngestCurrentDate = new Date();
+                            const youngestDOB = youngestCurrentDate.getFullYear() - 18;
+                            youngestCurrentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB >= ? AND DOB <= ?')
+                            vals.push(oldestFormattedDate, youngestFormattedDate)
+                        }
+                        else if (fields.age === '3') {
+                            const oldestCurrentDate = new Date();
+                            const oldestDOB = oldestCurrentDate.getFullYear() - 34;
+                            oldestCurrentDate.setFullYear(oldestDOB);
+
+                            const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                            console.log(oldestFormattedDate);
+
+                            const youngestCurrentDate = new Date();
+                            const youngestDOB = youngestCurrentDate.getFullYear() - 25;
+                            youngestCurrentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB >= ? AND DOB <= ?')
+                            vals.push(oldestFormattedDate, youngestFormattedDate)
+                        }
+                        else if (fields.age === '4') {
+                            const oldestCurrentDate = new Date();
+                            const oldestDOB = oldestCurrentDate.getFullYear() - 44;
+                            oldestCurrentDate.setFullYear(oldestDOB);
+
+                            const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                            console.log(oldestFormattedDate);
+
+                            const youngestCurrentDate = new Date();
+                            const youngestDOB = youngestCurrentDate.getFullYear() - 35;
+                            youngestCurrentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB >= ? AND DOB <= ?')
+                            vals.push(oldestFormattedDate, youngestFormattedDate)
+                        }
+                        else if (fields.age === '5') {
+                            const oldestCurrentDate = new Date();
+                            const oldestDOB = oldestCurrentDate.getFullYear() - 54;
+                            oldestCurrentDate.setFullYear(oldestDOB);
+
+                            const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                            console.log(oldestFormattedDate);
+
+                            const youngestCurrentDate = new Date();
+                            const youngestDOB = youngestCurrentDate.getFullYear() - 45;
+                            youngestCurrentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB >= ? AND DOB <= ?')
+                            vals.push(oldestFormattedDate, youngestFormattedDate)
+                        }
+                        else if (fields.age === '6') {
+                            const oldestCurrentDate = new Date();
+                            const oldestDOB = oldestCurrentDate.getFullYear() - 64;
+                            oldestCurrentDate.setFullYear(oldestDOB);
+
+                            const oldestFormattedDate = oldestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '');
+
+                            console.log(oldestFormattedDate);
+
+                            const youngestCurrentDate = new Date();
+                            const youngestDOB = youngestCurrentDate.getFullYear() - 55;
+                            youngestCurrentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = youngestCurrentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB >= ? AND DOB <= ?')
+                            vals.push(oldestFormattedDate, youngestFormattedDate)
+                        }
+                        else {
+                            const currentDate = new Date();
+                            const youngestDOB = currentDate.getFullYear() - 65;
+                            currentDate.setFullYear(youngestDOB);
+
+                            const youngestFormattedDate = currentDate.toISOString().replace(/T/, ' ').replace(/\.\d+Z$/, '')
+
+                            console.log(youngestFormattedDate);
+
+                            conditions.push('DOB <= ?')
+                            vals.push(youngestFormattedDate)
+                        }
+                    }
+
+                    console.log(vals);
+
+                    // If there are no filters by the user
+                    if (conditions.length === 0) {
+
+                        // If the account type filter is any
+                        if (fields.accountType === '') {
+                            let listenerQuery = 'SELECT Listener.Username, DOB, CreationStamp FROM Listener';
+                            const listenerResults = await executeQuery(listenerQuery);
+                            console.log(listenerResults);
+                            for (let i=0; i<listenerResults.length; i++) {
+                                listenerResults[i].accountType = 'Listener';
+                            }
+    
+                            let artistQuery = 'SELECT Artist.Username, DOB, CreationStamp FROM Artist';
+                            const artistResults = await executeQuery(artistQuery);
+                            for (let i=0; i<artistResults.length; i++) {
+                                artistResults[i].accountType = 'Artist'
+                            }
+    
+                            let results = [...listenerResults, ...artistResults]
+    
+                            // Change the column name and format the date
+                            results.forEach((result) => {
+                                result['Account Type'] = result.accountType;
+                                delete result.accountType;
+                                const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                                console.log(dob);
+                                const currentDate = new Date();
+                                const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+    
+                                if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                                        result['Age'] = age - 1;
+                                    } else {
+                                        result['Age'] = age;
+                                    }
+    
+                                    console.log(age);
+                                
+                                const dateDOB = new Date(result.DOB);
+                                const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                                result['Date of Birth'] = dobFormattedDate;
+                                delete result.DOB;
+                                const date = new Date(result.CreationStamp);
+                                const formattedDate = date.toISOString().split('T')[0];
+                                result['Account Creation Date'] = formattedDate;
+                                delete result.CreationStamp;
+                            });
+                            console.log(results);
+    
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(results));
+                        }
+
+                        // If the account type filter is listener
+                        else if (fields.accountType === 'listener') {
+                            let listenerQuery = 'SELECT Listener.Username, DOB, CreationStamp FROM Listener';
+                            const listenerResults = await executeQuery(listenerQuery);
+                            console.log(listenerResults);
+                            for (let i=0; i<listenerResults.length; i++) {
+                                listenerResults[i].accountType = 'Listener';
+                            }
+    
+                            let results = listenerResults;
+
+                            results.forEach((result) => {
+                                result['Account Type'] = result.accountType;
+                                delete result.accountType;
+                                const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                                console.log(dob);
+                                const currentDate = new Date();
+                                const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+    
+                                if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                                        result['Age'] = age - 1;
+                                    } else {
+                                        result['Age'] = age;
+                                    }
+    
+                                    console.log(age);
+                                
+                                const dateDOB = new Date(result.DOB);
+                                const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                                result['Date of Birth'] = dobFormattedDate;
+                                delete result.DOB;
+                                const date = new Date(result.CreationStamp);
+                                const formattedDate = date.toISOString().split('T')[0];
+                                result['Account Creation Date'] = formattedDate;
+                                delete result.CreationStamp;
+                            });
+    
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(results));
+                        }
+                        // If the account type filter is artist
+                        else if (fields.accountType ==='artist') {
+                            let artistQuery = 'SELECT Artist.Username, DOB, CreationStamp FROM Artist';
+                            const artistResults = await executeQuery(artistQuery);
+                            console.log(artistResults);
+                            for (let i=0; i<artistResults.length; i++) {
+                                artistResults[i].accountType = 'Artist';
+                            }
+
+                            let results = artistResults;
+
+                            results.forEach((result) => {
+                                result['Account Type'] = result.accountType;
+                                delete result.accountType;
+                                const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                                console.log(dob);
+                                const currentDate = new Date();
+                                const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+    
+                                if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                                        result['Age'] = age - 1;
+                                    } else {
+                                        result['Age'] = age;
+                                    }
+    
+                                    console.log(age);
+                                
+                                const dateDOB = new Date(result.DOB);
+                                const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                                result['Date of Birth'] = dobFormattedDate;
+                                delete result.DOB;
+                                const date = new Date(result.CreationStamp);
+                                const formattedDate = date.toISOString().split('T')[0];
+                                result['Account Creation Date'] = formattedDate;
+                                delete result.CreationStamp;
+                            });
+
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(results));
+                        }
+                    }
+
+                    // If the user applied any Start/End Date filer or Age group
+                    else {
+                        // If the account type filter is set to Any
+                        if (fields.accountType === '') {
+                            const listenerQuery = query += conditions.join(' AND ');
+                        let artistQuery = 'SELECT Artist.Username, DOB, CreationStamp FROM Artist WHERE ' ;
+                        const conditionedArtistQuery = artistQuery += conditions.join(' AND ');
+
+                        console.log(vals);
+                        const listenerResults = await executeQuery(listenerQuery, vals)
+                        for (let i=0; i<listenerResults.length; i++) {
+                            listenerResults[i].accountType = 'Listener';
+                        }
+                        const artistResults = await executeQuery(conditionedArtistQuery, vals)
+                        for (let i=0; i<artistResults.length; i++) {
+                            artistResults[i].accountType = 'Artist';
+                        }
+
+                        let results = [...listenerResults, ...artistResults]
+
+                        results.forEach((result) => {
+                            result['Account Type'] = result.accountType;
+                            delete result.accountType;
+                            const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                            console.log(dob);
+                            const currentDate = new Date();
+                            const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+
+                            if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                                    result['Age'] = age - 1;
+                                } else {
+                                    result['Age'] = age;
+                                }
+
+                                console.log(age);
+                            
+                            const dateDOB = new Date(result.DOB);
+                            const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                            result['Date of Birth'] = dobFormattedDate;
+                            delete result.DOB;
+                            const date = new Date(result.CreationStamp);
+                            const formattedDate = date.toISOString().split('T')[0];
+                            result['Account Creation Date'] = formattedDate;
+                            delete result.CreationStamp;
+                        });
+
+                        // console.log(results)
+
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify(results));
+                        }
+
+                        // If the account type filter is set to Listener
+                        else if (fields.accountType === 'listener') {
+                            const listenerQuery = query += conditions.join(' AND ');
+
+                            console.log(vals);
+                            const listenerResults = await executeQuery(listenerQuery, vals)
+                            for (let i=0; i<listenerResults.length; i++) {
+                                listenerResults[i].accountType = 'Listener';
+                            }
+    
+                            let results = listenerResults;
+
+                            results.forEach((result) => {
+                                result['Account Type'] = result.accountType;
+                                delete result.accountType;
+                                const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                                console.log(dob);
+                                const currentDate = new Date();
+                                const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+    
+                                if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                                        result['Age'] = age - 1;
+                                    } else {
+                                        result['Age'] = age;
+                                    }
+    
+                                    console.log(age);
+                                
+                                const dateDOB = new Date(result.DOB);
+                                const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                                result['Date of Birth'] = dobFormattedDate;
+                                delete result.DOB;
+                                const date = new Date(result.CreationStamp);
+                                const formattedDate = date.toISOString().split('T')[0];
+                                result['Account Creation Date'] = formattedDate;
+                                delete result.CreationStamp;
+                            });
+    
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(results));
+                        }
+
+                        // If the account type filter is set to artist
+                        else if (fields.accountType === 'artist') {
+                            let selectQuery = 'SELECT Artist.Username AS Username, DOB, CreationStamp FROM Artist WHERE ';
+                            const artistQuery = selectQuery += conditions.join(' AND ');
+
+                            console.log(vals);
+                            const artistResults = await executeQuery(artistQuery, vals)
+                            for (let i=0; i<artistResults.length; i++) {
+                                artistResults[i].accountType = 'Artist';
+                            }
+    
+                            let results = artistResults;
+
+                            results.forEach((result) => {
+                                result['Account Type'] = result.accountType;
+                                delete result.accountType;
+                                const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                                console.log(dob);
+                                const currentDate = new Date();
+                                const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+    
+                                if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                                        result['Age'] = age - 1;
+                                    } else {
+                                        result['Age'] = age;
+                                    }
+    
+                                    console.log(age);
+                                
+                                const dateDOB = new Date(result.DOB);
+                                const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                                result['Date of Birth'] = dobFormattedDate;
+                                delete result.DOB;
+                                const date = new Date(result.CreationStamp);
+                                const formattedDate = date.toISOString().split('T')[0];
+                                result['Account Creation Date'] = formattedDate;
+                                delete result.CreationStamp;
+                            });
+    
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(results));
+
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                console.error('Error processing account creation report:', error);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Internal Server Error' }));
+            }
+        }
     else if(matchUrl(req.url, '/pic') && req.method === 'GET') {
         try {
             if (getRole(sessionData) === 'listener') {
@@ -2289,8 +2745,6 @@ const server = http.createServer(async (req, res) => {
             const duration_sec = Math.floor(data.albumData['AlbumDuration'] % 60);
 
             const formatted_duration_sec = duration_sec.toString().padStart(2, '0');
-
-            console.log(formatted_duration_sec);
 
             data.album_duration = `${duration_min} min ${formatted_duration_sec} sec`;
 

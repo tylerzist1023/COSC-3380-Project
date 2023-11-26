@@ -92,14 +92,14 @@ hr {
                 </header>
                 <form action="/song/upload" method="POST" enctype="multipart/form-data" class='form'>
                     <label for="song${songCounter}">Song:</label>
-                    <input type="file" id="song${songCounter}" name="song" accept="audio/*" required><br><br>
+                    <input type="file" id="song${songCounter}" name="song" accept="audio/*" class='audio-input'required><br><br>
                 
                     <label for="songName">Song Name:</label>
                     <input type="text" id="songName" name="songName" required><br><br>
 
                     <label for="genre">Genre</label>
                     <select id="genre" name="genre">
-                        <option value="">Any</option>
+                        <option value="" disable selected>Select Genre</option>
                         <option value="1">Pop</option>
                         <option value="2">Rock</option>
                         <option value="3">Country</option>
@@ -110,7 +110,6 @@ hr {
 
                     <label for="album">Album</label>
                     <select id="album" name="album">
-
                     </select></br></br>
                     <input type="submit" value="Upload Song">
                 </form>
