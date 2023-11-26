@@ -897,6 +897,32 @@ const server = http.createServer(async (req, res) => {
             GROUP BY Album
             ORDER BY Listens DESC
             LIMIT 10;`,
+
+            overtime:
+            `SELECT 'New Listeners' AS Type, DATE_FORMAT(L.CreationStamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
+            FROM Listener as L
+            GROUP BY Month
+            
+            UNION ALL
+            
+            SELECT 'New Artists' AS Type, DATE_FORMAT(CreationStamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
+            FROM Artist
+            GROUP BY Month
+            
+            UNION ALL
+            
+            SELECT 'New Songs' AS Type, DATE_FORMAT(CreationTimestamp, '%Y,%m,%d') AS Month, COUNT(*) AS Count
+            FROM Song
+            GROUP BY Month
+            
+            UNION ALL
+            
+            SELECT 'Listens' AS Type, DATE_FORMAT(DateAccessed, '%Y,%m,%d') AS Month, COUNT(*) AS Count
+            FROM ListenedToHistory
+            GROUP BY Month
+            
+            ORDER BY Month, Type;`
+
         }
         try {
             if (getRole(sessionData) !== 'admin') {
@@ -925,26 +951,27 @@ const server = http.createServer(async (req, res) => {
                 if (fields.endDate) {
                     vals.push(fields.endDate);
                 }
-    
-                if (fields.category === 'Artist') {
-                    query = queries['top_artists'];
+                if(fields.type === 'line'){
+                    query = queries["overtime"];
                 }
-                else if (fields.category === 'Album') {
-                    query = queries['top_albums'];
+                else{
+                    if (fields.category === 'Artist') {
+                        query = queries['top_artists'];
+                    }
+                    else if (fields.category === 'Album') {
+                        query = queries['top_albums'];
+                    }
+                    else if (fields.category === 'Genre') {
+                        query = queries['top_genres'];
+                    }
+                    else if(fields.category === 'Song'){
+                        query = queries['top_songs'];
+                    }
                 }
-                else if (fields.category === 'Genre') {
-                    query = queries['top_genres'];
-                }
-                else if(fields.category === 'Song'){
-                    query = queries['top_songs'];
-                }
-                console.log(vals);
-    
+                
                 // Execute the query
                 const results = await executeQuery(query, vals);
-                console.log(results);
-                // Change the column name and format the date
-    
+                
                 // Send the results as JSON to the client
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(results));
