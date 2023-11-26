@@ -1406,7 +1406,7 @@ const server = http.createServer(async (req, res) => {
                     </li>
              
                     <li>
-                        <a href="">
+                        <a href="/insight">
                             <span>Artist Insights</span>
                         </a>
                     </li>
@@ -2229,6 +2229,169 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
     } 
+
+    else if (matchUrl(req.url, '/insight') && req.method === 'GET') {
+        try {
+            if (getRole(sessionData) !== 'artist') {
+                res.writeHead(401);
+                res.end('<h1>Unautorized</h1>');
+            }
+            else {
+                serveStaticFile(res, './templates/artist_report.html', "");
+            }
+        } catch (error) {
+            console.error('Error processing report:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
+
+    else if (matchUrl(req.url, '/insights') && req.method === 'POST') {
+        try {
+            if (getRole(sessionData) !== 'artist') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            }
+            else {
+                const data = await getArtistBaseData(sessionData.id);
+                    
+                const form = new Types.IncomingForm();
+                const fields = await new Promise((resolve, reject) => {
+                    form.parse(req, (err, fields) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(fields);
+                        }
+                    });
+                });
+                
+                let conditions = [];
+                
+                // Build the SQL query based on the form fields
+                let query =`SELECT
+                Listener.Username,
+                Song.Name AS SongName,
+                Album.AlbumName,
+                Listener.DOB AS DOB,
+                ListenedToHistory.DateAccessed,
+                Genre.Name AS GenreName
+            FROM
+                ListenedToHistory
+            JOIN
+                Song ON ListenedToHistory.SongID = Song.SongID
+            JOIN
+                Album ON Song.AlbumID = Album.AlbumID
+            JOIN
+                Artist ON Album.ArtistID = Artist.ArtistID
+            JOIN
+                Genre ON Song.GenreCode = Genre.GenreCode
+            JOIN
+                Listener ON ListenedToHistory.UserID = Listener.UserID
+            WHERE
+
+            `;
+
+                let vals = [];
+                if (fields.beginDate) {
+                    conditions.push(`DateAccessed >= ?`);
+                    vals.push(`${fields.beginDate}T00:00:00`);
+                }
+
+                if (fields.endDate) {
+                    conditions.push(`DateAccessed <= ?`);
+                    vals.push(`${fields.endDate}T23:59:59`);
+                }
+
+                if (fields.album) {
+                    conditions.push(`AlbumName LIKE ?`);
+                    vals.push(`%${fields.album}%`);
+                }
+
+                if (fields.song) {
+                    conditions.push(`Song.Name LIKE ?`);
+                    vals.push(`%${fields.song}%`);
+                }
+
+                if (fields.genre) {
+                    conditions.push(`Song.GenreCode = ?`);
+                    vals.push(fields.genre);
+                }
+
+                // Join the conditions with 'AND' and complete the query
+                if (conditions.length === 0) {
+                    query = `SELECT
+                    Listener.Username,
+                    Song.Name AS SongName,
+                    Album.AlbumName,
+                    Listener.DOB AS DOB,
+                    ListenedToHistory.DateAccessed,
+                    Genre.Name AS GenreName
+                FROM
+                    ListenedToHistory
+                JOIN
+                    Song ON ListenedToHistory.SongID = Song.SongID
+                JOIN
+                    Album ON Song.AlbumID = Album.AlbumID
+                JOIN
+                    Artist ON Album.ArtistID = Artist.ArtistID
+                JOIN
+                    Genre ON Song.GenreCode = Genre.GenreCode
+                JOIN
+                    Listener ON ListenedToHistory.UserID = Listener.UserID
+                WHERE
+                    Artist.ArtistID = ?
+                ORDER BY
+                    ListenedToHistory.DateAccessed DESC;
+                `;
+                }
+                else {
+                    query += conditions.join(' AND ');
+                    query += ' AND Artist.ArtistID=? ORDER BY DateAccessed DESC';
+                }
+
+                // Add UserID to the values array
+                vals.push(sessionData['id']);
+
+                // Execute the query
+                const results = await executeQuery(query, vals);
+                console.log(query);
+                console.log(vals);
+
+                // Change the column name and format the date
+                results.forEach((result) => {
+                    const dateDOB = new Date(result.DOB);
+                    const dobFormattedDate = dateDOB.toISOString().split('T')[0];
+                    result['Date of Birth'] = dobFormattedDate;
+                    delete result.DOB;
+                    result['Song Name'] = result.SongName;
+                    delete result.SongName;
+                    result['Genre Name'] = result.GenreName;
+                    delete result.GenreName;
+                    result['Album Name'] = result.AlbumName;
+                    delete result.AlbumName;
+                    const date = new Date(result.DateAccessed);
+                    const formattedDate = date.toISOString().split('T')[0];
+                    result['Date Accessed'] = formattedDate;
+                    delete result.DateAccessed;
+                });
+
+                console.log(results);
+
+                // Send the results as JSON to the client
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(results));
+            }
+
+            console.log("Submission Requested")
+        }
+        
+            catch (error) {
+            console.error('Error processing report:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
     
     else if (matchUrl(req.url, '/account_creation_report') && req.method === 'POST') {
         try {
