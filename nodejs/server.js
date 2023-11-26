@@ -2006,8 +2006,15 @@ const server = http.createServer(async (req, res) => {
                 });
 
                 // Build the SQL query based on the form fields
-                let query = 'SELECT DateAccessed, COUNT(*) AS ListenCount FROM ListenedToHistory, Song, Album WHERE ';
-
+                let query = `
+                SELECT
+                    DAYNAME(DateAccessed) AS DayOfWeek,
+                    FLOOR(HOUR(DateAccessed) / 4) * 4 AS HourInterval,
+                    COUNT(*) AS ListenCount
+                FROM
+                    ListenedToHistory, Song, Album
+                WHERE
+            `;
                 let vals = [];
 
                 if (fields.album) {
@@ -2036,17 +2043,27 @@ const server = http.createServer(async (req, res) => {
                 // Remove the trailing ' AND ' from the query
                 query = query.slice(0, -5);
 
-                // Group by day of the week and hour of the day
-                query += ' GROUP BY DAYOFWEEK(DateAccessed), HOUR(DateAccessed)';
+                // Group by day of the week, hour interval
+                query += `
+                    GROUP BY
+                    DayOfWeek, HourInterval
+                `;
+
+                // Order by day of the week, hour interval
+                query += `
+                    ORDER BY
+                        FIELD(DayOfWeek, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'),
+                        HourInterval
+                `;
 
                 // Execute the query
                 const results = await executeQuery(query, vals);
 
                 // Format the results for display
                 const formattedResults = results.map(result => ({
-                    'Day of Week': result['DAYOFWEEK(DateAccessed)'],
-                    'Hour of Day': result['HOUR(DateAccessed)'],
-                    'Listen Count': result.ListenCount,
+                    'Day of Week': result.DayOfWeek,
+                    'Hours': result.HourInterval,
+                    'Number of Listens': result.ListenCount,
                 }));
 
                 // Send the results as JSON to the client
