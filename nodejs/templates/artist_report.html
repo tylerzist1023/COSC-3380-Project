@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Listen History</title>
+</head>
+
+<body>
+    <!-- Main Container To Display The Album Details and Songs-->
+    <header id='topBar'>
+    </header>
+    
+    <div class="main_container">
+        <div class="report_form_container">
+            <header>Artist Insight</header>
+            <form method="POST" action="/insights" class="historyForm">
+                <div>
+                    <label for="beginDate">From</label>
+                    <input type="date" name="beginDate">
+
+                    <label for="endDate">To</label>
+                    <input type="date" name="endDate">
+                </div>
+                <div>
+                    <label for="album">Album</label>
+                    <input type="text" name="album" placeholder="Album Name">
+
+                    <label for="song">Song</label>
+                    <input type="text" name="song" placeholder="Song Name">
+
+                    <label for="genre">Genre</label>
+                    <select id="genre" name="genre">
+                        <option value="">Any</option>
+                        <option value="1">Pop</option>
+                        <option value="2">Rock</option>
+                        <option value="3">Country</option>
+                        <option value="4">EDM</option>
+                        <option value="5">Classical</option>
+                        <option value="6">Rap</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="submit_btn">Submit</button>
+                </div>
+            </form>
+
+            <!-- Display results in a table -->
+            <table id="resultsTable" border="1">
+                <thead>
+
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="left_sidebar" id='leftBar'>
+</div>
+
+
+
+<div id='playerDiv' style='display:none;' class="song_player">
+    <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
+    <h5>
+        <div id='playerSong'>Song Name</div>
+        <div id='playerArtist' class="artist_name">Artist Name</div>
+    </h5>
+    <div class="player_controls">
+        <button id="prevSong"><i class="fa fa-backward"></i></button>
+        <audio id='playerAudio' controls>
+            <source id='playerSource' src="" type="">
+        </audio>
+        <button id="nextSong"><i class="fa fa-forward"></i></button>
+    </div>
+</div>
+
+
+<script src='/base_one.js'></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const historyForm = document.querySelector('.historyForm');
+
+        historyForm.addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Collect form data
+            const formData = new FormData(historyForm);
+
+            // Send form data to the server using fetch
+            fetch('/insights', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the results in the table
+                displayResults(data);
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+    
+    function displayResults(results) {
+            const resultsTableBody = document.getElementById('resultsTable');
+    
+            // Clear existing table rows and header
+            resultsTableBody.innerHTML = '';
+    
+            // Check if there are results
+            if (results.length === 0) {
+                console.log('No results found');
+                return;
+            }
+    
+            // Create dynamic table header
+            const tableHeader = document.createElement('tr');
+            const columns = Object.keys(results[0]);
+            columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column;
+                tableHeader.appendChild(th);
+            });
+            resultsTableBody.appendChild(tableHeader);
+    
+            // Populate the table with the results
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                columns.forEach(column => {
+                    const td = document.createElement('td');
+                    td.textContent = result[column];
+                    row.appendChild(td);
+                });
+                resultsTableBody.appendChild(row);
+            });
+        }
+</script>
+
+<script>
+addEventListener("DOMContentLoaded", (event) => {
+    fetch('/ajax')
+        .then(response => response.json())
+        .then(data => {
+
+            document.getElementById('topBar').innerHTML = getTopbar(data);
+            document.getElementById('leftBar').innerHTML = getSidebar(data);
+        })
+});
+</script>
+
+</body>
+</html>
