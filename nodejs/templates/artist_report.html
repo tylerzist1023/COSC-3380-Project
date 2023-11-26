@@ -103,6 +103,7 @@
 <script src='/base_one.js'></script>
 
 <script>
+    let ageChart;
     document.addEventListener('DOMContentLoaded', function () {
         const historyForm = document.querySelector('.historyForm');
 
@@ -166,13 +167,19 @@
         };
     
         const ctx = document.getElementById('ageBarChart').getContext('2d');
+        
+        // Create a new chart and store it in the ageChart variable
+        if (ageChart) {
+            ageChart.destroy();
+         }
+            
+        ageChart = new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: chartOptions
+        });
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: chartData,
-                options: chartOptions
-            });
-            ctx.canvas.style.backgroundColor = 'white';
+    ctx.canvas.style.backgroundColor = 'white';
     }
     
     function displayResults(results) {
