@@ -183,26 +183,6 @@
 
                     document.getElementById('topBar').innerHTML = getTopbar(data);
                     document.getElementById('leftBar').innerHTML = getSidebar(data);
-
-                    let html = '';
-                    for (const album of data['new_releases']) {
-                        html += `<div class="item">
-                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
-                    <h4>${album.AlbumName}</h4>
-                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
-                </div>`;
-                    }
-                    document.getElementById('newReleases').innerHTML = html;
-
-                    html = '';
-                    for (const album of data.for_you) {
-                        html += `<div class="item">
-                    <a href="/album/${album.AlbumID}"><img src="/album/${album.AlbumID}/pic"></a>
-                    <h4>${album.AlbumName}</h4>
-                    <a href="/artist/${album.AlbumID}"><p>${album.ArtistName}</p></a>
-                </div>`;
-                    }
-                    document.getElementById('forYou').innerHTML = html;
                 })
         });
     </script>

@@ -2298,7 +2298,7 @@ const server = http.createServer(async (req, res) => {
         }
     } 
 
-    else if (matchUrl(req.url, '/insight') && req.method === 'GET') {
+    else if (matchUrl(req.url, '/insights') && req.method === 'GET') {
         try {
             if (getRole(sessionData) !== 'artist') {
                 res.writeHead(401);
@@ -2428,6 +2428,18 @@ const server = http.createServer(async (req, res) => {
 
                 // Change the column name and format the date
                 results.forEach((result) => {
+                    const dob = typeof result.DOB === 'string' ? new Date(result.DOB) : result.DOB;
+                    console.log(dob);
+                    const currentDate = new Date();
+                    const age = currentDate.getUTCFullYear() - dob.getUTCFullYear();
+
+                    if (currentDate.getUTCMonth() < dob.getUTCMonth() || (currentDate.getUTCMonth() === dob.getUTCMonth() && currentDate.getUTCDate() < dob.getUTCDate())) {
+                            result['Age'] = age - 1;
+                        } else {
+                            result['Age'] = age;
+                        }
+
+                        console.log(age);
                     const dateDOB = new Date(result.DOB);
                     const dobFormattedDate = dateDOB.toISOString().split('T')[0];
                     result['Date of Birth'] = dobFormattedDate;
