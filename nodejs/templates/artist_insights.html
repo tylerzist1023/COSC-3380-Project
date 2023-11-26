@@ -32,8 +32,11 @@
                     <input type="date" name="endDate">
                 </div>
                 <div>
-                    <label for="album">Album</label>
-                    <input type="text" name="album" placeholder="Album Name" onchange="showSongSelect()">
+                    <label for="artistAlbum">Album</label>
+                    <select id="artistAlbum" name="artistAlbum" onchange="populateSongDropdown()">
+                        <option value="">All</option>
+                        <!-- Populate this based on the artist's albums -->
+                    </select>
 
                     <div id="songSelectDiv" style="display:none;">
                         <label for="song">Song</label>
@@ -62,8 +65,6 @@
     <div class="left_sidebar" id='leftBar'>
     </div>
 
-
-
     <div id='playerDiv' style='display:none;' class="song_player">
         <img id='playerImage' src="{{url_for('static', filename='Cockatiel-2.jpg')}}" alt="song name">
         <h5>
@@ -79,23 +80,22 @@
         </div>
     </div>
 
-
     <script src='/base_one.js'></script>
 
     <script>
         // Function to show or hide the song select based on the album selection
-        function showSongSelect() {
-            const albumInput = document.querySelector('input[name="album"]');
+        function populateSongDropdown() {
+            const albumSelect = document.getElementById('artistAlbum');
             const songSelectDiv = document.getElementById('songSelectDiv');
             const songSelect = document.getElementById('song');
 
-            // Check if the album input is not blank
-            if (albumInput.value.trim() !== '') {
+            // Check if the album is selected
+            if (albumSelect.value.trim() !== '') {
                 // Show the song select div
                 songSelectDiv.style.display = 'block';
 
                 // Fetch songs based on the selected album
-                const selectedAlbumId = albumInput.value;
+                const selectedAlbumId = albumSelect.value;
                 fetch(`/ajax/album/${selectedAlbumId}/songs`)
                     .then(response => response.json())
                     .then(data => {
