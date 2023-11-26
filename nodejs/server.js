@@ -1916,6 +1916,81 @@ const server = http.createServer(async (req, res) => {
             res.end('<h1>Internal Server Error</h1>');
         }
     }
+    
+    // Artist Insights Report
+    else if (matchUrl(req.url, '/artist-insights') && req.method === 'POST') {
+        try {
+            if (getRole(sessionData) !== 'artist') {
+                res.writeHead(401);
+                res.end('<h1>Unauthorized</h1>');
+            } else {
+                const data = await getArtistBaseData(sessionData.id);
+
+                const form = new Types.IncomingForm();
+                const fields = await new Promise((resolve, reject) => {
+                    form.parse(req, (err, fields) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(fields);
+                        }
+                    });
+                });
+
+                // Build the SQL query based on the form fields
+                let query = 'SELECT DateAccessed, COUNT(*) AS ListenCount FROM ListenedToHistory, Song, Album WHERE ';
+
+                let vals = [];
+                
+                if (fields.album) {
+                    query += 'Album.AlbumID = ? AND ';
+                    vals.push(fields.album);
+                }
+
+                if (fields.song) {
+                    query += 'Song.SongID = ? AND ';
+                    vals.push(fields.song);
+                } else if (!fields.album && !fields.song) {
+                    query += 'Album.ArtistID = ? AND ';
+                    vals.push(sessionData['id']);
+                }
+
+                if (fields.beginDate) {
+                    query += 'DateAccessed >= ? AND ';
+                    vals.push(`${fields.beginDate} 00:00:00`);
+                }
+
+                if (fields.endDate) {
+                    query += 'DateAccessed <= ? AND ';
+                    vals.push(`${fields.endDate} 23:59:59`);
+                }
+
+                // Remove the trailing ' AND ' from the query
+                query = query.slice(0, -5);
+
+                // Group by day of the week and hour of the day
+                query += ' GROUP BY DAYOFWEEK(DateAccessed), HOUR(DateAccessed)';
+
+                // Execute the query
+                const results = await executeQuery(query, vals);
+
+                // Format the results for display
+                const formattedResults = results.map(result => ({
+                    'Day of Week': result['DAYOFWEEK(DateAccessed)'],
+                    'Hour of Day': result['HOUR(DateAccessed)'],
+                    'Listen Count': result.ListenCount,
+                }));
+
+                // Send the results as JSON to the client
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(formattedResults));
+            }
+        } catch (error) {
+            console.error('Error processing artist insights:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
 
     // Listen History Report
     else if (matchUrl(req.url, '/history') && req.method === 'POST') {
