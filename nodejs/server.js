@@ -661,6 +661,58 @@ async function review_notification_artist(userID,message) {
         return {error: "Error"};
     }
 }
+async function DataAlbumsAdmin(id)  {
+    
+    try {
+
+
+    const userQuery = `
+    SELECT
+    Song.SongID,
+    Song.Name AS SongName,
+    Album.AlbumID,
+    Album.AlbumName,
+    Album.ArtistID,
+    Album.ReleaseDate,
+    Album.AlbumDuration,
+    Album.AverageRating
+FROM
+    Song
+INNER JOIN Album ON Song.AlbumID = Album.AlbumID
+WHERE
+    Album.AlbumID = ?
+
+    `;
+    const userResults = await executeQuery(userQuery,[id]);
+   return userResults
+
+
+} catch (error) {
+console.error(error);
+return {error: "Error"};
+}
+}
+async function DataArtistAdmin(id)  {
+    
+    try {
+
+
+    const userQuery = `
+    SELECT AlbumID, AlbumName
+    FROM Album
+    WHERE ArtistID = ?
+
+    `;
+    const userResults = await executeQuery(userQuery,[id]);
+    print(userResults)
+   return userResults
+
+
+} catch (error) {
+console.error(error);
+return {error: "Error"};
+}
+}
 async function getAdminSearchData(search_result, boxes_check) {
     let data = {};
     try {
@@ -968,7 +1020,7 @@ const server = http.createServer(async (req, res) => {
              boxes_check = [boxes_check]
         }
         search_result = search_result.replaceAll(" ","%%%")
-        print(search_result)
+        //print(search_result)
 
         serveStatic_Plus(res,"./templates/search_results_admin.html","text/html",{data:`${search_result}+-1${boxes_check}`} )
     }
@@ -985,9 +1037,47 @@ const server = http.createServer(async (req, res) => {
 
         res.end(JSON.stringify(await getAdminSearchData(search_result,boxes_check)));
     }
+   
         
         
     }
+    //res.end(JSON.stringify(await DataAlbumsAdmin(id)))
+    else if(ReplaceMatchUrl(req.url,"/detail/")){
+       const search_by = req.url.replace("/detail/","").split('/')
+
+       const category = search_by[0]
+       const id = search_by[1]
+      // print(category)
+      // print(id)
+       if(category==="song"){
+        serveStatic_Plus(res,'./templates/considered_admin.html', '',{'SongID':id})
+       }
+       else if(category=="album"){
+        serveStatic_Plus(res,'./templates/getalbumadmin.html', '',{'AlbumID':id})
+       }
+       else if(category=="artist"){
+        serveStatic_Plus(res,'./templates/getartistadmin.html', '',{'ArtistID':id})
+       }
+       else{
+        serveStaticFile(res, "./templates/admin.html", "");
+       }
+       
+
+    }
+
+    else if(ReplaceMatchUrl(req.url,'/data/album/') && req.method==="GET")
+    {
+        const id = req.url.replace("/data/album/","")
+        res.end(JSON.stringify(await DataAlbumsAdmin(id)))
+    }
+    else if(ReplaceMatchUrl(req.url,'/data/artist/') && req.method==="GET")
+    {
+        const id = req.url.replace("/data/artist/","")
+        res.end(JSON.stringify(await DataArtistAdmin(id)))
+    }
+
+
+    
     // else if(ReplaceMatchUrl(req.url,"/search_results_admin") && req.method==="GET"){
     //     res.end(JSON.stringify(await getAdminSearchData(search_result,boxes_check)));
     // }
@@ -1420,7 +1510,9 @@ const server = http.createServer(async (req, res) => {
                     </ul>
                 </div>`;
             res.end(html);
-        } else {
+        }
+        
+         else {
             res.writeHead(404);
             res.end('Not Found');
         }
