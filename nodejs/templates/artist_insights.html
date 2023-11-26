@@ -24,28 +24,14 @@
         <div class="report_form_container">
             <header>Listening Time Patterns</header>
             <form method="POST" action="/artist_insights" class="insightsForm">
+                <!-- Your existing form content -->
                 <div>
-                    <label for="beginDate">From</label>
-                    <input type="date" name="beginDate">
-
-                    <label for="endDate">To</label>
-                    <input type="date" name="endDate">
+                    <label for="album">Album</label>
+                    <input type="text" name="album" placeholder="Album Name">
                 </div>
                 <div>
-                    <label for="artistAlbum">Album</label>
-                    <select id="artistAlbum" name="artistAlbum" onchange="populateSongDropdown()">
-                        <option value="">All</option>
-                        <!-- Populate this based on the artist's albums -->
-                    </select>
-
-                    <div id="songSelectDiv" style="display:none;">
-                        <label for="song">Song</label>
-                        <select id="song" name="song">
-                            <option value="">All</option>
-                            <!-- Populate this based on selected album -->
-                        </select>
-                    </div>
-
+                    <label for="song">Song</label>
+                    <input type="text" name="song" placeholder="Song Name">
                 </div>
                 <div>
                     <button type="button" onclick="submitForm()" class="submit_btn">Submit</button>
@@ -83,49 +69,9 @@
     <script src='/base_one.js'></script>
 
     <script>
-        // Function to show or hide the song select based on the album selection
-        function populateSongDropdown() {
-            const albumSelect = document.getElementById('artistAlbum');
-            const songSelectDiv = document.getElementById('songSelectDiv');
-            const songSelect = document.getElementById('song');
-
-            // Check if the album is selected
-            if (albumSelect.value.trim() !== '') {
-                // Show the song select div
-                songSelectDiv.style.display = 'block';
-
-                // Fetch songs based on the selected album
-                const selectedAlbumId = albumSelect.value;
-                fetch(`/ajax/album/${selectedAlbumId}/songs`)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Clear existing options
-                        songSelect.innerHTML = '<option value="">All</option>';
-
-                        // Populate the options dynamically
-                        data.songs.forEach(song => {
-                            const option = document.createElement('option');
-                            option.value = song.SongID;
-                            option.text = song.SongName;
-                            songSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching songs:', error));
-            } else {
-                // Hide the song select div
-                songSelectDiv.style.display = 'none';
-            }
-        }
-
         function submitForm() {
             // Collect form data
             const formData = new FormData(document.querySelector('.insightsForm'));
-
-            // Get the selected value of the genre dropdown
-            const selectedSong = document.getElementById('song').value;
-
-            // Set the selected value in the FormData
-            formData.set('song', selectedSong);
 
             // Send form data to the server using fetch
             fetch('/artist_insights', {
