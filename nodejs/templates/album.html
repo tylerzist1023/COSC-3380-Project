@@ -43,6 +43,15 @@
                 <div class="album_right_info">
                     <!-- josh-edits-to-flag -->
                     <li>
+                        <h4>Rating</h4>
+                    </li>
+                    <li>
+                        <h4></h4>
+                    </li>
+                    <li>
+                        <h4></h4>
+                    </li>
+                    <li>
                         <h4>Report</h4>
                     </li>
                     <li>
@@ -250,6 +259,52 @@ addEventListener("DOMContentLoaded", (event) => {
 
 
             }
+            const IsArist = (typed,id)=>{
+                if(typed!==-1){
+                    return ` <form method='POST' target='blankframe' action="/song/${id}/rate">
+                    <input style='width:32px;' type="number" name="rating" id="rating" min='1' max='5'>
+                                            <button type="submit">Rate</button>
+                                        </form>`
+                }
+                else{
+          
+                    return `<h4> ${'Restrict'} </h4>`
+                }
+
+
+
+
+            }
+            const IsGood= (Rate,type)=>{
+                if(type===-1){
+                    //is an artist <div style="white-space: pre;"> </div>
+                    if(Rate===null){
+                    return `<div style="white-space: pre;">${`N/A`}          </div>`
+                }
+                else{
+                    return `<div style="white-space: pre;">${Rate}          </div>`
+                }
+                }
+                else{
+                    if(Rate===null){
+                    return `<div style="white-space: pre;">${`N/A`} </div>`
+                }
+                else{
+                    return `<div style="white-space: pre;">${Rate}</div>`
+                }
+
+
+                }
+
+
+
+                
+
+
+
+
+            }
+
 
             html = '';
             if(data.songData !== null && data.songData !== undefined) {
@@ -267,6 +322,18 @@ addEventListener("DOMContentLoaded", (event) => {
                                     </li>
                                 </div>
                                 <div class="track_right_info">
+                                    <li>
+                        <h4>${IsGood(song['Rating'],song['UserFlagged'])}</h4>
+                    </li>
+                                    <li>
+                        <h4></h4>
+                    </li>
+                                    <li>
+                        <h4></h4>
+                    </li>
+                                    <li>
+                        <h4></h4>
+                    </li>
                               
     <li class="centered-list">
         <h4>${ReportHTML(song['Flag'],song['Reviewed'],song['UserFlagged'],song['songID'])}</h4>
@@ -292,13 +359,11 @@ addEventListener("DOMContentLoaded", (event) => {
                                         </div>
                                     </li>
                                     <li>
-                                        <form method='POST' target='blankframe' action="/song/${song['songID']}/rate">
 
                                             <div>
-                                                <input style='width:32px;' type="number" name="rating" id="rating" min='1' max='5'>
-                                            <button type="submit">Rate</button>
+                                                ${IsArist(song['UserFlagged'],song['songID'])}
                                             </div>
-                                        </form>
+ 
                                     </li>
                                 </div>
                             </ul>
@@ -317,6 +382,7 @@ addEventListener("DOMContentLoaded", (event) => {
                     <a href="/artist/${album['AlbumID']}"><p>${album['ArtistName']}</p></a>
                 </div>`;
             }
+            // IsArist(song['UserFlagged'],song['Rating'],song['songID'])
             document.getElementById('moreBy').innerHTML = html;
             }
         })

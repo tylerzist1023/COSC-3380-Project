@@ -3468,6 +3468,7 @@ const server = http.createServer(async (req, res) => {
     Song.SongID,
     Song.flagged,
     Song.reviewed,
+    Song.AverageRating,
     CASE 
         WHEN UserFlags.SongID IS NOT NULL THEN 1 
         ELSE 0 
@@ -3485,7 +3486,7 @@ const server = http.createServer(async (req, res) => {
 
             }
             else {
-                songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID,Song.flagged,Song.reviewed FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
+                songQuery = 'SELECT ROW_NUMBER() OVER (ORDER BY SongID) row_num, Song.Name, Duration, ArtistName, Artist.ArtistID, Song.SongID,Song.flagged,Song.reviewed,Song.AverageRating FROM Song, Artist, Album WHERE Song.AlbumID=Album.AlbumID AND Album.ArtistID=Artist.ArtistID AND Album.AlbumID=?';
                 songResults = await executeQuery(songQuery, [albumId]);
 
             }
@@ -3522,7 +3523,8 @@ const server = http.createServer(async (req, res) => {
                         songID: song.SongID,
                         Flag: song.flagged,
                         Reviewed: song.reviewed,
-                        UserFlagged: song.UserHasFlagged
+                        UserFlagged: song.UserHasFlagged,
+                        Rating: song.AverageRating
 
                     };
                 }
@@ -3537,7 +3539,8 @@ const server = http.createServer(async (req, res) => {
                         songID: song.SongID,
                         Flag: song.flagged,
                         Reviewed: song.reviewed,
-                        UserFlagged: -1
+                        UserFlagged: -1,
+                        Rating: song.AverageRating
 
                     }
 
