@@ -115,7 +115,7 @@ if(document.getElementById('Artist')){
 
                 // Artist Image within an anchor tag
                 let imgLink = document.createElement('a');
-                imgLink.href = `/artist/admin/${artist.ArtistID}`;
+                imgLink.href = `/detail/artist/${artist.ArtistID}`;
                 let img = document.createElement('img');
                 img.classList.add('artist-image');
                 if (artist.ProfilePic) {

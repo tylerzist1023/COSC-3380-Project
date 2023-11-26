@@ -2,37 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fetch Data Example</title>
+    <title>Results</title>
+    <style>
+     body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: rgb(0, 196, 65); /* Keeping text color dark for readability */
+        background-color: #020202; /* Light blue background for the page */
+    }
+
+    .container {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #b0c4de; /* Light blue border */
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background-color: rgb(123, 255, 189);
+    }
+
+    .item {
+        cursor: pointer;
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #3b9fe9; /* Brighter blue border */
+        border-radius: 4px;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        background-color: #24548a; /* Very light blue background */
+    }
+
+    .item:hover {
+        background-color: #d1e4f2; /* Slightly darker blue on hover */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+    </style>
+    
 </head>
 <body>
-    <h1>Data from Server</h1>
-    <div id="data-container"></div>
+    <h1>Results</h1>
+    <div id="data-container" data-value={{data}}></div>
 
     <script>
-        // JavaScript code goes here
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchData();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchData();
         });
+        const songInfoDiv = document.getElementById('data-container');
+        const SearchInfo= songInfoDiv.dataset.value;
 
-        function fetchData() {
-            fetch('/search_results_admin')  // Replace '/data-endpoint' with your server's endpoint
-                .then(response => response.json())
-                .then(data => {
-                    displayData(data);
-                })
-                .catch(error => console.error('Error:', error));
+        async function fetchData() {
+            try {
+                const response = await fetch(`/search_results_admin/${SearchInfo}`); // Replace with your server's endpoint
+                const data = await response.json();
+                await processData(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
 
-        function displayData(data) {
+        async function processData(data) {
             const container = document.getElementById('data-container');
+            container.innerHTML = ''; // Clear existing content
 
-            // Assuming 'data' is an array of objects
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.textContent = JSON.stringify(item); // Format the item as needed
-                container.appendChild(div);
-            });
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const section = document.createElement('div');
+                    section.classList.add('container');
+
+                    const header = document.createElement('h3');
+                    header.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+                    section.appendChild(header);
+
+                    data[key].forEach(item => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.classList.add('item');
+                        itemDiv.textContent = item[key === 'artist' ? 'ArtistName' : key === 'album' ? 'AlbumName' : key === 'listener' ? 'Username' : 'Name'];
+
+                        // Setting up a click event listener
+                        itemDiv.addEventListener('click', () => {
+                            const id = item[key === 'artist' ? 'ArtistID' : key === 'album' ? 'AlbumID' : key === 'listener' ? 'UserID' : 'SongID'];
+                            window.location.href = `/detail/${key}/${id}`; // Modify this URL based on your routing logic
+                        });
+
+                        section.appendChild(itemDiv);
+                    });
+
+                    container.appendChild(section);
+                }
+            }
         }
     </script>
 </body>

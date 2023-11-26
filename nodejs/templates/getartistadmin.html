@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Artist Details {{ArtistID}}</title>
+    <style>
+        .header {
+            background-color: #333; /* Dark background for the header */
+            color: white; /* White text color */
+            text-align: center; /* Center align the text */
+            padding: 10px 0; /* Padding above and below the text */
+            font-size: 24px; /* Larger font size for the header */
+            font-family: Arial, sans-serif; /* Font styling */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #c9d1d9; /* Lighter text color for readability on dark background */
+            background-color: #0d1117; /* Dark background for the page */
+        }
+    
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 4 columns per row */
+            gap: 20px; /* Space between grid items */
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #30363d; /* Darker border for grid container */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(255,255,255,0.1); /* Subtle white shadow for depth */
+            background-color: #161b22; /* Slightly lighter dark background for container */
+        }
+    
+        .grid-item {
+            cursor: pointer;
+            padding: 70px; /* Increased padding for larger boxes */
+            text-align: center;
+            border: 1px solid #21262d; /* Dark border for grid items */
+            border-radius: 4px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #21262d; /* Dark background for grid items */
+            color: #c9d1d9; /* Light text color for grid items */
+        }
+    
+        .grid-item:hover {
+            background-color: #30363d; /* Slightly lighter background on hover */
+            box-shadow: 0 2px 5px rgba(255, 255, 255, 0.15);
+        }
+    
+        .grid-item a {
+            color: #58a6ff; /* Bright link color for contrast */
+            text-decoration: none; /* No underline */
+            font-weight: bold; /* Bold font for links */
+        }
+    
+        .grid-item a:hover {
+            color: #1f6feb; /* Slightly darker blue on hover */
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <div class="header">
+        Artist Albums
+    </div>
+
+<div id="albumGrid" class="grid-container">
+    <!-- The grid items will be inserted here -->
+</div>
+
+<script>
+    // Fetch album details using the AlbumID that gets replaced in the template
+    fetch('/data/artist/{{ArtistID}}')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        const gridContainer = document.getElementById('albumGrid');
+        data.forEach(song => {
+            const gridItem = document.createElement('div');
+            gridItem.className = 'grid-item';
+            gridItem.innerHTML = `<a href="/detail/album/${song.AlbumID}">${song.AlbumName}</a>`;
+            gridContainer.appendChild(gridItem);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching album data:', error);
+        // Optionally, display an error message on the page
+    });
+</script>
+
+</body>
+</html>

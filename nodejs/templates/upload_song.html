@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" <img src="/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:wght@100;200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Edit Profile</title>
+</head>
+<style>
+
+.form input[type="text"],
+.form input[type="file"],
+.form select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box; 
+    font-size: 14px;
+}
+
+
+.form input[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; 
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, .3); 
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form input[type="submit"]:hover {
+    background-color: #0056b3; 
+    box-shadow: 0 4px 8px rgba(0, 123, 255, .5);
+}
+
+.form label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.form select {
+    appearance: none; 
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="%23007bff" d="M5.8 8l4.2 4.2L14.2 8z"/></svg>'); /* Adds custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%; 
+    background-size: 12px;
+    padding-right: 30px; 
+}
+
+/* Responsiveness for Smaller Devices */
+@media only screen and (max-width: 600px) {
+    .form input[type="submit"] {
+        padding: 10px;
+    }
+}
+
+
+hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+
+
+</style>
+<body>
+    <header id='topBar'>
+    </header>
+    <div class="main_container">
+        <section class="form_style">
+            <div class="container">
+                <header>
+                    <h1>Upload New Song</h1>
+                </header>
+                <form action="/song/upload" method="POST" enctype="multipart/form-data" class='form'>
+                    <label for="song${songCounter}">Song:</label>
+                    <input type="file" id="song${songCounter}" name="song" accept="audio/*" required><br><br>
+                
+                    <label for="songName">Song Name:</label>
+                    <input type="text" id="songName" name="songName" required><br><br>
+
+                    <label for="genre">Genre</label>
+                    <select id="genre" name="genre">
+                        <option value="">Any</option>
+                        <option value="1">Pop</option>
+                        <option value="2">Rock</option>
+                        <option value="3">Country</option>
+                        <option value="4">EDM</option>
+                        <option value="5">Classical</option>
+                        <option value="6">Rap</option>
+                    </select></br></br>
+
+                    <label for="album">Album</label>
+                    <select id="album" name="album">
+
+                    </select></br></br>
+                    <input type="submit" value="Upload Song">
+                </form>
+        </section>
+        
+    <div class="left_sidebar" id='leftBar'>
+    </div>
+    <script src='/base.js'></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    fetch('/ajax')
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        document.getElementById('topBar').innerHTML = getTopbar(data);
+        document.getElementById('leftBar').innerHTML = getSidebar(data);
+
+        const albumSelect = document.getElementById("album");
+        
+        albumSelect.innerHTML = '';
+        const albums = data.albums;
+        console.log(albums);
+
+        albums.forEach(album => {
+            const option = document.createElement('option');
+            console.log(album.AlbumID);
+            option.value = album.AlbumID;
+            option.text = album.AlbumName;
+            albumSelect.appendChild(option);
+        })
+    })
+});
+</script>
+</body>
+</html>

@@ -1317,3 +1317,126 @@ button.login_btn:hover {
     z-index: 1000; /* Ensure it's above other elements */
     height: 4%;
 }
+.Notification-Styled {
+
+    top: -20px; /* Align to the top */
+    left: 0; /* Align to the left */
+    right: 0; /* Align to the right */
+    color: rgb(69, 255, 69); /* Darker text for contrast */
+    margin: 0; /* No margin to ensure it's at the very top */
+    font-family: Arial, sans-serif; /* Font style */
+    font-size: 1.2em; /* Larger font size */
+    font-weight: bold; /* Bold font weight */
+    text-align: center; /* Center the text */
+    width: 5%; /* Full width */
+    z-index: 1000; /* Ensure it's above other elements */
+    height: 4%;
+}
+
+/* .player_controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; 
+}
+
+
+#prevSong, #nextSong {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#prevSong:hover, #nextSong:hover {
+    background-color: #0056b3;
+}
+
+#prevSong:disabled, #nextSong:disabled {
+    background-color: #cccccc;
+    cursor: default;
+}
+
+
+ */
+/* General styling for the music player */
+/* General styling for the music player with updated colors */
+.song_player {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: #34495E; /* Darker shade for the background */
+    color: #ABB2B9; /* Lighter text color for better contrast */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 20px;
+}
+
+.song_player img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.song_player h5 {
+    margin: 0;
+    font-weight: normal;
+}
+
+/* Styling for song name and artist */
+.song_info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+#playerSong {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#playerArtist {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Styling for player controls */
+.player_controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#playerAudio {
+    max-width: 300px; /* Adjust as needed */
+}
+
+/* Updated button colors */
+#prevSong, #nextSong {
+    padding: 10px 15px;
+    background-color: #48C9B0; /* Teal color for buttons */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#prevSong:hover, #nextSong:hover {
+    background-color: #16A085; /* Darker teal on hover */
+}
+
+#prevSong:disabled, #nextSong:disabled {
+    background-color: #7F8C8D;
+    cursor: default;
+}
+#prevSong i, #nextSong i {
+    font-size: 1.2em; /* Adjust icon size */
+}
+

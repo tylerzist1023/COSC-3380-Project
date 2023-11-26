@@ -50,12 +50,11 @@
             <!-- Your search form -->
             <div class="search-section">
                 <h2>Search</h2>
-                <form action="/search_results_admin"" method="post"> <!-- Changed to POST and action to /search -->
+                <form  action="/search_results_admin" method="post">
                     <input type="text" name="query" placeholder="Search...">
                     <div>
                         <input type="checkbox" name="filters" value="artist"> Artist
                         <input type="checkbox" name="filters" value="album"> Album
-                        <input type="checkbox" name="filters" value="playlist"> Playlist
                         <input type="checkbox" name="filters" value="listener"> Listener
                         <input type="checkbox" name="filters" value="song"> Song
                     </div>
@@ -102,6 +101,7 @@
 </body>
 </html>
 <script>
+    
 document.addEventListener('DOMContentLoaded', async function () {
     try {
         const response = await fetch('/ajax');
