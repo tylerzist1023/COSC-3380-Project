@@ -9,11 +9,20 @@
     <link rel="stylesheet" href="/styles.css">
     <title>Generate Report</title>
     <style> 
-        #myChart{ width: 25; height: 50; padding: 50;}
-        table {border-collapse: collapse; width: 50%; margin-left: auto; margin-right: auto;}
+        #myChart {
+            max-width: 100%; /* Adjust the width to fit within the window */
+            max-height: 80vh; /* Adjust the height to fit within the window */
+            padding: 10px; /* Adjust padding as needed */
+           /* margin: auto; Center the chart horizontally */
+            display: block;  /*Ensure it's a block-level element */
+        }
+        table {border-collapse: collapse; width: 50%; margin-left: auto; margin-right: auto; margin-bottom: auto;}
         th, td {border: 1px solid #ddd;padding: 8px;text-align: left;background-color: #f2f2f2;}
         th {background-color: #f2f2f2;}
         header {color: #f2f2f2;}
+        .hidden{
+            display:none;
+        }
         
       </style>
 </head>
@@ -22,8 +31,18 @@
     <div class="report_form_container">
     <header>Generate Report</header>
             <form method="POST" action="/create_report" class="reportForm">
-                <div>
-                    
+                <p>Graph Type</p>
+                <div id = "type">
+                    <label for="Bar">Bar</label>
+                    <input type="radio" id = "Bar" name="type" value="bar" onchange="showOptions('Bar')">
+
+                    <label for="Pie">Pie</label>
+                    <input type="radio" id = "Pie" name="type" value="pie" onchange="showOptions('Pie')">
+
+                    <label for="Line">Line</label>
+                    <input type="radio" id = "Line" name="type" value="line" onchange="showOptions('Line')">
+                </div>
+                <div id = "dateRange" class="hidden">
                     <label for="startDate">Start Date:</label>
                     <input type="date" id= "startDate" name="startDate">
                     
@@ -31,7 +50,10 @@
                     <label for="endDate">To</label>
                     <input type="date" id="endDate" name="endDate">
                 </div>
-                <div>
+                    
+                
+                <div id = "category" class = "hidden">
+                    <p>Category:</p>
                     <label for="artist">Artist</label>
                     <input type="radio" id = "artist" name="category" value="Artist">
 
@@ -43,11 +65,29 @@
 
                     <label for="song">Song</label>
                     <input type = "radio" id="song" name="category" value="Song">
+
+
                 </div>
                 <div>
                     <button type="button" onclick= "submitForm()" class="submit_btn">Generate Report</button>
                 </div>
             </form>
+
+    <script>
+        function showOptions(selectedType) {
+        const categoryDiv = document.getElementById('category');
+        const dateRangeDiv = document.getElementById('dateRange');
+
+        if (selectedType === 'Bar' || selectedType === 'Pie') {
+            categoryDiv.classList.remove('hidden');
+            dateRangeDiv.classList.remove('hidden');
+        } 
+        else if(selectedType === 'Line'){
+            categoryDiv.classList.add('hidden');
+            dateRangeDiv.classList.remove('hidden');
+        }
+    }
+    </script>
             <table>
                 <thead id="tableHead">
                 </thead>
@@ -56,6 +96,7 @@
              </table>
              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
              <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
+
              <canvas id="myChart"  height="200" width="300" aria-label="chart" role="img"></canvas>
         </div>
     </div>
@@ -301,10 +342,19 @@
     let chart = null;
     function submitForm() {
         // Collect form data
-        console.log('Submitting data');
+        const types = document.getElementsByName('type');
+
+        let selectedType = '';
+        for (const type of types) {
+            if (type.checked) {
+                selectedType = type.value;
+                break;
+            }
+        }
+
+
         
         const formData = new FormData(document.querySelector('.reportForm'));
-        
         // Send form data to the server using fetch
         fetch('/create_report', {
             method: 'POST',
@@ -312,73 +362,144 @@
         })
         .then(response => response.json())
         .then(data => {
-            createChart(data);
+            createChart(data, selectedType);
         })
         .catch(error => {
             console.error('Error:', error);
         });
     }
 
-function createChart(results){
+function createChart(results, graph){
     if(chart){
         chart.destroy();
     }
     const autocolors = window['chartjs-plugin-autocolors'];
-    console.log(results);
-    const titles = Object.keys(results[0]);
-    const labels = results.map(result => result[titles[0]]);
-    const data = results.map(result => result[titles[1]]);
-    console.log('results', results);
-    console.log('labels:', labels);
-    console.log('values:', data);
-    console.log('titles:',titles);
-    const ctx = document.getElementById('myChart').getContext('2d');
     Chart.register(autocolors);
-    
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    //line chart
+    if(graph === 'line'){
+
+        const dataByType = {};
+        results.forEach(result => {
+        const day = new Date(result.Month);
+        const type = result.Type;
+
+        if (!dataByType[type]) {
+            dataByType[type] = [];
+        }
+
+        dataByType[type].push({ day: day.toDateString(), count: result.Count });
+        });
+
+        // Extract unique dates
+        const dates = [...new Set(results.map(item => new Date(item.Month).toDateString()))];
+
+        // Prepare datasets for Chart.js
+        const datasets = Object.entries(dataByType).map(([type, data]) => ({
+        label: type,
+        data: dates.map(date => {
+            const entry = data.find(item => item.day === date);
+            return entry ? entry.count : 0;
+        }),
+        }));
     chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-        label: titles[1],
-        data: data,
-        }]
-    },
-    options: {  
-        plugins: {
-        title: {
-            display: true,
-            text: [String(titles[1]), ' by ', String(titles[0])].join(' ')
-        },
-        autocolors: {
-            enabled:true,
-            mode: 'data',
-            offset: Math.floor(Math.random()*20)
-        },
-        datalabels: {
-            clamp: true
-        },
-        legend: {
-            display: false
-        },
-        },
-        scales: {
-        y: {
-            title:{
-            display:true,
-            text: String(titles[1])
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: datasets,
+      },
+      
+      options: {
+        elements:{
+            line:{
+                tension: .2,
             }
         },
-        x:{
-            title:{
-            display:true,
-            text: String(titles[0])
-            }
+        plugins:{
+                title:{
+                display: true,
+                text: 'Trends',
+                },
+                autocolors:{
+                    enabled: false,
+                },
+            },
+            scales:{
+                    x:{
+                        title:{
+                            display: true,
+                            text: 'Time'
+                        },
+                        ticks:{
+                            display: false,
+                        }
+                    },
+                    y:{
+                        title:{
+                            display: true,
+                            text: 'Count'
+                        }
+                    }
+                },
         }
-        }
-        },
+});
+
+    const tableBody = document.getElementById('dataTable');
+    const tableHead = document.getElementById('tableHead');
+    // Clear existing table content
+    tableBody.innerHTML = '';
+    tableHead.innerHTML = '';
+    const th = document.createElement('th');
+    th.textContent = 'Dates';
+    tableHead.append(th);
+    datasets.forEach(set => {
+        const th = document.createElement('th');
+        th.textContent = set.label;
+        tableHead.appendChild(th);
     });
-    
+    for (let i = 0; i < dates.length; i++) {
+        const row = document.createElement('tr');
+        const labelCell = document.createElement('td');
+        labelCell.textContent = dates[i];
+        row.appendChild(labelCell);
+        for(let j = 0; j < datasets.length; j++){
+            const dataCell = document.createElement('td');
+            dataCell.textContent = datasets[j].data[i];
+            row.appendChild(dataCell);
+        }
+        tableBody.appendChild(row);
+    }
+
+}
+
+    else if(graph === 'pie'){ 
+        const titles = Object.keys(results[0]);
+        const labels = results.map(result => result[titles[0]]);
+        const data = results.map(result => result[titles[1]]);
+        
+        chart = new Chart(ctx, {
+            type:'pie',
+            data:{
+                labels: labels,
+                datasets: [{
+                    data: convertToPercentage(data),
+                    label: ['%',String(titles[1])].join(''),
+                }]
+
+            },
+            options: { 
+                plugins:{
+                    title: {
+                            display: true,
+                            text: [String(titles[1]), ' by ', String(titles[0])].join(''),
+                        },
+                    autocolors:{
+                        enabled:false,
+                    }
+                }
+            }
+        });
     const tableBody = document.getElementById('dataTable');
     const tableHead = document.getElementById('tableHead');
     // Clear existing table content
@@ -407,5 +528,97 @@ function createChart(results){
         tableBody.appendChild(row);
     }
 }
+
+    //Bar chart
+    else{ 
+        const titles = Object.keys(results[0]);
+        const labels = results.map(result => result[titles[0]]);
+        const data = results.map(result => result[titles[1]]);
+        chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: titles[1],
+                data: data,
+            }]
+        },
+        options: {  
+            plugins: {
+                title: {
+                    display: true,
+                    text: [String(titles[1]), ' by ', String(titles[0])].join(' ')
+                },
+                autocolors: {
+                    enabled:true,
+                    mode: 'data',
+                    offset: Math.floor(Math.random()*20)
+                },
+                datalabels: {
+                    clamp: true
+                },
+                legend: {
+                    display: false
+                },
+            },
+            scales: {
+                y: {
+                    title:{
+                    display:true,
+                    text: String(titles[1])
+                    }
+                },
+                x:{
+                    title:{
+                    display:true,
+                    text: String(titles[0])
+                    }
+                }
+            }
+            },
+        });
+    const tableBody = document.getElementById('dataTable');
+    const tableHead = document.getElementById('tableHead');
+    // Clear existing table content
+    tableBody.innerHTML = '';
+    tableHead.innerHTML = '';
+
+    // Update table header
+    titles.forEach(title => {
+        const th = document.createElement('th');
+        th.textContent = title;
+        tableHead.appendChild(th);
+    });
+
+    // Populate table rows
+    for (let i = 0; i < labels.length; i++) {
+        const row = document.createElement('tr');
+        
+        const labelCell = document.createElement('td');
+        labelCell.textContent = labels[i];
+        row.appendChild(labelCell);
+        
+        const dataCell = document.createElement('td');
+        dataCell.textContent = data[i];
+        row.appendChild(dataCell);
+    
+        tableBody.appendChild(row);
+    }
+    }   
+    function convertToPercentage(data) {
+        const total = data.reduce((acc, val) => acc + val, 0);
+        const percentages = data.map(value => ((value * 100) / total).toFixed(2));
+        return percentages;
+    }
+}
     </script>
+    <canvas id="myChart"  height="150" width="150" aria-label="chart" role="img"></canvas>
+ 
+    <table>
+       <thead id="tableHead">
+       </thead>
+       <tbody id="dataTable">
+       </tbody>
+    </table>
+            
 </body>
