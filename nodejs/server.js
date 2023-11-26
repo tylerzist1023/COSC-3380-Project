@@ -2515,7 +2515,7 @@ const server = http.createServer(async (req, res) => {
 
                         console.log(youngestFormattedDate);
 
-                        conditions.push('DOB <= ?')
+                        conditions.push('Listener.DOB <= ?')
                         vals.push(youngestFormattedDate)
                     }
                 }
